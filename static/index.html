@@ -1,0 +1,2081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ERCF — Evacuation Risk Classification Framework</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+<link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet"/>
+<style>
+:root {
+  --navy: #1a237e;
+  --navy2: #283593;
+  --l0: #6c757d; --l1: #0ea5e9; --l2: #f59e0b; --l3: #f97316; --l4: #ef4444;
+}
+body { background:#f0f2f5; font-family:'Segoe UI',system-ui,sans-serif; font-size:0.88rem; }
+.app-header {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy2) 100%);
+  color:#fff; padding:1rem 1.5rem;
+  box-shadow:0 2px 10px rgba(0,0,0,.3);
+}
+.app-header h1 { font-size:1.25rem; font-weight:800; letter-spacing:.04em; margin:0; }
+.app-header p  { font-size:.75rem; opacity:.75; margin:0; }
+
+.nav-tabs { background:#fff; border-bottom:2px solid #dee2e6; padding:0 1rem; }
+.nav-tabs .nav-link { font-weight:600; color:#555; border:none; padding:.6rem 1rem; }
+.nav-tabs .nav-link.active { color:var(--navy); border-bottom:3px solid var(--navy); background:none; }
+
+.tab-content { padding:1rem; }
+.card { border:none; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.07); }
+.card-header { font-weight:700; font-size:.82rem; text-transform:uppercase; letter-spacing:.05em; background:#fff; border-bottom:1px solid #f0f0f0; border-radius:10px 10px 0 0 !important; padding:.65rem 1rem; }
+
+/* Sliders */
+.dim-row { display:flex; align-items:center; gap:.5rem; margin-bottom:.55rem; }
+.dim-label { width:130px; font-size:.75rem; font-weight:600; flex-shrink:0; }
+.dim-sub { font-size:.65rem; color:#888; display:block; }
+.dim-range { flex:1; }
+.dim-val { width:28px; text-align:right; font-weight:800; font-size:.9rem; color:var(--navy); }
+input[type=range] { cursor:pointer; accent-color:var(--navy); }
+
+/* Risk card */
+.risk-card {
+  border-radius:12px; padding:1.2rem 1rem; text-align:center;
+  transition:background .3s, color .3s;
+  box-shadow:0 4px 20px rgba(0,0,0,.12);
+}
+.risk-score-num { font-size:3.2rem; font-weight:900; line-height:1; }
+.risk-level-badge { font-size:.65rem; font-weight:800; letter-spacing:.1em; padding:.3em .6em; border-radius:4px; background:rgba(255,255,255,.25); }
+.risk-label-text { font-size:1rem; font-weight:700; margin:.3rem 0 .2rem; }
+.risk-nato { font-size:.72rem; opacity:.85; }
+.risk-decision { font-size:.72rem; margin-top:.5rem; background:rgba(0,0,0,.12); border-radius:6px; padding:.4rem .6rem; text-align:left; }
+.risk-ihl { font-size:.68rem; opacity:.75; margin-top:.3rem; text-align:left; }
+
+/* Evacuation window indicator */
+.evac-window {
+  font-size:.69rem; font-weight:600; margin-top:.45rem;
+  padding:.3rem .55rem; border-radius:5px; text-align:left;
+  display:flex; align-items:flex-start; gap:.3rem;
+}
+.evac-window i { margin-top:.1rem; flex-shrink:0; }
+.evac-moderate { background:rgba(0,0,0,.13); }
+.evac-high     { background:rgba(0,0,0,.18); }
+.evac-critical { background:rgba(0,0,0,.22); }
+.evac-urgent   {
+  background:rgba(255,255,255,.22); font-weight:700;
+  animation:evac-pulse 1.4s ease-in-out infinite;
+}
+.evac-blocked  {
+  background:rgba(0,0,0,.32); font-weight:700;
+  border:1px solid rgba(239,68,68,.55); border-radius:5px;
+}
+@keyframes evac-pulse { 0%,100%{opacity:1} 50%{opacity:.65} }
+
+/* Remaining-cost card */
+.rc-row { display:flex; justify-content:space-between; align-items:center;
+          padding:.35rem .5rem; border-radius:5px; font-size:.78rem; margin-bottom:.3rem; }
+.rc-supply    { background:#eff6ff; border-left:3px solid #3b82f6; }
+.rc-extract   { background:#fff7ed; border-left:3px solid #f97316; }
+.rc-medical   { background:#f0fdf4; border-left:3px solid #22c55e; }
+.rc-total     { background:#fef2f2; border-left:3px solid #ef4444; font-weight:700; }
+.rc-compare   { background:#f8fafc; border:1px dashed #94a3b8; border-radius:5px;
+                font-size:.75rem; padding:.45rem .6rem; margin-top:.5rem; color:#475569; }
+.rc-info      { font-size:.65rem; color:#94a3b8; cursor:help; margin-left:.3rem; }
+.remain-row   { background:#faf5ff; border:1px solid #e9d5ff; border-radius:8px;
+                padding:.55rem .75rem; margin-bottom:.75rem; }
+.rc-src-note  { font-size:.65rem; color:#9ca3af; border-top:1px solid #f3f4f6;
+                padding-top:.5rem; margin-top:.6rem; line-height:1.5; }
+
+/* Stat mini cards */
+.stat-mini { background:#fff; border-radius:8px; padding:.75rem; box-shadow:0 2px 6px rgba(0,0,0,.06); }
+.stat-mini .val { font-size:1.4rem; font-weight:800; color:var(--navy); }
+.stat-mini .lbl { font-size:.68rem; color:#888; text-transform:uppercase; letter-spacing:.05em; }
+
+/* Trigger alerts */
+.trigger-alert { border-left:4px solid #ef4444; background:#fff5f5; padding:.4rem .75rem; font-size:.75rem; border-radius:4px; margin-top:.4rem; }
+
+/* Charts */
+.chart-box { position:relative; height:230px; }
+.chart-box-sm { position:relative; height:190px; }
+
+/* Historical table */
+.tbl-hist th { font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; background:#f8f9fa; }
+.tbl-hist td { font-size:.8rem; vertical-align:middle; }
+.tbl-hist tr { cursor:pointer; }
+.tbl-hist tr:hover { background:#f0f4ff; }
+
+/* Level color badges */
+.lbadge-0 { background:var(--l0);color:#fff; }
+.lbadge-1 { background:var(--l1);color:#fff; }
+.lbadge-2 { background:var(--l2);color:#000; }
+.lbadge-3 { background:var(--l3);color:#fff; }
+.lbadge-4 { background:var(--l4);color:#fff; }
+
+/* Saved scenario cards */
+.sc-card { cursor:pointer; transition:transform .15s; border-left:4px solid var(--navy); }
+.sc-card:hover { transform:translateY(-2px); }
+
+/* Modal */
+.modal-lesson li { font-size:.8rem; margin-bottom:.3rem; }
+.modal-ihl-badge { font-size:.72rem; }
+
+/* Similar case rows */
+.sim-row { display:flex; align-items:center; gap:.5rem; padding:.4rem .5rem; border-radius:6px; border:1px solid #e9ecef; margin-bottom:.35rem; cursor:pointer; transition:background .15s; }
+.sim-row:hover { background:#f0f4ff; }
+
+.section-divider { border-top:2px dashed #dee2e6; margin:1rem 0; }
+
+/* Data confidence indicators */
+.conf-dot { display:inline-block; width:8px; height:8px; border-radius:50%; vertical-align:middle; flex-shrink:0; }
+.conf-validated   { background:#22c55e; }
+.conf-estimated   { background:#f59e0b; }
+.conf-unvalidated { background:#ef4444; }
+.cost-conf-table td { font-size:.73rem; padding:.18rem .35rem; vertical-align:middle; }
+.cost-conf-table tr:hover { background:#f8f9fa; }
+.conf-legend { display:flex; flex-wrap:wrap; gap:.75rem; font-size:.68rem; color:#555; margin-top:.4rem; }
+.conf-legend span { display:flex; align-items:center; gap:.3rem; }
+
+/* Cost warning banner */
+.cost-warning { border:1px solid #f59e0b; border-radius:8px; overflow:hidden; margin-bottom:.75rem; }
+.cost-warning-toggle { width:100%; display:flex; align-items:center; gap:.4rem; background:#fffbeb; border:none; padding:.45rem .75rem; cursor:pointer; font-size:.72rem; font-weight:700; color:#92400e; text-align:left; }
+.cost-warning-toggle:hover { background:#fef3c7; }
+.cost-warning-body { background:#fffde7; padding:.5rem .75rem; font-size:.72rem; color:#78350f; border-top:1px solid #fde68a; line-height:1.5; }
+.cost-warning.collapsed .cost-warning-body { display:none; }
+
+/* Dimension inline help panels */
+.dim-help-btn {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:13px; height:13px; border-radius:50%;
+  border:1px solid #adb5bd; background:none;
+  font-size:.58rem; font-weight:800; color:#888;
+  cursor:pointer; padding:0; margin-left:3px;
+  vertical-align:middle; line-height:1;
+  transition:background .15s, color .15s, border-color .15s;
+}
+.dim-help-btn:hover, .dim-help-btn.active { background:var(--navy); color:#fff; border-color:var(--navy); }
+.dim-help-panel {
+  display:none; background:#f8fafb;
+  border:1px solid #e0e8f0; border-left:3px solid var(--navy);
+  border-radius:0 6px 6px 0; padding:.5rem .7rem;
+  margin:-.2rem 0 .45rem 0;
+}
+.dim-help-panel.open { display:block; }
+.scale-level { display:flex; gap:.45rem; align-items:flex-start; margin-bottom:.28rem; }
+.scale-badge { display:inline-flex; align-items:center; justify-content:center; width:1.3rem; height:1.3rem; border-radius:50%; font-size:.62rem; font-weight:800; color:#fff; flex-shrink:0; margin-top:.05rem; }
+.scale-lbl { font-size:.71rem; font-weight:700; }
+.scale-desc { font-size:.67rem; color:#555; line-height:1.35; }
+
+/* Map */
+#map { height:500px; border-radius:10px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,.1); }
+.map-mode-active { background:#1a237e !important; color:#fff !important; border-color:#1a237e !important; }
+.leaflet-popup-content { font-size:.8rem; }
+.map-legend-dot { display:inline-block;width:11px;height:11px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.35);vertical-align:middle;margin-right:3px; }
+@keyframes pulse-ring { 0%{transform:scale(.8);opacity:1}100%{transform:scale(2.4);opacity:0} }
+.pulse-dot::after { content:'';position:absolute;top:0;left:0;width:100%;height:100%;border-radius:50%;animation:pulse-ring 1.5s ease-out infinite;background:inherit; }
+
+/* World choropleth map */
+#worldMap { border-radius:10px; overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,.15); transform:translateZ(0); }
+.country-hover { weight:2; }
+.ctx-panel { height:520px; overflow-y:auto; }
+.ctx-loading { display:flex; align-items:center; justify-content:center; height:200px; flex-direction:column; gap:1rem; }
+.ctx-dim-bar { height:8px; border-radius:4px; background:#e9ecef; margin-top:2px; overflow:hidden; }
+.ctx-dim-fill { height:100%; border-radius:4px; transition:width .4s ease; }
+.acaps-badge { font-size:.65rem; padding:.2em .5em; border-radius:3px; font-weight:700; }
+.route-pill { display:inline-block; background:#e8f0fe; color:#1a237e; border-radius:4px; padding:.15em .5em; font-size:.72rem; margin:.2rem .2rem 0 0; }
+.actor-pill { display:inline-block; background:#e8f5e9; color:#2e7d32; border-radius:4px; padding:.15em .5em; font-size:.72rem; margin:.2rem .2rem 0 0; }
+.obstacle-item { font-size:.77rem; padding:.25rem 0; border-bottom:1px solid #f5f5f5; }
+.world-filter-btn { font-size:.72rem; padding:.25rem .6rem; }
+.world-filter-btn.active { box-shadow:inset 0 2px 4px rgba(0,0,0,.15); }
+.spinner-ring { display:inline-block; width:32px; height:32px; border:3px solid #dee2e6; border-top-color:#1a237e; border-radius:50%; animation:spin .8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* ── Footer ─────────────────────────────────────────────────────────── */
+.app-footer {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy2) 100%);
+  color: rgba(255,255,255,.7); font-size:.7rem;
+  padding:.55rem 1.5rem;
+  display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.5rem;
+}
+.app-footer a { color:rgba(255,255,255,.85); text-decoration:none; }
+.app-footer a:hover { color:#fff; text-decoration:underline; }
+
+/* ── References modal ───────────────────────────────────────────────── */
+.ref-section-title {
+  font-size:.7rem; font-weight:800; letter-spacing:.07em; text-transform:uppercase;
+  color:var(--navy); border-bottom:2px solid #e2e8f0;
+  padding-bottom:.25rem; margin:.9rem 0 .4rem;
+}
+.ref-section-title:first-child { margin-top:0; }
+.ref-source {
+  display:flex; align-items:flex-start; gap:.45rem;
+  padding:.28rem 0; border-bottom:1px solid #f1f5f9; font-size:.77rem; line-height:1.45;
+}
+.ref-source:last-child { border-bottom:none; }
+.ref-tag {
+  font-size:.58rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+  border-radius:3px; padding:.18em .45em; white-space:nowrap; flex-shrink:0; margin-top:.15rem;
+}
+.ref-tag-risk   { background:#dbeafe; color:#1e40af; }
+.ref-tag-cost   { background:#dcfce7; color:#166534; }
+.ref-tag-access { background:#fef3c7; color:#92400e; }
+.ref-tag-impact { background:#fce7f3; color:#831843; }
+.ref-tag-hist   { background:#f1f5f9; color:#334155; }
+.ref-tag-ihl    { background:#ede9fe; color:#5b21b6; }
+.ref-tag-unval  { background:#fef2f2; color:#991b1b; }
+.ref-link { font-size:.68rem; color:var(--navy); margin-left:.3rem; opacity:.55; vertical-align:middle; }
+.ref-link:hover { opacity:1; }
+.ref-note-box {
+  background:#fef2f2; border:1px solid #fecaca; border-left:4px solid #ef4444;
+  border-radius:6px; padding:.55rem .8rem; font-size:.74rem; color:#7f1d1d; margin-top:.9rem;
+}
+.ref-proto-note {
+  background:#f0fdf4; border:1px solid #bbf7d0; border-left:4px solid #22c55e;
+  border-radius:6px; padding:.5rem .8rem; font-size:.74rem; color:#14532d; margin-top:.6rem;
+}
+
+/* ── Deployment assumption disclosure banner ────────────────────────── */
+.deploy-notice { border:1px solid #f59e0b; border-left:3px solid #d97706; border-radius:6px; overflow:hidden; margin-bottom:.6rem; }
+.deploy-notice-hdr {
+  display:flex; align-items:center; justify-content:space-between;
+  background:#fffbeb; border:none; padding:.4rem .65rem;
+  cursor:pointer; font-size:.72rem; font-weight:700; color:#92400e; width:100%; text-align:left;
+}
+.deploy-notice-hdr:hover { background:#fef3c7; }
+.deploy-notice-body { background:#fffde7; padding:.45rem .65rem; font-size:.72rem; color:#78350f; border-top:1px solid #fde68a; line-height:1.55; }
+.deploy-notice.collapsed .deploy-notice-body { display:none; }
+
+/* ── Weights transparency panel ─────────────────────────────────────── */
+.wt-btn {
+  font-size:.65rem; font-weight:600; padding:.15rem .5rem; border-radius:4px;
+  border:1px solid #cbd5e1; background:#f8fafc; color:#475569;
+  cursor:pointer; white-space:nowrap; line-height:1.4;
+  transition:background .15s, color .15s, border-color .15s;
+}
+.wt-btn:hover, .wt-btn.active { background:var(--navy); color:#fff; border-color:var(--navy); }
+.wt-table { width:100%; font-size:.72rem; border-collapse:collapse; }
+.wt-table th {
+  font-size:.63rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em;
+  color:#475569; background:#f1f5f9; padding:.22rem .4rem;
+  border-bottom:2px solid #e2e8f0; white-space:nowrap;
+}
+.wt-table td { padding:.22rem .4rem; border-bottom:1px solid #f5f7fa; vertical-align:middle; }
+.wt-table tbody tr:last-child td { border-bottom:none; font-weight:800; background:#f8fafc; }
+.wt-bar { height:5px; border-radius:3px; background:#e2e8f0; overflow:hidden; flex:1; min-width:30px; }
+.wt-bar-fill { height:100%; border-radius:3px; background:var(--navy); transition:width .25s ease; }
+.wt-score-line {
+  font-size:.74rem; color:#1e293b; background:#f0f4ff;
+  border-left:3px solid var(--navy); border-radius:0 5px 5px 0;
+  padding:.3rem .65rem; margin-bottom:.3rem; line-height:1.6;
+}
+.wt-trigger { font-size:.72rem; padding:.3rem .65rem; border-radius:5px; margin-bottom:.3rem; line-height:1.5; }
+.wt-trigger-ok   { background:#f0fdf4; border-left:3px solid #22c55e; color:#14532d; }
+.wt-trigger-warn { background:#fffbeb; border-left:3px solid #f59e0b; color:#92400e; }
+.wt-disclaimer { font-size:.62rem; color:#94a3b8; line-height:1.5; }
+
+/* ── Cost comparison panel ──────────────────────────────────────────── */
+.cmp-panel-hdr {
+  font-size:.73rem; font-weight:800; text-transform:uppercase;
+  letter-spacing:.05em; background:var(--navy); color:#fff;
+  padding:.5rem .85rem; border-radius:8px 8px 0 0;
+  display:flex; align-items:center; justify-content:space-between;
+  cursor:pointer; user-select:none;
+}
+.cmp-panel-hdr:hover { background:var(--navy2); }
+.cmp-row {
+  display:flex; align-items:center;
+  padding:.28rem .6rem; font-size:.77rem;
+  border-bottom:1px solid #f1f5f9;
+}
+.cmp-row:last-child { border-bottom:none; }
+.cmp-row-lbl { flex:1; color:#64748b; font-size:.71rem; padding-right:.5rem; min-width:0; }
+.cmp-col { min-width:6rem; text-align:right; font-weight:600; color:#1e293b; font-size:.76rem; }
+.cmp-col-curr { border-right:1px solid #e9ecef; padding-right:.6rem; margin-right:.6rem; }
+.cmp-warn {
+  background:#fffbeb; border:1px solid #fde68a; border-left:3px solid #f59e0b;
+  border-radius:5px; padding:.4rem .65rem; font-size:.72rem; color:#92400e; line-height:1.5;
+}
+.cmp-footnote { font-size:.63rem; color:#94a3b8; line-height:1.5; border-top:1px solid #f1f5f9; padding-top:.35rem; }
+
+/* ── Model limitations panel ────────────────────────────────────────── */
+.model-limits-toggle {
+  width:100%; display:flex; align-items:center; gap:.4rem;
+  background:#f8f9fa; border:none; padding:.35rem .65rem;
+  font-size:.72rem; color:#64748b; cursor:pointer; text-align:left;
+  transition:background .15s;
+}
+.model-limits-toggle:hover { background:#e9ecef; color:#334155; }
+.model-limits-body {
+  background:#f8f9fa; padding:.5rem .75rem;
+  font-size:.72rem; color:#475569; line-height:1.65; border-top:1px solid #e9ecef;
+}
+.model-limits-body ul { margin:.2rem 0 .3rem; padding-left:1.2rem; }
+.model-limits-body li { margin-bottom:.18rem; }
+
+/* ── Map pin feature ─────────────────────────────────────────────────── */
+#pinMap { z-index:0; }
+.pin-sugg { display:flex;align-items:center;gap:.5rem;padding:.25rem .45rem;border-radius:5px;cursor:pointer;margin-bottom:.2rem;font-size:.76rem;border:1px solid #bbf7d0;background:#f0fdf4;transition:background .15s; }
+.pin-sugg:hover, .pin-sugg.active { background:#dcfce7;border-color:#86efac; }
+.pin-sugg-dist { font-weight:700;color:#166534;min-width:3.5rem; }
+.pin-result-highlighted { background:#eff6ff !important; }
+
+/* ── ERCF UN-Style Redesign v2 ─────────────────────────────────────── */
+
+/* === GLOBAL === */
+body { background: #f2f5f9 !important; }
+
+/* === HEADER === */
+.navbar, nav.navbar { background: #003F87 !important; border-bottom: 3px solid #009EDB !important; padding-top: 0 !important; padding-bottom: 0 !important; min-height: 52px !important; }
+.navbar-brand { color: #fff !important; font-size: 13px !important; font-weight: 600 !important; letter-spacing: .04em !important; }
+.navbar small, .navbar .navbar-text { color: rgba(255,255,255,.55) !important; font-size: 10px !important; }
+#navLevelBadge, .navbar .badge { background: #E05C2A !important; color: #fff !important; font-size: 10px !important; font-weight: 600 !important; padding: 3px 9px !important; border-radius: 3px !important; letter-spacing: .05em !important; }
+.navbar .btn-outline-light, .navbar .btn-outline-secondary { color: rgba(255,255,255,.7) !important; border-color: rgba(255,255,255,.25) !important; font-size: 10px !important; }
+
+/* === TABS === */
+.nav-tabs { background: #fff !important; border-bottom: 1px solid #dde3ec !important; padding: 0 1rem !important; }
+.nav-tabs .nav-link { color: #6b7c93 !important; font-size: 11px !important; font-weight: 600 !important; letter-spacing: .05em !important; text-transform: uppercase !important; border: none !important; border-bottom: 2px solid transparent !important; padding: 13px 18px !important; border-radius: 0 !important; background: transparent !important; }
+.nav-tabs .nav-link.active { color: #009EDB !important; border-bottom-color: #009EDB !important; }
+.nav-tabs .nav-link:hover:not(.active) { color: #1a3a6b !important; }
+
+/* === CONTENT AREA === */
+.tab-content, .tab-pane { background: #f2f5f9 !important; }
+
+/* === CARDS === */
+.card { background: #fff !important; border: 1px solid #dde3ec !important; border-radius: 8px !important; box-shadow: none !important; }
+.card-header { background: #fff !important; border-bottom: 1px solid #edf0f5 !important; padding: .65rem 1rem !important; font-size: 10px !important; font-weight: 700 !important; letter-spacing: .08em !important; text-transform: uppercase !important; color: #4a5568 !important; }
+.card-header i, .card-header .fas, .card-header .far { color: #009EDB !important; }
+
+/* === STAT MINI TILES === */
+.stat-mini { background: #f7fafd !important; border: 1px solid #dde3ec !important; border-radius: 6px !important; }
+.stat-mini .val { color: #003F87 !important; font-weight: 600 !important; }
+.stat-mini .lbl { font-size: 9px !important; letter-spacing: .06em !important; text-transform: uppercase !important; color: #8898aa !important; }
+
+/* === THREE-INDEX SCORES === */
+[data-role="riskSevScore"], [data-role="feasScore"], [data-role="infoScore"] { color: #003F87 !important; }
+.progress-bar { background-color: #009EDB !important; }
+
+/* === RISK WINDOW DISCLAIMER — white on amber === */
+#riskWindow span[style*="color:#9ca3af"],
+#riskWindow span[style*="color: #9ca3af"],
+.evac-window span { color: rgba(255,255,255,.78) !important; font-style: italic !important; font-size: .67rem !important; }
+
+/* === BUTTONS === */
+.btn-primary { background: #009EDB !important; border-color: #009EDB !important; color: #fff !important; font-size: 11px !important; font-weight: 600 !important; letter-spacing: .04em !important; text-transform: uppercase !important; border-radius: 5px !important; }
+.btn-primary:hover { background: #0086be !important; border-color: #0086be !important; }
+.btn-outline-primary { background: #fff !important; color: #009EDB !important; border-color: #009EDB !important; font-size: 11px !important; font-weight: 600 !important; letter-spacing: .04em !important; text-transform: uppercase !important; border-radius: 5px !important; }
+.btn-outline-primary:hover { background: #009EDB !important; color: #fff !important; }
+.btn-outline-secondary { font-size: 11px !important; border-radius: 5px !important; }
+.btn-sm { font-size: 10px !important; padding: 3px 10px !important; }
+
+/* === FORM CONTROLS === */
+.form-control, .form-select { background: #fff !important; border-color: #cdd5e0 !important; border-radius: 5px !important; font-size: 13px !important; color: #1a2940 !important; }
+.form-control:focus, .form-select:focus { border-color: #009EDB !important; box-shadow: 0 0 0 3px rgba(0,158,219,.12) !important; background: #fff !important; }
+.form-label, label.form-label { font-size: 12px !important; font-weight: 600 !important; color: #1a2940 !important; }
+
+/* === SLIDERS === */
+input[type=range] { accent-color: #009EDB !important; }
+
+/* === BADGES === */
+.badge { border-radius: 3px !important; font-size: 10px !important; letter-spacing: .04em !important; padding: 3px 8px !important; font-weight: 600 !important; }
+.badge.bg-danger { background-color: #E05C2A !important; }
+.badge.bg-warning { background-color: #d97706 !important; }
+.badge.bg-success { background-color: #0a6e50 !important; }
+.badge.bg-info { background-color: #009EDB !important; }
+.badge.bg-primary { background-color: #003F87 !important; }
+
+/* === ALERT / NOTICE BOXES === */
+.alert-warning { background: #fffdf5 !important; border-color: #e8c84a !important; border-left: 3px solid #d97706 !important; border-radius: 6px !important; }
+.alert-danger { background: #fff8f7 !important; border-color: #f0a080 !important; border-left: 3px solid #E05C2A !important; border-radius: 6px !important; }
+.alert-info { background: #f0f8ff !important; border-color: #a8d4f0 !important; border-left: 3px solid #009EDB !important; border-radius: 6px !important; }
+
+/* === TABLE === */
+.table { font-size: 12px !important; }
+.table thead th { font-size: 10px !important; letter-spacing: .06em !important; text-transform: uppercase !important; color: #8898aa !important; border-bottom-color: #dde3ec !important; font-weight: 600 !important; }
+.table td, .table th { border-color: #edf0f5 !important; }
+
+/* === MODEL VS DOCUMENTED — neutral palette, not semaphore === */
+.model-col { color: #4a5568 !important; }
+.source-col { color: #003F87 !important; }
+
+/* === UTILITY === */
+a { color: #009EDB !important; }
+a:hover { color: #0086be !important; }
+#unitToggleBtn { background: transparent !important; border: 1px solid #cdd5e0 !important; color: #6b7c93 !important; font-size: 10px !important; padding: 2px 8px !important; border-radius: 4px !important; }
+#unitToggleBtn:hover { border-color: #009EDB !important; color: #009EDB !important; }
+#personnelRateToggleBtn { font-size: 10px !important; padding: 2px 8px !important; border-radius: 4px !important; }
+
+/* === VEHICLE/PERSONNEL BADGES in resources panel === */
+.badge-std-bus, .badge-med-bus, .badge-amb,
+.badge-sec, .badge-med-staff, .badge-para, .badge-driver {
+  font-size: 10px !important; font-weight: 600 !important;
+  border-radius: 3px !important; padding: 3px 9px !important;
+}
+
+/* === RISK WINDOW DISCLAIMER — force white regardless of inline style === */
+#riskWindow > div { color: rgba(255,255,255,.85) !important; }
+#riskWindow * { color: rgba(255,255,255,.80) !important; }
+#riskWindow strong { color: #fff !important; font-style: normal !important; }
+
+/* === NOTICE/ALERT BOXES — less visual weight === */
+.deploy-notice, #deployNotice,
+.cost-warning, #costWarning {
+  border-radius: 5px !important;
+  font-size: .78rem !important;
+}
+.deploy-notice summary, #deployNotice summary,
+.cost-warning summary, #costWarning summary {
+  font-size: .75rem !important;
+  font-weight: 600 !important;
+  color: #6b4f00 !important;
+}
+
+/* === CONFIDENCE TABLE DOTS — toned down === */
+.conf-dot { width: 8px !important; height: 8px !important; border-radius: 50% !important; display: inline-block !important; }
+.conf-dot.validated { background: #0a6e50 !important; }
+.conf-dot.estimated { background: #d97706 !important; }
+.conf-dot.unvalidated { background: #c0392b !important; }
+
+/* === LEVEL BADGES in historical cases — use existing level colors consistently === */
+.hist-level-badge, [class*="hist-badge"],
+.badge[style*="background:#e05"] { border-radius: 3px !important; font-size: 10px !important; }
+
+/* === ASSISTANCE COST CARD HEADER — shorter, cleaner === */
+#assistanceCostCard .card-header,
+[id*="assistanceCost"] .card-header { letter-spacing: .05em !important; }
+#assistanceCostCard .card-header small,
+#assistanceCostCard .card-header div[style*="font-size:.68rem"] {
+  font-size: .62rem !important; color: #8898aa !important; text-transform: none !important;
+  letter-spacing: 0 !important; font-weight: 400 !important;
+}
+
+/* === SWITCH TO UN RATES button — less aggressive === */
+#personnelRateToggleBtn {
+  text-transform: none !important; letter-spacing: 0 !important;
+  font-weight: 500 !important; font-size: 11px !important;
+}
+
+/* === PROGRESS BARS in remaining panel === */
+.progress { border-radius: 3px !important; background: #e8eef4 !important; }
+
+/* === RC-ROW breakdown rows — cleaner borders === */
+.rc-row { border-radius: 4px !important; margin-bottom: 4px !important; }
+
+/* === SAVE SCENARIO button — full width prominent === */
+#btnSave, button[onclick*="saveScenario"], .btn-save-scenario {
+  background: #003F87 !important; border-color: #003F87 !important;
+  letter-spacing: .06em !important;
+}
+#btnSave:hover, button[onclick*="saveScenario"]:hover { background: #009EDB !important; border-color: #009EDB !important; }
+
+/* === RESET BUTTON — ghost style === */
+#btnReset, button[onclick*="reset"], .btn-reset {
+  background: transparent !important; color: #8898aa !important;
+  border-color: #dde3ec !important;
+}
+#btnReset:hover { color: #E05C2A !important; border-color: #E05C2A !important; }
+
+/* ── End ERCF UN-Style Redesign v2 ─────────────────────────────────── */
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="app-header">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <h1><i class="fas fa-shield-alt me-2"></i>ERCF — Evacuation Risk Classification Framework</h1>
+      <p>PhD Research Tool · IHL &amp; Civilian Protection · Teresa Cantero / NYU (Ref. Slide 16)</p>
+    </div>
+    <div class="text-end d-flex align-items-center gap-2 flex-wrap justify-content-end">
+      <button class="btn btn-outline-light btn-sm me-2" data-bs-toggle="modal" data-bs-target="#methodologyModal" style="font-size:10px;letter-spacing:.04em">
+        📋 Methodology
+      </button>
+      <button class="btn btn-sm btn-outline-light"
+              data-bs-toggle="modal" data-bs-target="#referencesModal"
+              style="font-size:.7rem;border-color:rgba(255,255,255,.35);opacity:.85">
+        <i class="fas fa-book-open me-1"></i>Sources
+      </button>
+      <span class="badge bg-light text-dark" id="globalRiskBadge">LEVEL — / SCORE —</span>
+    </div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs" id="mainTabs">
+  <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#paneBuilder"><i class="fas fa-sliders me-1"></i>Scenario Builder</a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#paneHistorical"><i class="fas fa-book-open me-1"></i>Historical Cases</a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#paneScenarios"><i class="fas fa-folder-open me-1"></i>Saved Scenarios</a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#paneMap" id="tabMap"><i class="fas fa-map-marked-alt me-1"></i>Map View</a></li>
+</ul>
+
+<div class="tab-content">
+
+<!-- ══════════════════ TAB 1: SCENARIO BUILDER ══════════════════ -->
+<div class="tab-pane fade show active" id="paneBuilder">
+  <div class="row g-3">
+
+    <!-- LEFT: Inputs -->
+    <div class="col-lg-4">
+
+      <!-- Basic parameters -->
+      <div class="card mb-3">
+        <div class="card-header"><i class="fas fa-info-circle me-1"></i>Scenario Parameters</div>
+        <div class="card-body">
+          <div class="mb-2">
+            <label class="form-label fw-semibold" style="font-size:.78rem">Scenario Name</label>
+            <input type="text" class="form-control form-control-sm" id="scenName" value="Unnamed Scenario"/>
+          </div>
+          <div class="mb-2">
+            <label class="form-label fw-semibold" style="font-size:.78rem">Description</label>
+            <textarea class="form-control form-control-sm" id="scenDesc" rows="2" placeholder="Context, region, conflict type…"></textarea>
+          </div>
+          <div class="row g-2">
+            <div class="col-6">
+              <label class="form-label fw-semibold" style="font-size:.78rem">Population at Risk</label>
+              <input type="number" class="form-control form-control-sm" id="inPop" value="10000" min="1"/>
+            </div>
+            <div class="col-6">
+              <div class="mb-1">
+                <label class="form-label fw-semibold mb-0" style="font-size:.78rem">
+                  Vulnerable Population %
+                  <button class="dim-help-btn" onclick="toggleDimHelp(this,'vulnHelpPanel')"
+                          title="What counts as vulnerable?">?</button>
+                </label>
+                <span class="text-muted" style="font-size:.67rem;display:block">(elderly · disabled · children · medical)</span>
+              </div>
+              <input type="number" class="form-control form-control-sm" id="inVuln" value="20" min="0" max="100"/>
+              <div id="vulnU5Display" style="font-size:.67rem;color:#64748b;margin-top:.25rem"></div>
+              <div class="dim-help-panel" id="vulnHelpPanel" style="margin-top:.3rem">
+                <div style="font-size:.7rem;line-height:1.6;color:#334155">
+                  <strong>Vulnerable population includes:</strong> elderly (65+), people with
+                  disabilities, children under 5, pregnant and lactating women, and individuals
+                  with chronic medical conditions. Typically <strong>20–40%</strong> of
+                  conflict-affected populations.<br>
+                  <strong>Children under 5 specifically require:</strong>
+                  <ul style="margin:.2rem 0 .2rem;padding-left:1.1rem;font-size:.68rem">
+                    <li>1 adult escort per child (reduces effective transport capacity)</li>
+                    <li>Medical monitoring every 4–6 hours (increases paramedic requirements)</li>
+                    <li>Specialized nutrition (RUTF, therapeutic milk) not in standard ration</li>
+                    <li>Psychological support on arrival</li>
+                  </ul>
+                  <span style="color:#94a3b8;font-size:.65rem">
+                    Sources: Sphere 2018 Vulnerable Populations chapter;
+                    UNICEF Child Protection in Emergencies 2022.
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-2">
+            <label class="form-label fw-semibold" style="font-size:.78rem">Distance to Safe Destination (<span id="distUnitLabel">km</span>)</label>
+            <button id="unitToggleBtn" type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="toggleUnitSystem()" style="font-size:.65rem;padding:.1rem .4rem">Switch to mi</button>
+            <!-- Route status display (shown after pins confirmed) -->
+            <div id="distRouteDisplay" style="display:none;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:7px 10px;font-size:.74rem;color:#166534;margin-bottom:6px"></div>
+            <input type="number" class="form-control form-control-sm" id="inDist" value="50" min="1"/>
+            <div id="distMapLabel" style="display:none;font-size:.67rem;color:#0369a1;margin-top:.25rem;line-height:1.5"></div>
+            <div id="roadFactorRow" style="display:none;margin-top:.3rem">
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" role="switch" id="roadFactorToggle"
+                       onchange="applyRoadFactor(this.checked)">
+                <label class="form-check-label" for="roadFactorToggle" style="font-size:.7rem;color:#334155">
+                  Apply road factor ×1.3
+                  <span style="color:#94a3b8">(approx. road distance)</span>
+                </label>
+              </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-primary mt-2"
+                    onclick="openPinModal()" style="font-size:.73rem;width:100%">
+              <i class="fas fa-map-pin me-1"></i><span id="btnSetOnMapText">Set on Map</span>
+            </button>
+          </div>
+          <div class="mt-2">
+            <label class="form-label fw-semibold" style="font-size:.78rem">
+              Planned Start Date
+              <i class="fas fa-circle-question ms-1 rc-info"
+                 data-bs-toggle="tooltip" data-bs-placement="right"
+                 data-bs-title="Optional. When a conflict location pin is set, fetches historical climate data (Open-Meteo ERA5 reanalysis) and applies fuel/transport and shelter cost multipliers automatically."
+                 style="cursor:help;font-size:.68rem;color:#94a3b8;vertical-align:middle"></i>
+              <div style="font-size:.65rem;color:#888;font-weight:400">Affects fuel, transport &amp; shelter costs via ERA5 climate data</div>
+            </label>
+            <input type="date" class="form-control form-control-sm" id="inStartDate"
+                   onchange="state.startDate = this.value; if(state.conflictCoords) fetchClimateContext()"/>
+            <div id="climatePanel" style="display:none;margin-top:.4rem;font-size:.72rem;
+                 background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;padding:.45rem .65rem;line-height:1.5">
+              <div id="climateSummary" style="color:#0c4a6e;font-weight:600;margin-bottom:.15rem"></div>
+              <div id="climateDetail" style="color:#075985"></div>
+              <div id="climateProxyNotice" style="display:none;margin-top:.3rem;padding-top:.3rem;border-top:1px solid #bae6fd;font-size:.68rem;font-weight:600;color:#b45309"></div>
+            </div>
+          </div>
+          <div class="mt-2">
+            <label class="form-label fw-semibold mb-1" style="font-size:.78rem">
+              Terrain &amp; Infrastructure
+              <i class="fas fa-circle-question ms-1 rc-info"
+                 data-bs-toggle="tooltip" data-bs-placement="right"
+                 data-bs-title="Terrain and road infrastructure affect transport and fuel costs only. Flat paved terrain (Level 5) is the cost baseline (×1.0). Mountains, dense forest, or poor road networks multiply transport and fuel costs up to ×4.0. Sources: World Bank Rural Access Index (RAI/SDG 9.1.1); Puga Terrain Ruggedness Index (diegopuga.org/data/rugged); ACAPS Humanitarian Access Overview. Note: this multiplier is a modelled estimate — no peer-reviewed evacuation cost figure per terrain class was found in published literature."
+                 style="cursor:help;font-size:.68rem;color:#94a3b8;vertical-align:middle"></i>
+              <div style="font-size:.65rem;color:#888;font-weight:400">Road access · terrain type · seasonal constraints</div>
+            </label>
+            <select class="form-select form-select-sm" id="inTerrain" style="font-size:.78rem">
+              <option value="1">1 — Critical: Mountains/forest, unpaved, seasonal closure &gt;4 months/yr (×4.0)</option>
+              <option value="2">2 — High: Hilly/undulating, mostly unpaved, closure 2–4 months/yr (×2.5)</option>
+              <option value="3" selected>3 — Moderate: Mixed terrain, partly paved, closure 1–2 months/yr (×1.7)</option>
+              <option value="4">4 — Low: Mostly flat, majority paved, minimal seasonal constraints (×1.2)</option>
+              <option value="5">5 — Minimal: Flat, paved, all-season access — baseline (×1.0)</option>
+            </select>
+          </div>
+          <div class="mt-2">
+            <label class="form-label fw-semibold mb-1" style="font-size:.78rem">
+              Conflict Pattern
+              <i class="fas fa-circle-question ms-1 rc-info"
+                 data-bs-toggle="tooltip" data-bs-placement="right"
+                 data-bs-title="Conflict pattern determines what fraction of the population at risk is directly exposed to lethal conditions at any given time. Urban sieges expose the entire population; regional conflicts may directly expose only 10–20%. Sources: derived from calibration against 10 historical conflict cases (ERCF Historical Case Database 1995–2024). Use Auto to derive exposure from D1 Kinetic Threat and population size."
+                 style="cursor:help;font-size:.68rem;color:#94a3b8;vertical-align:middle"></i>
+              <div style="font-size:.65rem;color:#888;font-weight:400">Population exposure to direct fire · mortality modifier</div>
+            </label>
+            <select class="form-select form-select-sm" id="inConflictPattern" style="font-size:.78rem">
+              <option value="1">1 — Urban Siege: Entire population under direct fire (×0.85 exposure)</option>
+              <option value="2">2 — Enclave / Blockade: Confined, partial direct exposure (×0.65)</option>
+              <option value="3">3 — City Conflict: Frontline moves through populated area (×0.40)</option>
+              <option value="4">4 — Regional / Dispersed: Large area, scattered population (×0.12)</option>
+              <option value="5" selected>5 — Auto: Derive from D1 + population size</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dimension sliders -->
+      <div class="card mb-3">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <span><i class="fas fa-chart-radar me-1"></i>7-Dimension Risk Indicators <small class="text-muted fw-normal">(1=Minimal · 5=Critical)</small></span>
+          <button class="wt-btn" id="wtToggleBtn" onclick="toggleWeightsPanel()">
+            <i class="fas fa-scale-balanced me-1"></i>Weights
+          </button>
+        </div>
+
+        <div class="card-body py-2">
+
+          <!-- Weights transparency panel (hidden by default, toggled by button above) -->
+          <div id="weightsPanel" style="display:none;margin-bottom:.6rem">
+            <div id="weightsPanelBody"></div>
+          </div>
+
+          <div class="dim-row">
+            <div class="dim-label">D1 Kinetic Threat<button class="dim-help-btn" onclick="toggleDimHelp(this,'d1help')" title="Show scale criteria">?</button><span class="dim-sub">Airstrikes · artillery · proximity</span></div>
+            <input type="range" class="dim-range dim-slider" id="d1" min="1" max="5" step="0.5" value="3"/>
+            <div class="dim-val" id="d1v">3.0</div>
+          </div>
+          <div class="dim-help-panel" id="d1help">
+            <div class="scale-level"><span class="scale-badge" style="background:#0ea5e9">1</span><div><span class="scale-lbl">Minimal</span><span class="scale-desc"> — No active armed conflict in the area. Last incident over 6 months ago.</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#22c55e">2</span><div><span class="scale-lbl">Low</span><span class="scale-desc"> — Sporadic incidents reported, conflict front line more than 100 km (62 mi) away. No impact on planned route.</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#f59e0b">3</span><div><span class="scale-lbl">Moderate</span><span class="scale-desc"> — Intermittent combat or airstrikes within 50 km (31 mi). Operations possible but require monitoring.</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#f97316">4</span><div><span class="scale-lbl">High</span><span class="scale-desc"> — Active airstrikes or artillery in the operational area. Movement requires armed escort or significant route change.</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#ef4444">5</span><div><span class="scale-lbl">Critical</span><span class="scale-desc"> — Direct fire on civilians in the area. No safe window for movement. Immediate suspension of operations required. At D1 ≥ 4, the evacuation window indicator switches to <strong>NO SAFE EVACUATION WINDOW</strong> — no countdown is shown because movement itself is the hazard.</span></div></div>
+          </div>
+
+          <div class="dim-row">
+            <div class="dim-label">D2 Mobility Constraints<button class="dim-help-btn" onclick="toggleDimHelp(this,'d2help')" title="Show scale criteria">?</button><span class="dim-sub">Wounded · bedridden · no transport · movement barriers</span></div>
+            <input type="range" class="dim-range dim-slider" id="d2" min="1" max="5" step="0.5" value="3"/>
+            <div class="dim-val" id="d2v">3.0</div>
+          </div>
+          <div class="dim-help-panel" id="d2help">
+            <div class="scale-level"><span class="scale-badge" style="background:#0ea5e9">1</span><div><span class="scale-lbl">Minimal</span><span class="scale-desc"> — Population is fully mobile. No physical movement barriers identified. Medical vehicle multiplier ×0.8.</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#22c55e">2</span><div><span class="scale-lbl">Low</span><span class="scale-desc"> — Some individuals require assistance but majority can self-evacuate with minimal support. Medical vehicle multiplier ×1.0 (baseline).</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#f59e0b">3</span><div><span class="scale-lbl">Moderate</span><span class="scale-desc"> — Significant portion requires physical assistance or adapted transport. Movement is slow. Medical vehicle multiplier ×1.3.</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#f97316">4</span><div><span class="scale-lbl">High</span><span class="scale-desc"> — Large number of bedridden, critically wounded, or immobile individuals. Standard transport insufficient. Medical vehicle multiplier ×1.8.</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#ef4444">5</span><div><span class="scale-lbl">Critical</span><span class="scale-desc"> — Mass casualty or complete mobility collapse. Self-evacuation impossible. Full medical extraction required. Medical vehicle multiplier ×2.5.</span></div></div>
+          </div>
+
+          <div class="dim-row">
+            <div class="dim-label">D3 Authorization<button class="dim-help-btn" onclick="toggleDimHelp(this,'d3help')" title="Show scale criteria">?</button><span class="dim-sub">Party consent · ceasefire · IHL compliance</span></div>
+            <input type="range" class="dim-range dim-slider" id="d3" min="1" max="5" step="0.5" value="3"/>
+            <div class="dim-val" id="d3v">3.0</div>
+          </div>
+          <div class="dim-help-panel" id="d3help">
+            <div class="scale-level"><span class="scale-badge" style="background:#0ea5e9">1</span><div><span class="scale-lbl">Minimal</span><span class="scale-desc"> — Full consent from all parties. Formal agreement in place. No legal or political obstacles.</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#22c55e">2</span><div><span class="scale-lbl">Low</span><span class="scale-desc"> — Verbal agreement obtained from key parties. Written confirmation pending but not expected to fail.</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#f59e0b">3</span><div><span class="scale-lbl">Moderate</span><span class="scale-desc"> — Authorization from one party only. Other parties have not confirmed but have not actively opposed.</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#f97316">4</span><div><span class="scale-lbl">High</span><span class="scale-desc"> — Consent contested or revoked by at least one armed actor. Significant IHL compliance concerns.</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#ef4444">5</span><div><span class="scale-lbl">Critical</span><span class="scale-desc"> — Active refusal or obstruction by a party. No valid authorization. Operation would violate IHL or expose civilians to retaliation.</span></div></div>
+          </div>
+
+          <div class="dim-row">
+            <div class="dim-label">D4 Logistics<button class="dim-help-btn" onclick="toggleDimHelp(this,'d4help')" title="Show scale criteria">?</button><span class="dim-sub">Roads · transport · fuel · checkpoints</span></div>
+            <input type="range" class="dim-range dim-slider" id="d4" min="1" max="5" step="0.5" value="3"/>
+            <div class="dim-val" id="d4v">3.0</div>
+          </div>
+          <div class="dim-help-panel" id="d4help">
+            <div class="scale-level"><span class="scale-badge" style="background:#0ea5e9">1</span><div><span class="scale-lbl">Minimal</span><span class="scale-desc"> — All routes passable. Sufficient vehicles and fuel. No checkpoints or administrative obstacles.</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#22c55e">2</span><div><span class="scale-lbl">Low</span><span class="scale-desc"> — Minor road damage or 1–2 checkpoints expected. Route viable with standard planning.</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#f59e0b">3</span><div><span class="scale-lbl">Moderate</span><span class="scale-desc"> — Partial road destruction, fuel scarcity, or multiple hostile checkpoints. Requires contingency route and pre-negotiated passage.</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#f97316">4</span><div><span class="scale-lbl">High</span><span class="scale-desc"> — Primary route blocked. Only high-risk alternatives available. Fuel access critical. Convoy likely to be stopped or delayed significantly.</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#ef4444">5</span><div><span class="scale-lbl">Critical</span><span class="scale-desc"> — No viable ground route. Complete logistical breakdown. Requires airlift, waterway, or operation must be postponed.</span></div></div>
+          </div>
+
+          <div class="dim-row">
+            <div class="dim-label">D5 Destination<button class="dim-help-btn" onclick="toggleDimHelp(this,'d5help')" title="Show scale criteria">?</button><span class="dim-sub">Shelter · food · water · medical capacity</span></div>
+            <input type="range" class="dim-range dim-slider" id="d5" min="1" max="5" step="0.5" value="3"/>
+            <div class="dim-val" id="d5v">3.0</div>
+          </div>
+          <div class="dim-help-panel" id="d5help">
+            <div class="scale-level"><span class="scale-badge" style="background:#0ea5e9">1</span><div><span class="scale-lbl">Minimal</span><span class="scale-desc"> — Destination fully equipped. Shelter, food, water, and medical care available for full population load.</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#22c55e">2</span><div><span class="scale-lbl">Low</span><span class="scale-desc"> — Destination functional but operating near capacity. Minor gaps manageable with pre-positioning.</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#f59e0b">3</span><div><span class="scale-lbl">Moderate</span><span class="scale-desc"> — Destination partially functional. Critical gaps in shelter or medical care. Requires parallel humanitarian prepositioning.</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#f97316">4</span><div><span class="scale-lbl">High</span><span class="scale-desc"> — Destination overwhelmed or insecure. Arriving population at immediate risk of exposure, malnutrition, or violence.</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#ef4444">5</span><div><span class="scale-lbl">Critical</span><span class="scale-desc"> — Destination is unsafe or non-existent. Evacuating population would be placed in equal or greater danger than origin.</span></div></div>
+          </div>
+
+          <div class="dim-row">
+            <div class="dim-label">D6 Urgency<button class="dim-help-btn" onclick="toggleDimHelp(this,'d6help')" title="Show scale criteria">?</button><span class="dim-sub">Imminent attack · window closing · timeline</span></div>
+            <input type="range" class="dim-range dim-slider" id="d6" min="1" max="5" step="0.5" value="3"/>
+            <div class="dim-val" id="d6v">3.0</div>
+          </div>
+          <div class="dim-help-panel" id="d6help">
+            <div class="scale-level"><span class="scale-badge" style="background:#0ea5e9">1</span><div><span class="scale-lbl">Minimal</span><span class="scale-desc"> — No immediate pressure. Operation can be planned and executed over days or weeks without risk escalation.</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#22c55e">2</span><div><span class="scale-lbl">Low</span><span class="scale-desc"> — Situation is stable but deteriorating. Window of 5–7 days before conditions worsen significantly.</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#f59e0b">3</span><div><span class="scale-lbl">Moderate</span><span class="scale-desc"> — Operational window is 48–72 hours. Ceasefire holding but fragile. Action required within days.</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#f97316">4</span><div><span class="scale-lbl">High</span><span class="scale-desc"> — Window closing within 24 hours. Imminent offensive, flooding, or access denial expected. Rapid deployment required.</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#ef4444">5</span><div><span class="scale-lbl">Critical</span><span class="scale-desc"> — Imminent threat to life. Hours or less to act. Any delay results in mass casualties or complete loss of access.</span></div></div>
+          </div>
+
+          <div class="dim-row">
+            <div class="dim-label">D7 Information<button class="dim-help-btn" onclick="toggleDimHelp(this,'d7help')" title="Show scale criteria">?</button><span class="dim-sub">Comms reliability · disinfo · civilian awareness</span></div>
+            <input type="range" class="dim-range dim-slider" id="d7" min="1" max="5" step="0.5" value="3"/>
+            <div class="dim-val" id="d7v">3.0</div>
+          </div>
+          <div class="dim-help-panel" id="d7help">
+            <div class="scale-level"><span class="scale-badge" style="background:#0ea5e9">1</span><div><span class="scale-lbl">Minimal</span><span class="scale-desc"> — Reliable communications with all actors and affected population. No significant disinformation environment.</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#22c55e">2</span><div><span class="scale-lbl">Low</span><span class="scale-desc"> — Communications intermittent but functional. Population generally informed. Minor rumors manageable.</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#f59e0b">3</span><div><span class="scale-lbl">Moderate</span><span class="scale-desc"> — Significant communications gaps. Active disinformation campaigns. Civilian awareness of evacuation low or distorted.</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#f97316">4</span><div><span class="scale-lbl">High</span><span class="scale-desc"> — Communications largely down. Population misinformed or unaware. Hostile narratives actively undermining civilian trust in operation.</span></div></div>
+            <div class="scale-level"><span class="scale-badge" style="background:#ef4444">5</span><div><span class="scale-lbl">Critical</span><span class="scale-desc"> — Complete communications blackout. No channel to reach population or coordinate with parties. Operation is effectively blind.</span></div></div>
+          </div>
+
+          <div class="mt-2 pt-2 border-top">
+            <label class="form-label fw-semibold" id="compareLabel" style="font-size:.78rem">Compare on Radar</label>
+            <select class="form-select form-select-sm" id="compareCase">
+              <option value="">— none —</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-grid gap-2">
+        <button class="btn btn-sm btn-primary" onclick="saveScenario()"><i class="fas fa-save me-1"></i>Save Scenario</button>
+        <button class="btn btn-sm btn-outline-secondary" onclick="resetSliders()"><i class="fas fa-undo me-1"></i>Reset to Default</button>
+      </div>
+    </div>
+
+    <!-- RIGHT: Results -->
+    <div class="col-lg-8">
+
+      <!-- Risk card + radar -->
+      <div class="row g-3 mb-3">
+        <div class="col-md-5">
+          <div class="risk-card h-100" id="riskCard" style="background:#6c757d;color:#fff">
+            <div class="risk-level-badge mb-1" id="riskLevelBadge">LEVEL 0</div>
+            <button class="dim-help-btn" onclick="toggleDimHelp(this,'levelHelp')" title="Show level criteria"
+                    style="color:rgba(255,255,255,.8);border-color:rgba(255,255,255,.45);margin-bottom:.4rem">?</button>
+            <div class="risk-score-num" id="riskScore">—</div>
+            <div class="risk-label-text" id="riskLabel">Baseline / Monitoring</div>
+            <div class="risk-nato" id="riskNato">NATO: Permissive (Stable)</div>
+            <div id="riskWindow"></div>
+          </div>
+        </div>
+        <div class="col-md-7">
+          <div class="card h-100">
+            <div class="card-header">Dimension Profile (Radar)</div>
+            <div class="card-body p-2">
+              <div class="chart-box"><canvas id="radarChart"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="dim-help-panel" id="levelHelp" style="margin-bottom:.5rem">
+        <div class="scale-level">
+          <span class="scale-badge" style="background:#6c757d">0</span>
+          <div><span class="scale-lbl">Baseline / Monitoring</span><span class="scale-desc"> — Score ≤1.5 · NATO: Permissive (Stable). No evacuation required, maintain preparedness planning. GC IV Art. 49 threshold not yet met.</span></div>
+        </div>
+        <div class="scale-level">
+          <span class="scale-badge" style="background:#0ea5e9">1</span>
+          <div><span class="scale-lbl">Low Risk (Advisory)</span><span class="scale-desc"> — Score 1.5–2.5 · NATO: Permissive (Degrading). Facilitate voluntary departure for vulnerable groups; issue early warning. Art. 35 GC IV — voluntary departure right applies.</span></div>
+        </div>
+        <div class="scale-level">
+          <span class="scale-badge" style="background:#f59e0b">2</span>
+          <div><span class="scale-lbl">Moderate Risk (Watchful)</span><span class="scale-desc"> — Score 2.5–3.5 · NATO: Uncertain. Activate Protection Cluster, negotiate humanitarian corridors, exhaust alternatives before proceeding. AP I Art. 57–58 — precautionary measures required.</span></div>
+        </div>
+        <div class="scale-level">
+          <span class="scale-badge" style="background:#f97316">3</span>
+          <div><span class="scale-lbl">High Risk (Contested)</span><span class="scale-desc"> — Score 3.5–4.2 · NATO: Hostile (Partial). Mass evacuation — last resort threshold met. Military/CIMIC escort required, notify all parties. GC IV Art. 49: security of the population so demands.</span></div>
+        </div>
+        <div class="scale-level">
+          <span class="scale-badge" style="background:#ef4444">4</span>
+          <div><span class="scale-lbl">Critical / Emergency</span><span class="scale-desc"> — Score &gt;4.2 · NATO: Hostile (Imminent). Emergency extraction; if window closed, shelter-in-place until corridor opens. GC IV Art. 49(1) — forced transfer = grave breach, Rome Statute Art. 8(2)(b)(viii).</span></div>
+        </div>
+      </div>
+
+      <!-- Three-index panel (Teresa/Yorke framework) — full-width, below risk card + radar -->
+      <div id="threeIndexPanel" style="display:none;margin-bottom:.75rem">
+        <div class="card">
+          <div class="card-body p-0">
+
+            <!-- Matrix recommendation banner -->
+            <div id="matrixBanner" data-role="matrixBanner" style="padding:.55rem .85rem;border-radius:8px 8px 0 0;display:flex;align-items:flex-start;gap:.6rem">
+              <span id="matrixIcon" data-role="matrixIcon" style="font-size:1.1rem;flex-shrink:0;margin-top:.05rem"></span>
+              <div style="min-width:0">
+                <div id="matrixLabel" data-role="matrixLabel" style="font-weight:800;font-size:.82rem;letter-spacing:.01em"></div>
+                <div id="matrixRationale" data-role="matrixRationale" style="font-size:.72rem;opacity:.88;margin-top:.15rem;line-height:1.45"></div>
+                <div id="matrixIHL" data-role="matrixIHL" style="font-size:.67rem;opacity:.72;margin-top:.25rem;font-style:italic"></div>
+              </div>
+            </div>
+
+            <!-- Three sub-index columns -->
+            <div class="row g-0" style="border-top:1px solid rgba(0,0,0,.07)">
+
+              <div class="col-4" style="padding:.55rem .75rem;border-right:1px solid #f1f5f9">
+                <div style="font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#64748b;margin-bottom:.3rem">
+                  Risk Severity
+                  <button class="dim-help-btn" onclick="toggleDimHelp(this,'riskSevHelp')" title="Show scale criteria">?</button>
+                </div>
+                <div style="display:flex;align-items:baseline;gap:.25rem;margin-bottom:.25rem">
+                  <span id="riskSevScore" data-role="riskSevScore" style="font-size:1.3rem;font-weight:800;color:#1e293b">—</span>
+                  <span style="font-size:.65rem;color:#94a3b8">/5</span>
+                </div>
+                <div style="height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden;margin-bottom:.3rem">
+                  <div id="riskSevBar" data-role="riskSevBar" style="height:100%;width:0%;border-radius:3px;transition:width .35s"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:.6rem;color:#94a3b8;margin-top:.15rem;padding:0 1px">
+                  <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+                </div>
+                <div id="riskSevLabel" data-role="riskSevLabel" style="font-size:.69rem;color:#475569;line-height:1.35"></div>
+                <div style="font-size:.63rem;color:#94a3b8;margin-top:.2rem">D1 · D2 · D6</div>
+              </div>
+
+              <div class="col-4" style="padding:.55rem .75rem;border-right:1px solid #f1f5f9">
+                <div style="font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#64748b;margin-bottom:.3rem">
+                  Feasibility
+                  <button class="dim-help-btn" onclick="toggleDimHelp(this,'feasHelp')" title="Show scale criteria">?</button>
+                </div>
+                <div style="display:flex;align-items:baseline;gap:.25rem;margin-bottom:.25rem">
+                  <span id="feasScore" data-role="feasScore" style="font-size:1.3rem;font-weight:800;color:#1e293b">—</span>
+                  <span style="font-size:.65rem;color:#94a3b8">/5</span>
+                </div>
+                <div style="height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden;margin-bottom:.3rem">
+                  <div id="feasBar" data-role="feasBar" style="height:100%;width:0%;border-radius:3px;transition:width .35s"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:.6rem;color:#94a3b8;margin-top:.15rem;padding:0 1px">
+                  <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+                </div>
+                <div id="feasLabel" data-role="feasLabel" style="font-size:.69rem;color:#475569;line-height:1.35"></div>
+                <div style="font-size:.63rem;color:#94a3b8;margin-top:.2rem">D3 · D4 · D5 (inverted)</div>
+              </div>
+
+              <div class="col-4" style="padding:.55rem .75rem">
+                <div style="font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#64748b;margin-bottom:.3rem">
+                  Info Quality
+                  <button class="dim-help-btn" onclick="toggleDimHelp(this,'infoQHelp')" title="Show scale criteria">?</button>
+                </div>
+                <div style="display:flex;align-items:baseline;gap:.25rem;margin-bottom:.25rem">
+                  <span id="infoScore" data-role="infoScore" style="font-size:1.3rem;font-weight:800;color:#1e293b">—</span>
+                  <span style="font-size:.65rem;color:#94a3b8">/5</span>
+                </div>
+                <div style="height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden;margin-bottom:.3rem">
+                  <div id="infoBar" data-role="infoBar" style="height:100%;width:0%;border-radius:3px;transition:width .35s"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:.6rem;color:#94a3b8;margin-top:.15rem;padding:0 1px">
+                  <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+                </div>
+                <div id="infoLabel" data-role="infoLabel" style="font-size:.69rem;color:#475569;line-height:1.35"></div>
+                <div style="font-size:.63rem;color:#94a3b8;margin-top:.2rem">D7 (inverted)</div>
+              </div>
+
+            </div>
+            <div class="dim-help-panel" id="riskSevHelp">
+              <div class="scale-level"><span class="scale-badge" style="background:#0ea5e9">1</span><div><span class="scale-lbl">Minimal</span><span class="scale-desc"> — Very low direct threat to civilian life. No active armed conflict or threat is distant/sporadic.</span></div></div>
+              <div class="scale-level"><span class="scale-badge" style="background:#22c55e">2</span><div><span class="scale-lbl">Low</span><span class="scale-desc"> — Some elevated threat indicators but not posing immediate danger. Manageable with standard precautions.</span></div></div>
+              <div class="scale-level"><span class="scale-badge" style="background:#f59e0b">3</span><div><span class="scale-lbl">Moderate</span><span class="scale-desc"> — Elevated threat, direct danger plausible. Combines kinetic activity, vulnerability of the population, and urgency.</span></div></div>
+              <div class="scale-level"><span class="scale-badge" style="background:#f97316">4</span><div><span class="scale-lbl">High</span><span class="scale-desc"> — Direct threat to civilian life. Active combat indicators, high vulnerability, and/or high urgency combine to create serious danger.</span></div></div>
+              <div class="scale-level"><span class="scale-badge" style="background:#ef4444">5</span><div><span class="scale-lbl">Critical</span><span class="scale-desc"> — Imminent mass-casualty risk. Direct fire, extreme vulnerability, and maximum urgency combine. Derived from D1 (kinetic threat) + D2 (vulnerability) + D6 (urgency).</span></div></div>
+            </div>
+            <div class="dim-help-panel" id="feasHelp">
+              <div class="scale-level"><span class="scale-badge" style="background:#ef4444">1</span><div><span class="scale-lbl">Not viable</span><span class="scale-desc"> — No safe corridor, no authorization, or logistics make movement impossible. Forced evacuation would risk greater harm than staying.</span></div></div>
+              <div class="scale-level"><span class="scale-badge" style="background:#f97316">2</span><div><span class="scale-lbl">Severely constrained</span><span class="scale-desc"> — Partial or contested corridor. Authorization, logistics, or destination conditions are highly unfavorable.</span></div></div>
+              <div class="scale-level"><span class="scale-badge" style="background:#f59e0b">3</span><div><span class="scale-lbl">Borderline</span><span class="scale-desc"> — Corridor exists but with significant risk or friction across authorization, logistics, or destination readiness.</span></div></div>
+              <div class="scale-level"><span class="scale-badge" style="background:#22c55e">4</span><div><span class="scale-lbl">Viable</span><span class="scale-desc"> — Reasonably clear route with manageable friction. Most of authorization, logistics, and destination conditions are favorable.</span></div></div>
+              <div class="scale-level"><span class="scale-badge" style="background:#0ea5e9">5</span><div><span class="scale-lbl">Fully viable</span><span class="scale-desc"> — Clear, authorized route with adequate destination capacity. Derived from D3 (authorization) + D4 (logistics) + D5 (destination), inverted since high raw scores in those dimensions mean worse conditions.</span></div></div>
+            </div>
+            <div class="dim-help-panel" id="infoQHelp">
+              <div class="scale-level"><span class="scale-badge" style="background:#ef4444">1</span><div><span class="scale-lbl">Very poor</span><span class="scale-desc"> — Severe intelligence gaps. Decision-makers are operating nearly blind.</span></div></div>
+              <div class="scale-level"><span class="scale-badge" style="background:#f97316">2</span><div><span class="scale-lbl">Poor</span><span class="scale-desc"> — Major information gaps affecting decision quality. Significant uncertainty about conditions on the ground.</span></div></div>
+              <div class="scale-level"><span class="scale-badge" style="background:#f59e0b">3</span><div><span class="scale-lbl">Adequate</span><span class="scale-desc"> — Some gaps but manageable. Enough information to make a reasonably informed decision.</span></div></div>
+              <div class="scale-level"><span class="scale-badge" style="background:#22c55e">4</span><div><span class="scale-lbl">Good</span><span class="scale-desc"> — Reliable information environment with minor gaps. Decision-makers have a clear picture.</span></div></div>
+              <div class="scale-level"><span class="scale-badge" style="background:#0ea5e9">5</span><div><span class="scale-lbl">Excellent</span><span class="scale-desc"> — Comprehensive, reliable situational awareness. Derived from D7 (information environment), inverted since a high raw D7 score means worse information quality.</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cost comparison panel (visible only when a case is selected in Compare dropdown) -->
+      <div id="costComparePanel" style="display:none" class="mb-3">
+        <div class="cmp-panel-hdr" onclick="toggleCostComparePanel()">
+          <span><i class="fas fa-scale-balanced me-2"></i>COST COMPARISON</span>
+          <i class="fas fa-chevron-up" id="cmpChev"></i>
+        </div>
+        <div id="cmpBody" style="background:#fff;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px;padding:.65rem .7rem"></div>
+      </div>
+
+      <!-- Hard triggers -->
+      <div id="hardTriggers"></div>
+
+      <!-- Similar cases -->
+      <div class="card mb-3">
+        <div class="card-header"><i class="fas fa-history me-1"></i>Most Similar Historical Cases</div>
+        <div class="card-body py-2" id="similarCases">
+          <span class="text-muted small">Loading…</span>
+        </div>
+      </div>
+
+      <!-- Resources -->
+      <div class="card mb-3">
+        <div class="card-header"><i class="fas fa-truck me-1"></i>Resources Required for Evacuation</div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label fw-semibold small mb-1">Transport Mode</label>
+            <select id="transportMode" class="form-select form-select-sm" style="max-width:280px" onchange="onTransportModeChange()">
+              <option value="ground">🚌 Ground vehicle (default)</option>
+              <option value="walking">🚶 Walking (on foot)</option>
+            </select>
+          </div>
+          <div id="groundResourcePanel">
+          <div class="row g-2 mb-3">
+            <div class="col-6 col-md-3">
+              <div class="stat-mini text-center">
+                <div class="val" id="resVeh">—</div>
+                <div class="lbl">🚌 Vehicles</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="stat-mini text-center">
+                <div class="val" id="resPers">—</div>
+                <div class="lbl">👥 Personnel</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="stat-mini text-center">
+                <div class="val" id="resTotal">—</div>
+                <div class="lbl">💰 Total Cost</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="stat-mini text-center">
+                <div class="val" id="resCPP">—</div>
+                <div class="lbl">💵 Cost/Person</div>
+              </div>
+            </div>
+          </div>
+          <div class="row g-2">
+            <div class="col-md-4">
+              <div style="font-size:.73rem; font-weight:700; color:#555; margin-bottom:.3rem;">VEHICLES</div>
+              <div id="detVehicles"></div>
+            </div>
+            <div class="col-md-4">
+              <div style="font-size:.73rem; font-weight:700; color:#555; margin-bottom:.3rem;">PERSONNEL</div>
+              <div id="detPersonnel"></div>
+            </div>
+            <div class="col-md-4">
+              <div style="font-size:.73rem; font-weight:700; color:#555; margin-bottom:.3rem;">SUPPLIES (3-day buffer)</div>
+              <div id="detSupplies"></div>
+            </div>
+          </div>
+          <div class="mt-3">
+            <!-- Deployment assumption disclosure (shown by default; collapsible and dismissible) -->
+            <div class="deploy-notice" id="deployNotice">
+              <button class="deploy-notice-hdr" type="button" onclick="toggleDeployNotice()">
+                <span><i class="fas fa-circle-info me-1"></i>Personnel Cost Assumption</span>
+                <span style="display:flex;align-items:center;gap:.5rem">
+                  <i class="fas fa-chevron-down" id="deployNoticeChev" style="font-size:.6rem"></i>
+                  <span onclick="event.stopPropagation();dismissDeployNotice()"
+                        style="font-size:.68rem;opacity:.7;padding:0 .15rem;line-height:1;cursor:pointer"
+                        title="Dismiss permanently">✕</span>
+                </span>
+              </button>
+              <div class="deploy-notice-body" id="deployNoticeBody">
+                Rates reflect <strong>national staff and NGO field deployment costs</strong>
+                — not UN international professional rates, which are <strong>3–6× higher</strong>
+                ($400–580/day fully loaded in Sudan/Yemen context).
+                <span style="opacity:.8">
+                  Sources: MSF international salary $87–97/day + operational overhead
+                  (doctorswithoutborders.org, 2022);
+                  UN DSA Sudan $270/day, Yemen $225/day
+                  (ICSC/CIRC/DSA/574, March 2023).
+                </span>
+                <strong>Adjust upward if modelling a UN-led operation.</strong>
+                <div class="mt-2 d-flex align-items-center gap-2">
+                  <span id="personnelRateModeLabel" class="small fw-semibold">Current: NGO/national staff rates</span>
+                  <button id="personnelRateToggleBtn" onclick="togglePersonnelRate()" class="btn btn-sm btn-outline-primary" style="font-size:.7rem;padding:.15rem .5rem">Switch to UN rates (×4.5)</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Data confidence warning banner -->
+            <div class="cost-warning" id="costWarning">
+              <button class="cost-warning-toggle" type="button" onclick="toggleCostWarning()">
+                <i class="fas fa-exclamation-triangle me-1"></i>
+                <span>Data Confidence Notice</span>
+                <i class="fas fa-chevron-down ms-auto" id="costWarnChev"></i>
+              </button>
+              <div class="cost-warning-body" id="costWarnBody">
+                Cost estimates marked with <span class="conf-dot conf-unvalidated" style="display:inline-block"></span> are operational assumptions
+                not validated against field data (ICRC, WFP, OCHA, UNDSS). Sphere-validated standards are marked
+                with <span class="conf-dot conf-validated" style="display:inline-block"></span>.
+                Use with caution for academic or operational purposes.<br>
+                <strong>Reference:</strong> Sphere Association, <em>The Sphere Handbook</em>, 4th edition, Geneva, 2018.
+              </div>
+            </div>
+
+            <div class="alert alert-warning alert-sm mb-2 p-2" style="font-size:.75rem">
+              <details>
+                <summary class="fw-semibold" style="cursor:pointer">⚠️ Model Limitation: Conflict Pattern not reflected in resource costs</summary>
+                <div class="mt-1">
+                  The <strong>Conflict Pattern</strong> parameter (Urban Siege, Enclave/Blockade, City Conflict, Regional/Dispersed) currently affects only the mortality and stay-or-evacuate model — it does not adjust evacuation resource costs (security personnel ratios, armoured vehicle requirements, or route length multipliers). In high-intensity conflict contexts (Urban Siege, Enclave/Blockade), actual security and transport costs may be substantially higher than shown. No primary source with validated numerical multipliers by conflict type was identified in the humanitarian operations literature; implementing unvalidated multipliers was judged to risk misleading precision. This limitation should be considered when using cost estimates for Urban Siege or Enclave/Blockade scenarios.
+                </div>
+              </details>
+            </div>
+
+            <!-- Seasonal terrain warning — shown/hidden by renderSeasonalTerrainWarning() -->
+            <div id="seasonalTerrainWarning" style="display:none;margin-bottom:.5rem"></div>
+
+            <!-- Chart -->
+            <div class="card-header" style="font-size:.73rem;">Cost Breakdown (USD)</div>
+            <div class="chart-box-sm mt-1"><canvas id="costBarChart"></canvas></div>
+
+            <!-- Per-line confidence table -->
+            <table class="table table-sm mb-0 cost-conf-table mt-2">
+              <tbody id="costConfBody"></tbody>
+            </table>
+            <div class="conf-legend">
+              <span><span class="conf-dot conf-validated"></span>Sphere 2018 validated</span>
+              <span><span class="conf-dot conf-estimated"></span>Estimated / known basis</span>
+              <span><span class="conf-dot conf-unvalidated"></span>Unvalidated — requires field data</span>
+            </div>
+          </div>
+          </div><!-- /groundResourcePanel -->
+          <div id="altModeResourcePanel" style="display:none"></div>
+        </div>
+      </div>
+
+      <!-- Cost of staying -->
+      <div id="stayPopContext" style="font-size:.72rem;min-height:2em;line-height:1.7;margin-bottom:.35rem"></div>
+      <div class="card mb-3">
+        <div class="card-header"><i class="fas fa-clock me-1"></i>Cost of Civilians Remaining — Per Day Escalation</div>
+        <div class="card-body">
+
+          <!-- Model Limitations notice (collapsed by default) -->
+          <div style="margin-bottom:.75rem;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden">
+            <button class="model-limits-toggle" type="button" onclick="toggleModelLimits()">
+              <i class="fas fa-triangle-exclamation" style="color:#f59e0b;font-size:.75rem"></i>
+              <span class="fw-semibold">Model Limitations — Mortality &amp; Injury Estimates</span>
+              <i class="fas fa-chevron-right ms-auto" id="modelLimitsChev"
+                 style="font-size:.6rem;color:#94a3b8"></i>
+            </button>
+            <div id="modelLimitsBody" style="display:none" class="model-limits-body">
+
+              <!-- Section 1: What this model is for -->
+              <div style="font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:#1a237e;margin-bottom:.25rem">What this model is for</div>
+              <ul style="margin:.2rem 0 .65rem 1.1rem;padding:0;font-size:.72rem">
+                <li><strong>Prospective operational planning:</strong> estimating the human cost of inaction before a crisis escalates — not retrospective mortality forecasting.</li>
+                <li><strong>Planning horizon:</strong> 0–90 days. Accuracy degrades for very long durations (>120 days) due to linear accumulation.</li>
+                <li><strong>Decision support:</strong> when and whether to evacuate. Financial cost estimates are substantially more reliable than death and injury projections.</li>
+              </ul>
+
+              <!-- Section 2: Calibration summary -->
+              <div style="font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:#1a237e;margin-bottom:.25rem">Calibration — 10 historical cases (1995–2024)</div>
+              <table style="font-size:.67rem;width:100%;border-collapse:collapse;margin:.25rem 0 .6rem 0">
+                <tr style="border-bottom:1px solid #e2e8f0;color:#64748b">
+                  <th style="text-align:left;padding:.15rem .3rem">Case</th>
+                  <th style="text-align:right;padding:.15rem .3rem">Recorded</th>
+                  <th style="text-align:right;padding:.15rem .3rem">v4 auto</th>
+                  <th style="text-align:right;padding:.15rem .3rem">auto ×</th>
+                  <th style="text-align:right;padding:.15rem .3rem">named ×</th>
+                  <th style="text-align:left;padding:.15rem .4rem">Status</th>
+                </tr>
+                <tr><td style="padding:.1rem .3rem">Mariupol (urban siege)</td><td style="text-align:right">8,000</td><td style="text-align:right">22,498</td><td style="text-align:right;color:#f97316">2.81×</td><td style="text-align:right;color:#ef4444">4.75×</td><td style="padding:.1rem .4rem;color:#f97316">2–5× overcount</td></tr>
+                <tr><td style="padding:.1rem .3rem">Gaza (enclave/blockade)</td><td style="text-align:right">45,000</td><td style="text-align:right">234,048</td><td style="text-align:right;color:#f97316">5.20×</td><td style="text-align:right;color:#ef4444">11.3×</td><td style="padding:.1rem .4rem;color:#ef4444">Famine mortality excluded</td></tr>
+                <tr><td style="padding:.1rem .3rem;color:#94a3b8">Srebrenica (genocide†)</td><td style="text-align:right;color:#94a3b8">8,000</td><td style="text-align:right;color:#94a3b8">13</td><td style="text-align:right;color:#94a3b8">0.002×</td><td style="text-align:right;color:#94a3b8">0.001×</td><td style="padding:.1rem .4rem;color:#94a3b8">Outside scope†</td></tr>
+                <tr><td style="padding:.1rem .3rem">Aleppo (urban siege)</td><td style="text-align:right">31,000</td><td style="text-align:right">10,147</td><td style="text-align:right;color:#f59e0b">0.33×</td><td style="text-align:right;color:#f59e0b">0.48×</td><td style="padding:.1rem .4rem;color:#f59e0b">Undercount (siege evac)</td></tr>
+                <tr style="background:#f0fdf4"><td style="padding:.1rem .3rem"><strong>Kherson</strong></td><td style="text-align:right"><strong>200</strong></td><td style="text-align:right"><strong>119</strong></td><td style="text-align:right;color:#16a34a"><strong>0.59× ✓</strong></td><td style="text-align:right;color:#f59e0b">0.30×</td><td style="padding:.1rem .4rem;color:#16a34a">Within 2× (auto)</td></tr>
+                <tr style="background:#f0fdf4"><td style="padding:.1rem .3rem"><strong>Mosul</strong></td><td style="text-align:right"><strong>9,000</strong></td><td style="text-align:right"><strong>6,354</strong></td><td style="text-align:right;color:#16a34a"><strong>0.71× ✓</strong></td><td style="text-align:right;color:#16a34a"><strong>0.83× ✓</strong></td><td style="padding:.1rem .4rem;color:#16a34a">Within 2× (both modes)</td></tr>
+                <tr><td style="padding:.1rem .3rem">Kosovo (forced disp.)</td><td style="text-align:right">10,317</td><td style="text-align:right">2,853</td><td style="text-align:right;color:#f59e0b">0.28×</td><td style="text-align:right;color:#f59e0b">0.31×</td><td style="padding:.1rem .4rem;color:#f59e0b">Undercount (open corridor)</td></tr>
+                <tr><td style="padding:.1rem .3rem">CAR (regional NIAC)</td><td style="text-align:right">5,000</td><td style="text-align:right">2,427</td><td style="text-align:right;color:#f59e0b">0.49×</td><td style="text-align:right;color:#f59e0b">0.15×</td><td style="padding:.1rem .4rem;color:#f59e0b">Borderline undercount</td></tr>
+                <tr><td style="padding:.1rem .3rem;color:#ef4444">Sudan (dispersed‡)</td><td style="text-align:right;color:#ef4444">15,000</td><td style="text-align:right;color:#ef4444">367,395</td><td style="text-align:right;color:#ef4444">24.5×</td><td style="text-align:right;color:#ef4444">12.3×</td><td style="padding:.1rem .4rem;color:#ef4444">Outside scope‡</td></tr>
+                <tr style="background:#f0fdf4"><td style="padding:.1rem .3rem"><strong>DRC-Goma</strong></td><td style="text-align:right"><strong>3,000</strong></td><td style="text-align:right">12,764</td><td style="text-align:right;color:#f97316">4.25×</td><td style="text-align:right;color:#16a34a"><strong>1.68× ✓</strong></td><td style="padding:.1rem .4rem;color:#16a34a">Within 2× (named)</td></tr>
+              </table>
+              <div style="font-size:.67rem;color:#475569;margin-bottom:.6rem">
+                <strong>2/10 within 2× in auto mode</strong> (Kherson, Mosul). <strong>3 unique cases within 2×</strong> across both modes (add DRC named). Kosovo and CAR are below 0.5× — model undercounts open-corridor forced displacement.
+              </div>
+
+              <!-- Section 3: Known limitations -->
+              <div style="font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:#1a237e;margin-bottom:.25rem">Known limitations</div>
+              <ul style="margin:.2rem 0 .65rem 1.1rem;padding:0;font-size:.72rem">
+                <li><strong>Sudan and Gaza exceed model scope:</strong> Sudan is a conflict dispersed across 1.8M km² (continental scale); Gaza mortality significantly driven by famine/healthcare collapse. Both require purpose-built models.</li>
+                <li><strong>Srebrenica (genocide):</strong> targeted mass killing in 3 days. Model assumes conflict attrition over time. Genocide dynamics are categorically different and not modeled.</li>
+                <li><strong>Famine / disease mortality not included:</strong> blockade-induced starvation and healthcare collapse are absent. This is the primary source of underestimation in prolonged enclave scenarios.</li>
+                <li><strong>Sample size n=10.</strong> No confidence intervals. All parameters are modelled estimates, not statistically derived.</li>
+                <li><strong>Siege cap (pop ≤ 500k):</strong> heuristic threshold. Gaza (2.3M) is excluded from siege cap even though movement was under fire, resulting in some underprotection correction.</li>
+              </ul>
+
+              <!-- Section 4: How to use responsibly -->
+              <div style="font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:#1a237e;margin-bottom:.25rem">How to use this responsibly</div>
+              <div style="font-size:.72rem;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;border-radius:5px;padding:.45rem .6rem;margin-bottom:.4rem">
+                Treat death and injury estimates as <strong>order-of-magnitude indicators</strong>, not precise forecasts. A ratio of 2× to 5× vs the historical record is typical for the best-calibrated cases. Financial cost estimates are substantially more reliable. Always validate against country-specific intelligence and operational context before any operational application.
+              </div>
+
+              <span style="color:#94a3b8;font-size:.66rem">
+                † Srebrenica: targeted genocide — outside model domain regardless of parameter settings.
+                ‡ Sudan 2023: dispersed conflict across 1.8M km² — continental scale exceeds design assumptions.
+                Source: ERCF Mortality Model v4, ERCF Historical Case Database (10 cases, 1995–2024).
+              </span>
+
+            </div><!-- /modelLimitsBody -->
+          </div><!-- /model limits container -->
+
+          <!-- Population remaining in zone -->
+          <div class="remain-row">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <i class="fas fa-people-group" style="color:#7c3aed;font-size:.85rem"></i>
+              <label class="fw-semibold mb-0" style="font-size:.78rem;white-space:nowrap">Population remaining in zone:</label>
+              <div class="form-check form-switch mb-0 ms-auto">
+                <input class="form-check-input" type="checkbox" role="switch" id="remainPctToggle" checked>
+                <label class="form-check-label" for="remainPctToggle" style="font-size:.7rem;color:#555">% mode</label>
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-2 mt-2" id="remainPctRow">
+              <span style="font-size:.72rem;color:#888;white-space:nowrap">0%</span>
+              <input type="range" id="remainPct" min="0" max="100" value="100" step="5"
+                     style="flex:1;accent-color:#7c3aed"/>
+              <span style="font-size:.72rem;color:#888;white-space:nowrap">100%</span>
+              <span class="fw-bold" id="remainPctVal" style="color:#7c3aed;min-width:2.6rem;text-align:right">100%</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 mt-2" id="remainAbsRow" style="display:none">
+              <input type="number" id="remainAbs" min="0" step="100" class="form-control form-control-sm"
+                     style="width:120px;font-size:.82rem" placeholder="# people"/>
+              <span style="font-size:.72rem;color:#888">people remaining</span>
+            </div>
+            <div style="font-size:.68rem;color:#7c3aed;margin-top:.3rem" id="remainPopLabel"></div>
+            <div id="remainVulnLabel" style="margin-top:.2rem"></div>
+          </div>
+
+          <!-- Days slider -->
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <label class="fw-semibold" style="font-size:.78rem; white-space:nowrap">Days remaining:</label>
+            <input type="range" id="stayDays" min="1" max="180" value="30" style="flex:1; accent-color:#ef4444"/>
+            <span class="fw-bold" id="stayDaysVal" style="color:#ef4444; min-width:3rem">30 days</span>
+          </div>
+
+          <!-- Stat cards: Financial / Deaths / Injuries / PTSD -->
+          <div class="row g-2 mb-3">
+            <div class="col-6 col-md-3">
+              <div class="stat-mini text-center">
+                <div class="val text-danger" id="statCost">—</div>
+                <div class="lbl">Financial (USD)</div>
+                <div style="font-size:.61rem;color:#94a3b8;margin-top:.2rem;line-height:1.3">
+                  Risk-scaled survival estimate ($1–$12/person/day) · excludes extraction and medical ·
+                  <a href="#" onclick="document.getElementById('assistanceCostCard').scrollIntoView({behavior:'smooth'});return false;" style="color:#94a3b8;text-decoration:underline dotted">see full delivery cost ↓</a>
+                </div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="stat-mini text-center">
+                <div class="val text-danger" id="statDead">—</div>
+                <div class="lbl">
+                  Est. Deaths
+                  <i class="fas fa-triangle-exclamation"
+                     style="color:#f59e0b;font-size:.55rem;vertical-align:middle;margin-left:2px;cursor:help"
+                     data-bs-toggle="tooltip" data-bs-placement="top"
+                     data-bs-title="Order-of-magnitude estimate. Model v4: 2/10 historical cases within 2× of recorded deaths. Treat as planning indicator, not precise forecast."></i>
+                  <br>
+                  <span style="font-size:.6rem;color:#94a3b8;line-height:1.3">
+                    Order-of-magnitude estimate · 2/10 cases within 2× ·
+                    <a href="#" onclick="document.getElementById('modelLimitsBody').style.display='';
+                                        document.getElementById('modelLimitsChev').className='fas fa-chevron-down ms-auto';
+                                        document.getElementById('modelLimitsChev').style.fontSize='.6rem';
+                                        document.getElementById('modelLimitsChev').style.color='#94a3b8';
+                                        document.getElementById('modelLimitsBody').scrollIntoView({behavior:'smooth',block:'nearest'});
+                                        return false;"
+                       style="color:#64748b;text-decoration:underline dotted">See limitations</a>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="stat-mini text-center">
+                <div class="val text-warning" id="statInj">—</div>
+                <div class="lbl">
+                  Injuries
+                  <i class="fas fa-triangle-exclamation"
+                     style="color:#f59e0b;font-size:.55rem;vertical-align:middle;margin-left:2px;cursor:help"
+                     data-bs-toggle="tooltip" data-bs-placement="top"
+                     data-bs-title="Injury rates derived from ICRC 4:1 ratio against effective death rate. Same model limitations apply as for deaths. See Model Limitations above."></i>
+                </div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3"><div class="stat-mini text-center">
+              <div class="val text-purple" id="statPtsd" style="color:#7c3aed">—</div>
+              <div class="lbl ptsd-lbl"
+                   data-bs-toggle="tooltip" data-bs-placement="top"
+                   data-bs-title="WHO Mental Health in Emergencies 2022: 15-30% PTSD prevalence in conflict-exposed populations. Saturation model: grows linearly to plateau at day 90."
+                   style="cursor:help">
+                Est. PTSD Cases (90d) <i class="fas fa-circle-question" style="font-size:.55rem;opacity:.65;vertical-align:middle"></i>
+              </div>
+            </div></div>
+          </div>
+
+          <!-- Cumulative cost charts -->
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div style="font-size:.73rem; font-weight:700; color:#555; margin-bottom:.3rem;">CUMULATIVE FINANCIAL COST (USD)</div>
+              <div class="chart-wrap"><canvas id="financialChart"></canvas></div>
+            </div>
+            <div class="col-md-6">
+              <div style="font-size:.73rem; font-weight:700; color:#555; margin-bottom:.3rem;">CUMULATIVE HUMAN IMPACT</div>
+              <div class="chart-wrap"><canvas id="humanChart"></canvas></div>
+            </div>
+          </div>
+
+          <!-- Stay context note -->
+          <div id="stayPopContext" style="margin-top:.5rem;font-size:.71rem;color:#64748b;border-top:1px solid #f1f5f9;padding-top:.4rem"></div>
+
+        </div><!-- /card-body: Cost of Civilians Remaining -->
+      </div><!-- /card: Cost of Civilians Remaining -->
+
+      <!-- ── ASSISTANCE COST CARD ───────────────────────────── -->
+      <div class="card mb-3" id="assistanceCostCard">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <div>
+            <span><i class="fas fa-hand-holding-heart me-1"></i>Assistance Cost — People Remaining in Zone</span>
+            <div style="font-size:.68rem;color:#94a3b8;font-weight:400;margin-top:.2rem">Supply delivery + emergency extraction + field medical · all dimension modifiers applied · distinct from the "Financial" survival estimate above</div>
+          </div>
+        </div>
+        <div class="card-body">
+
+          <!-- Deploy notice (collapsible) -->
+          <div id="deployNotice" style="margin-bottom:.6rem;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden">
+            <button onclick="toggleDeployNotice()" type="button"
+                    style="width:100%;text-align:left;padding:.3rem .5rem;background:#fafafa;border:none;
+                           font-size:.72rem;font-weight:600;color:#475569;cursor:pointer;
+                           display:flex;align-items:center;gap:.4rem">
+              <i class="fas fa-satellite-dish" style="color:#64748b;font-size:.7rem"></i>
+              <span>Deployment context</span>
+              <i class="fas fa-chevron-right ms-auto" id="deployNoticeChev" style="font-size:.6rem;color:#94a3b8"></i>
+            </button>
+            <div id="deployNoticeBody" style="display:none;padding:.4rem .6rem;font-size:.72rem;color:#475569"></div>
+          </div>
+
+          <!-- Cost breakdown (collapsible) -->
+          <div id="costWarning" class="collapsed" style="margin-bottom:.6rem;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden">
+            <button onclick="toggleCostWarning()" type="button"
+                    style="width:100%;text-align:left;padding:.3rem .5rem;background:#fafafa;border:none;
+                           font-size:.72rem;font-weight:600;color:#475569;cursor:pointer;
+                           display:flex;align-items:center;gap:.4rem">
+              <i class="fas fa-receipt" style="color:#64748b;font-size:.7rem"></i>
+              <span>Cost configuration</span>
+              <i class="fas fa-chevron-right ms-auto" id="costWarnChev" style="font-size:.6rem;color:#94a3b8"></i>
+            </button>
+            <div id="costWarnBody" style="display:none">
+              <table class="table table-sm table-borderless mb-0" style="font-size:.72rem" id="costConfBody"></table>
+            </div>
+          </div>
+
+          <!-- Cost summary stats -->
+          <div class="row g-2 mb-3">
+            <div class="col-6 col-md-3">
+              <div class="stat-mini text-center">
+                <div class="val" style="color:#0369a1" id="rcTotal">—</div>
+                <div class="lbl">Total Assistance Cost</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="stat-mini text-center">
+                <div class="val" style="color:#dc2626" id="rcCrisisTotal">—</div>
+                <div class="lbl">Crisis Cost (incl. extraction)</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="stat-mini text-center">
+                <div class="val" style="color:#7c3aed" id="rcExtProb">—</div>
+                <div class="lbl">Extraction Probability</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="stat-mini text-center">
+                <div class="val" style="color:#059669" id="rcCPPR">—</div>
+                <div class="lbl">Cost/Person Remaining</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Crisis cost breakdown -->
+          <div id="rcCrisisBreakdown" style="margin-bottom:.6rem;font-size:.72rem"></div>
+
+          <!-- Remaining cost breakdown table -->
+          <div id="rcBreakdown" style="margin-top:.6rem"></div>
+
+        </div><!-- /card-body: Assistance Cost -->
+      </div><!-- /card: Assistance Cost -->
+
+      <!-- ── COST COMPARISON PANEL ─────────────────────────── -->
+      <div id="costComparePanel" style="display:none" class="card mb-3">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <span><i class="fas fa-scale-balanced me-1"></i>Cost Comparison</span>
+          <span id="compareLabel" style="font-size:.75rem;color:#64748b"></span>
+          <button class="btn btn-sm btn-outline-secondary ms-auto" style="font-size:.7rem" onclick="toggleCostComparePanel()">
+            <i class="fas fa-chevron-down" id="cmpChev"></i>
+          </button>
+        </div>
+        <div id="cmpBody" style="display:none" class="card-body" style="font-size:.78rem"></div>
+      </div>
+
+    </div><!-- /col scenario builder -->
+
+  </div><!-- /row main content -->
+</div><!-- /tab-pane paneBuilder -->
+
+<!-- ══════════════════ HISTORICAL CASES PANE ══════════════════ -->
+<div class="tab-pane fade" id="paneHistorical" role="tabpanel">
+  <div class="container-fluid px-3 py-3">
+    <div class="row g-3">
+
+      <!-- Left: table + filter -->
+      <div class="col-md-5">
+        <div class="card">
+          <div class="card-header d-flex align-items-center justify-content-between">
+            <span><i class="fas fa-book-open me-1"></i>Historical Conflict Cases</span>
+            <select id="histFilter" class="form-select form-select-sm" style="width:auto;font-size:.75rem">
+              <option value="">All levels</option>
+              <option value="4">L4 Critical</option>
+              <option value="3">L3 High</option>
+              <option value="2">L2 Moderate</option>
+            </select>
+          </div>
+          <div class="card-body p-0">
+            <table class="table table-sm table-hover mb-0" style="font-size:.78rem">
+              <thead class="table-light">
+                <tr>
+                  <th style="width:3.5rem">Level</th>
+                  <th>Case</th>
+                  <th>Year</th>
+                  <th>Pop. at Risk</th>
+                  <th>Deaths</th>
+                  <th>Duration</th>
+                  <th>Type</th>
+                </tr>
+              </thead>
+              <tbody id="histTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: detail + radar -->
+      <div class="col-md-7">
+        <div class="card mb-3">
+          <div class="card-header"><i class="fas fa-radar me-1"></i>Dimension Comparison — Current vs Historical</div>
+          <div class="card-body">
+            <div class="chart-wrap" style="max-height:220px"><canvas id="radarHistChart"></canvas></div>
+            <div id="radarHistLabel" style="font-size:.7rem;color:#64748b;text-align:center;margin-top:.3rem">
+              Red = current scenario · Blue = selected historical case
+            </div>
+          </div>
+        </div>
+
+        <!-- Case detail panel -->
+        <div class="card" id="caseDetailCard" style="display:none">
+          <div class="card-header d-flex align-items-center justify-content-between">
+            <span id="caseDetailTitle" style="font-weight:700;font-size:.88rem"></span>
+            <button class="dim-help-btn" onclick="toggleDimHelp(this,'levelHelpHist')" title="Show level criteria">?</button>
+          </div>
+          <div class="dim-help-panel" id="levelHelpHist">
+            <div class="scale-level">
+              <span class="scale-badge" style="background:#6c757d">0</span>
+              <div><span class="scale-lbl">Baseline / Monitoring</span><span class="scale-desc"> — Score ≤1.5 · NATO: Permissive (Stable). No evacuation required, maintain preparedness planning. GC IV Art. 49 threshold not yet met.</span></div>
+            </div>
+            <div class="scale-level">
+              <span class="scale-badge" style="background:#0ea5e9">1</span>
+              <div><span class="scale-lbl">Low Risk (Advisory)</span><span class="scale-desc"> — Score 1.5–2.5 · NATO: Permissive (Degrading). Facilitate voluntary departure for vulnerable groups; issue early warning. Art. 35 GC IV — voluntary departure right applies.</span></div>
+            </div>
+            <div class="scale-level">
+              <span class="scale-badge" style="background:#f59e0b">2</span>
+              <div><span class="scale-lbl">Moderate Risk (Watchful)</span><span class="scale-desc"> — Score 2.5–3.5 · NATO: Uncertain. Activate Protection Cluster, negotiate humanitarian corridors, exhaust alternatives before proceeding. AP I Art. 57–58 — precautionary measures required.</span></div>
+            </div>
+            <div class="scale-level">
+              <span class="scale-badge" style="background:#f97316">3</span>
+              <div><span class="scale-lbl">High Risk (Contested)</span><span class="scale-desc"> — Score 3.5–4.2 · NATO: Hostile (Partial). Mass evacuation — last resort threshold met. Military/CIMIC escort required, notify all parties. GC IV Art. 49: security of the population so demands.</span></div>
+            </div>
+            <div class="scale-level">
+              <span class="scale-badge" style="background:#ef4444">4</span>
+              <div><span class="scale-lbl">Critical / Emergency</span><span class="scale-desc"> — Score &gt;4.2 · NATO: Hostile (Imminent). Emergency extraction; if window closed, shelter-in-place until corridor opens. GC IV Art. 49(1) — forced transfer = grave breach, Rome Statute Art. 8(2)(b)(viii).</span></div>
+            </div>
+          </div>
+          <!-- Three-index panel for historical cases — persistent sibling of caseDetailBody
+               so it is not wiped when caseDetailBody.innerHTML is replaced -->
+          <div id="histThreeIndexPanel" style="display:none">
+            <div class="card-body p-0" style="border-top:1px solid rgba(0,0,0,.07)">
+              <div data-role="matrixBanner" style="padding:.55rem .85rem;display:flex;align-items:flex-start;gap:.6rem">
+                <span data-role="matrixIcon" style="font-size:1.1rem;flex-shrink:0;margin-top:.05rem"></span>
+                <div style="min-width:0">
+                  <div data-role="matrixLabel" style="font-weight:800;font-size:.82rem;letter-spacing:.01em"></div>
+                  <div data-role="matrixRationale" style="font-size:.72rem;opacity:.88;margin-top:.15rem;line-height:1.45"></div>
+                  <div data-role="matrixIHL" style="font-size:.67rem;opacity:.72;margin-top:.25rem;font-style:italic"></div>
+                </div>
+              </div>
+              <div class="row g-0" style="border-top:1px solid rgba(0,0,0,.07)">
+                <div class="col-4" style="padding:.55rem .75rem;border-right:1px solid #f1f5f9">
+                  <div style="font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#64748b;margin-bottom:.3rem">Risk Severity <button class="dim-help-btn" onclick="toggleDimHelp(this,'riskSevHelpHist')" title="Show scale criteria">?</button></div>
+                  <div style="display:flex;align-items:baseline;gap:.25rem;margin-bottom:.25rem">
+                    <span data-role="riskSevScore" style="font-size:1.3rem;font-weight:800;color:#1e293b">—</span>
+                    <span style="font-size:.65rem;color:#94a3b8">/5</span>
+                  </div>
+                  <div style="height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden;margin-bottom:.3rem">
+                    <div data-role="riskSevBar" style="height:100%;width:0%;border-radius:3px;transition:width .35s"></div>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-size:.6rem;color:#94a3b8;margin-top:.15rem;padding:0 1px">
+                    <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+                  </div>
+                  <div data-role="riskSevLabel" style="font-size:.69rem;color:#475569;line-height:1.35"></div>
+                  <div style="font-size:.63rem;color:#94a3b8;margin-top:.2rem">D1 · D2 · D6</div>
+                </div>
+                <div class="col-4" style="padding:.55rem .75rem;border-right:1px solid #f1f5f9">
+                  <div style="font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#64748b;margin-bottom:.3rem">Feasibility <button class="dim-help-btn" onclick="toggleDimHelp(this,'feasHelpHist')" title="Show scale criteria">?</button></div>
+                  <div style="display:flex;align-items:baseline;gap:.25rem;margin-bottom:.25rem">
+                    <span data-role="feasScore" style="font-size:1.3rem;font-weight:800;color:#1e293b">—</span>
+                    <span style="font-size:.65rem;color:#94a3b8">/5</span>
+                  </div>
+                  <div style="height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden;margin-bottom:.3rem">
+                    <div data-role="feasBar" style="height:100%;width:0%;border-radius:3px;transition:width .35s"></div>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-size:.6rem;color:#94a3b8;margin-top:.15rem;padding:0 1px">
+                    <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+                  </div>
+                  <div data-role="feasLabel" style="font-size:.69rem;color:#475569;line-height:1.35"></div>
+                  <div style="font-size:.63rem;color:#94a3b8;margin-top:.2rem">D3 · D4 · D5 (inverted)</div>
+                </div>
+                <div class="col-4" style="padding:.55rem .75rem">
+                  <div style="font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#64748b;margin-bottom:.3rem">Info Quality <button class="dim-help-btn" onclick="toggleDimHelp(this,'infoQHelpHist')" title="Show scale criteria">?</button></div>
+                  <div style="display:flex;align-items:baseline;gap:.25rem;margin-bottom:.25rem">
+                    <span data-role="infoScore" style="font-size:1.3rem;font-weight:800;color:#1e293b">—</span>
+                    <span style="font-size:.65rem;color:#94a3b8">/5</span>
+                  </div>
+                  <div style="height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden;margin-bottom:.3rem">
+                    <div data-role="infoBar" style="height:100%;width:0%;border-radius:3px;transition:width .35s"></div>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-size:.6rem;color:#94a3b8;margin-top:.15rem;padding:0 1px">
+                    <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+                  </div>
+                  <div data-role="infoLabel" style="font-size:.69rem;color:#475569;line-height:1.35"></div>
+                  <div style="font-size:.63rem;color:#94a3b8;margin-top:.2rem">D7 (inverted)</div>
+                </div>
+              </div>
+              <div class="dim-help-panel" id="riskSevHelpHist">
+                <div class="scale-level"><span class="scale-badge" style="background:#0ea5e9">1</span><div><span class="scale-lbl">Minimal</span><span class="scale-desc"> — Very low direct threat to civilian life. No active armed conflict or threat is distant/sporadic.</span></div></div>
+                <div class="scale-level"><span class="scale-badge" style="background:#22c55e">2</span><div><span class="scale-lbl">Low</span><span class="scale-desc"> — Some elevated threat indicators but not posing immediate danger. Manageable with standard precautions.</span></div></div>
+                <div class="scale-level"><span class="scale-badge" style="background:#f59e0b">3</span><div><span class="scale-lbl">Moderate</span><span class="scale-desc"> — Elevated threat, direct danger plausible. Combines kinetic activity, vulnerability of the population, and urgency.</span></div></div>
+                <div class="scale-level"><span class="scale-badge" style="background:#f97316">4</span><div><span class="scale-lbl">High</span><span class="scale-desc"> — Direct threat to civilian life. Active combat indicators, high vulnerability, and/or high urgency combine to create serious danger.</span></div></div>
+                <div class="scale-level"><span class="scale-badge" style="background:#ef4444">5</span><div><span class="scale-lbl">Critical</span><span class="scale-desc"> — Imminent mass-casualty risk. Direct fire, extreme vulnerability, and maximum urgency combine. Derived from D1 (kinetic threat) + D2 (vulnerability) + D6 (urgency).</span></div></div>
+              </div>
+              <div class="dim-help-panel" id="feasHelpHist">
+                <div class="scale-level"><span class="scale-badge" style="background:#ef4444">1</span><div><span class="scale-lbl">Not viable</span><span class="scale-desc"> — No safe corridor, no authorization, or logistics make movement impossible. Forced evacuation would risk greater harm than staying.</span></div></div>
+                <div class="scale-level"><span class="scale-badge" style="background:#f97316">2</span><div><span class="scale-lbl">Severely constrained</span><span class="scale-desc"> — Partial or contested corridor. Authorization, logistics, or destination conditions are highly unfavorable.</span></div></div>
+                <div class="scale-level"><span class="scale-badge" style="background:#f59e0b">3</span><div><span class="scale-lbl">Borderline</span><span class="scale-desc"> — Corridor exists but with significant risk or friction across authorization, logistics, or destination readiness.</span></div></div>
+                <div class="scale-level"><span class="scale-badge" style="background:#22c55e">4</span><div><span class="scale-lbl">Viable</span><span class="scale-desc"> — Reasonably clear route with manageable friction. Most of authorization, logistics, and destination conditions are favorable.</span></div></div>
+                <div class="scale-level"><span class="scale-badge" style="background:#0ea5e9">5</span><div><span class="scale-lbl">Fully viable</span><span class="scale-desc"> — Clear, authorized route with adequate destination capacity. Derived from D3 (authorization) + D4 (logistics) + D5 (destination), inverted since high raw scores in those dimensions mean worse conditions.</span></div></div>
+              </div>
+              <div class="dim-help-panel" id="infoQHelpHist">
+                <div class="scale-level"><span class="scale-badge" style="background:#ef4444">1</span><div><span class="scale-lbl">Very poor</span><span class="scale-desc"> — Severe intelligence gaps. Decision-makers are operating nearly blind.</span></div></div>
+                <div class="scale-level"><span class="scale-badge" style="background:#f97316">2</span><div><span class="scale-lbl">Poor</span><span class="scale-desc"> — Major information gaps affecting decision quality. Significant uncertainty about conditions on the ground.</span></div></div>
+                <div class="scale-level"><span class="scale-badge" style="background:#f59e0b">3</span><div><span class="scale-lbl">Adequate</span><span class="scale-desc"> — Some gaps but manageable. Enough information to make a reasonably informed decision.</span></div></div>
+                <div class="scale-level"><span class="scale-badge" style="background:#22c55e">4</span><div><span class="scale-lbl">Good</span><span class="scale-desc"> — Reliable information environment with minor gaps. Decision-makers have a clear picture.</span></div></div>
+                <div class="scale-level"><span class="scale-badge" style="background:#0ea5e9">5</span><div><span class="scale-lbl">Excellent</span><span class="scale-desc"> — Comprehensive, reliable situational awareness. Derived from D7 (information environment), inverted since a high raw D7 score means worse information quality.</span></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="card-body" style="font-size:.8rem" id="caseDetailBody"></div>
+        </div>
+      </div>
+
+    </div><!-- /row historical -->
+  </div><!-- /container historical -->
+</div><!-- /tab-pane paneHistorical -->
+
+<!-- ══════════════════ SCENARIOS PANE ══════════════════ -->
+<div class="tab-pane fade" id="paneScenarios" role="tabpanel">
+  <div class="container-fluid px-3 py-3">
+    <div class="row g-2 mb-3 align-items-center">
+      <div class="col-auto"><h6 class="mb-0 fw-bold" style="font-size:.88rem">Saved Scenarios</h6></div>
+      <div class="col-auto ms-auto">
+        <button class="btn btn-sm btn-outline-primary" onclick="loadSavedScenarios()" style="font-size:.75rem">
+          <i class="fas fa-sync-alt me-1"></i>Refresh
+        </button>
+      </div>
+    </div>
+    <div class="row g-2" id="savedGrid"></div>
+  </div>
+</div><!-- /tab-pane paneScenarios -->
+
+<!-- ══════════════════ MAP PANE ══════════════════ -->
+<div class="tab-pane fade" id="paneMap" role="tabpanel">
+  <div class="map-container-outer">
+
+    <!-- Map controls toolbar -->
+    <div class="map-toolbar">
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <input type="text" id="worldSearch" class="form-control form-control-sm"
+               style="max-width:180px;font-size:.78rem" placeholder="Search country…"/>
+        <div class="btn-group btn-group-sm ms-2" role="group" style="font-size:.72rem">
+          <button id="wfAll" class="btn btn-outline-secondary active" onclick="filterWorldMap(-1)" style="font-size:.7rem">All</button>
+          <button id="wf4"   class="btn btn-outline-danger"           onclick="filterWorldMap(4)"  style="font-size:.7rem">L4</button>
+          <button id="wf3"   class="btn btn-outline-warning"          onclick="filterWorldMap(3)"  style="font-size:.7rem">L3</button>
+          <button id="wf2"   class="btn btn-outline-info"             onclick="filterWorldMap(2)"  style="font-size:.7rem">L2</button>
+          <button id="wf1"   class="btn btn-outline-primary"          onclick="filterWorldMap(1)"  style="font-size:.7rem">L1</button>
+        </div>
+        <div class="ms-2 d-flex align-items-center gap-1" style="font-size:.72rem;color:#475569">
+          <i class="fas fa-exclamation-circle" style="color:#ef4444"></i>
+          <span id="countL4" class="fw-bold" style="color:#ef4444">—</span>
+          <i class="fas fa-exclamation-triangle ms-1" style="color:#f97316"></i>
+          <span id="countL3" class="fw-bold" style="color:#f97316">—</span>
+          <i class="fas fa-info-circle ms-1" style="color:#f59e0b"></i>
+          <span id="countL2" class="fw-bold" style="color:#f59e0b">—</span>
+          <i class="fas fa-circle-dot ms-1" style="color:#0ea5e9"></i>
+          <span id="countL1" class="fw-bold" style="color:#0ea5e9">—</span>
+        </div>
+        <div class="ms-auto">
+          <span id="globalRiskBadge" class="badge" style="background:#ef4444;font-size:.7rem">LEVEL — · SCORE —</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.5rem;margin-top:.3rem;font-size:.72rem;min-height:2.4em">
+        <input type="checkbox" id="chkHistMarkers" checked onchange="toggleHistMarkers(this.checked)"/>
+        <label for="chkHistMarkers" style="color:#475569;cursor:pointer">Show historical case markers</label>
+        <span id="worldHoverLabel" style="margin-left:auto;color:#64748b;font-size:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">Hover a country</span>
+      </div>
+    </div>
+
+    <!-- World choropleth map -->
+    <div id="worldMap" style="height:420px;background:#d4dadc;border-radius:0 0 8px 8px"></div>
+
+    <!-- Pinned distance calculator -->
+    <div class="pin-dist-row">
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <i class="fas fa-map-pin" style="color:#ef4444;font-size:.85rem"></i>
+        <span style="font-size:.78rem;font-weight:600;color:#334155">Distance Calculator</span>
+        <button class="btn btn-sm ms-auto"
+                style="font-size:.72rem;background:#1e3a8a;color:#fff;border:none"
+                data-bs-toggle="modal" data-bs-target="#pinModal">
+          <i class="fas fa-crosshairs me-1"></i>Set pins on map
+        </button>
+      </div>
+      <div id="distMapLabel" style="font-size:.72rem;color:#64748b;margin-top:.25rem"></div>
+      <div style="display:flex;align-items:center;gap:.5rem;margin-top:.3rem" id="roadFactorRow">
+        <input type="checkbox" id="roadFactorToggle"/>
+        <label for="roadFactorToggle" style="font-size:.72rem;color:#475569;cursor:pointer">
+          Apply road factor (+30% for terrain/checkpoints)
+        </label>
+      </div>
+    </div>
+
+    <!-- Country context panel -->
+    <div id="ctxCard" style="margin-top:.5rem" class="card">
+      <div class="card-header d-flex align-items-center gap-2" id="ctxHeader">
+        <i class="fas fa-globe" style="color:#64748b;font-size:.8rem"></i>
+        <span style="font-size:.8rem;font-weight:600">Country Context</span>
+      </div>
+      <div class="card-body" id="ctxBody" style="font-size:.78rem;color:#475569">
+        Click a country on the map to load risk data and context.
+      </div>
+    </div>
+
+  </div><!-- /map-container-outer -->
+</div><!-- /tab-pane paneMap -->
+
+</div><!-- /tab-content -->
+</div><!-- /container-fluid main wrapper -->
+
+<!-- ══════════════════ REFERENCES LINK ══════════════════ -->
+<div style="text-align:center;padding:.6rem;font-size:.72rem;color:#94a3b8;border-top:1px solid #e2e8f0">
+  <i class="fas fa-book me-1"></i>
+  <a href="#" data-bs-toggle="modal" data-bs-target="#referencesModal"
+     style="color:#64748b;text-decoration:none">References &amp; Data Sources</a>
+  &nbsp;·&nbsp;
+  <span style="color:#94a3b8">ERCF v1.0 · June 2026</span>
+</div>
+
+<!-- ══════════════════ REFERENCES MODAL ══════════════════ -->
+<div class="modal fade" id="referencesModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(135deg,#1a237e,#283593);color:#fff;border-radius:6px 6px 0 0">
+        <h5 class="modal-title" style="font-size:.95rem;font-weight:800;letter-spacing:.03em">
+          <i class="fas fa-book-open me-2"></i>References &amp; Data Sources
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="font-size:.8rem;padding:1.2rem 1.4rem">
+
+        <div style="background:#fef9e7;border:1px solid #fde68a;border-radius:6px;padding:.5rem .75rem;font-size:.72rem;color:#7c5e10;margin-bottom:.75rem">
+          <i class="fas fa-circle-info me-1"></i>
+          Some institutional links (UN, WFP, and similar agencies) may return a "403 Forbidden" error depending on your network or region, even though the citation and figure are correct and verified. If a link doesn't open, try copying the URL into a new browser tab, or search the document title directly.
+        </div>
+
+        <!-- METHODOLOGY -->
+        <div class="ref-section-title"><i class="fas fa-flask me-1"></i>Mortality Model Methodology</div>
+        <div class="ref-source">
+          <span class="ref-tag ref-tag-risk">Method</span>
+          <div>
+            <strong>ERCF Mortality Model v4.</strong> Empirically-derived base rates from 10 historical conflict cases (1995–2024). Dimensional modulation via D3×D4 confinement score (×0.5–×8) and D1-population auto-exposure factor (log¹·⁴ falloff). Siege protection cap applied to urban conflicts ≤500k population (D3≤2 AND D1≥4: max_protection=0.30). Auto mode recommended for prospective planning; named Conflict Pattern for retrospective calibration.
+            Calibration: 2/10 cases within 2× in auto mode (Kherson 0.59×, Mosul 0.71×); 3 unique cases within 2× across both modes (add DRC-Goma named 1.68×). Full calibration data in the Historical Cases tab → case detail panel.
+            <br><em>Citation: ERCF Mortality Model v4 (2024). PhD Research Tool — IHL and Civilian Protection, NYU.</em>
+          </div>
+        </div>
+        <div class="ref-source">
+          <span class="ref-tag ref-tag-risk">Citation</span>
+          <div>
+            <strong>ERCF Mortality Model v4:</strong> empirically-derived base rates from 10 historical conflict cases (1995–2024). Dimensional modulation via D3×D4 confinement score and D1-population exposure factor. Siege protection cap for urban conflicts ≤500k population. Auto mode recommended for prospective planning; named conflict pattern for retrospective calibration. Full calibration data available in the Historical Cases tab.
+          </div>
+        </div>
+
+        <!-- RISK CLASSIFICATION -->
+        <div class="ref-section-title"><i class="fas fa-layer-group me-1"></i>Risk Classification</div>
+        <div class="ref-source">
+          <span class="ref-tag ref-tag-risk">Risk</span>
+          <div>
+            <strong>Sphere Association.</strong> <em>The Sphere Handbook</em>, 4th edition. Geneva, 2018.
+            — 15 L water/person/day · 2,100 kcal/person/day · 3.5 m² shelter/person
+            <a href="https://spherestandards.org/handbook/" target="_blank" rel="noopener" class="ref-link"><i class="fas fa-external-link-alt"></i></a>
+          </div>
+        </div>
+        <div class="ref-source">
+          <span class="ref-tag ref-tag-risk">Risk</span>
+          <div>
+            <strong>ACAPS / INFORM Severity Index.</strong> Global crisis severity classification system used for country-level risk scoring.
+            <a href="https://www.acaps.org/en/thematics/all-topics/inform-severity-index" target="_blank" rel="noopener" class="ref-link"><i class="fas fa-external-link-alt"></i></a>
+          </div>
+        </div>
+        <div class="ref-source">
+          <span class="ref-tag ref-tag-risk">Risk</span>
+          <div>
+            <strong>ACAPS API.</strong> Real-time access to INFORM Severity, humanitarian access, and risk radar data.
+            <a href="https://api.acaps.org/" target="_blank" rel="noopener" class="ref-link"><i class="fas fa-external-link-alt"></i></a>
+          </div>
+        </div>
+
+        <!-- EVACUATION COST MODEL -->
+        <div class="ref-section-title"><i class="fas fa-calculator me-1"></i>Evacuation Cost Model</div>
+        <div class="ref-source">
+          <span class="ref-tag ref-tag-cost">Cost</span>
+          <div>
+            <strong>WFP — UNHAS Rate Cards 2023.</strong> — "$2.08/passenger-km air transport" (2023 fleet-wide confirmed rate). Used as anchor for emergency extraction cost component.
+            <a href="https://executiveboard.wfp.org/document_download/WFP-0000165597" target="_blank" rel="noopener" class="ref-link"><i class="fas fa-external-link-alt"></i></a>
+          </div>
+        </div>
+        <div class="ref-source">
+          <span class="ref-tag ref-tag-cost">Cost</span>
+          <div>
+            <strong>WFP Logistics Cluster East Africa 2023.</strong> — "$170.71/MT average total delivery cost" (stable context baseline). Used to calibrate L0–L1 access multipliers.
+            <a href="https://wfp.tind.io/record/130347" target="_blank" rel="noopener" class="ref-link"><i class="fas fa-external-link-alt"></i></a>
+          </div>
+        </div>
+        <div class="ref-source">
+          <span class="ref-tag ref-tag-cost">Cost</span>
+          <div>
+            <strong>WFP Sudan Conflict Delivery 2023.</strong> — "$209.63/MT active conflict delivery" (vs. $170.71/MT stable baseline = 1.23× logistics premium). Used to validate L2 access multiplier lower bound.
+          </div>
+        </div>
+        <div class="ref-source">
+          <span class="ref-tag ref-tag-cost">Cost</span>
+          <div>
+            <strong>UNHCR Baseline Operational Cost.</strong> — "$3.50/person/day humanitarian support baseline" used for in-situ supply delivery component.
+          </div>
+        </div>
+        <div class="ref-source">
+          <span class="ref-tag ref-tag-cost">Cost</span>
+          <div>
+            <strong>WFP Red Sea Maritime Rerouting 2024.</strong> — "~18% cost increase for maritime cargo due to Houthi conflict." Validates L0–L1 access multiplier range (1.0–1.5×).
+          </div>
+        </div>
+        <div class="ref-source">
+          <span class="ref-tag ref-tag-cost">Cost</span>
+          <div>
+            <strong>NRC/Protect Humanitarian Space — Cost of Hard-to-Reach Areas 2024.</strong> — Somalia 2017: security cooperation ~$400M/yr out of $700–900M total ops (~50%). Supports L3 access multiplier ≥2×.
+            <a href="https://www.protecthumanitarianspace.com/sites/default/files/2024-02/Cost%20of%20Operations%20in%20H2R%20Areas.pdf" target="_blank" rel="noopener" class="ref-link"><i class="fas fa-external-link-alt"></i></a>
+          </div>
+        </div>
+        <div class="ref-source">
+          <span class="ref-tag ref-tag-cost">Cost</span>
+          <div>
+            <strong>World Bank Rural Access Index (RAI/SDG 9.1.1).</strong> Country-level road access quality data used to calibrate terrain multipliers.
+          </div>
+        </div>
+        <div class="ref-source">
+          <span class="ref-tag ref-tag-cost">Cost</span>
+          <div>
+            <strong>Puga Terrain Ruggedness Index (TRI).</strong> Country-level terrain ruggedness data used alongside RAI for terrain multiplier calibration.
+            <a href="https://diegopuga.org/data/rugged/" target="_blank" rel="noopener" class="ref-link"><i class="fas fa-external-link-alt"></i></a>
+          </div>
+        </div>
+        <div class="ref-source">
+          <span class="ref-tag ref-tag-cost">Cost</span>
+          <div>
+            <strong>ACAPS Yemen Analysis Hub — Fuel Supply Dynamics.</strong> September 2022. Conflict-zone fuel prices: $1.02–$1.19/L (IRG areas). Used to revise fuel cost assumption to $1.20/L.
+          </div>
+        </div>
+
+        <!-- IHL & HUMANITARIAN LAW -->
+        <div class="ref-section-title"><i class="fas fa-gavel me-1"></i>IHL &amp; Humanitarian Law</div>
+        <div class="ref-source">
+          <span class="ref-tag ref-tag-ihl">IHL</span>
+          <div>
+            <strong>Geneva Conventions (1949) and Additional Protocols I &amp; II (1977).</strong> GC IV Art. 49 (forced transfer prohibition), Art. 54 (starvation prohibition), AP I Art. 57–58 (precautionary measures). Core legal framework for evacuation decisions.
+          </div>
+        </div>
+        <div class="ref-source">
+          <span class="ref-tag ref-tag-ihl">IHL</span>
+          <div>
+            <strong>Rome Statute of the ICC (1998), Article 8.</strong> War crimes definitions including Art. 8(2)(b)(viii) — unlawful deportation/transfer. Referenced in Level 4 IHL decision text.
+          </div>
+        </div>
+        <div class="ref-source">
+          <span class="ref-tag ref-tag-ihl">IHL</span>
+          <div>
+            <strong>NATO NEO Doctrine.</strong> 72-hour execution window standard for non-combatant evacuation operations in contested environments. Used to calibrate D6 urgency window estimates.
+          </div>
+        </div>
+
+        <!-- PERSONNEL RATES -->
+        <div class="ref-section-title"><i class="fas fa-users me-1"></i>Personnel Daily Rates</div>
+        <div class="ref-source">
+          <span class="ref-tag ref-tag-cost">Cost</span>
+          <div>
+            <strong>MSF international field salary — all roles: $2,626–$2,914/month ($87–$97/day take-home, 2022).</strong>
+            With 2–3× operational overhead: $174–$291/day total cost to operation. National staff in LMIC: ~$30–$80/day estimated. Fully-loaded UN international professional in Sudan: ~$580/day (salary + DSA + danger pay).
+            <a href="https://www.doctorswithoutborders.org/careers/work-internationally/pay-benefits" target="_blank" rel="noopener" class="ref-link"><i class="fas fa-external-link-alt"></i></a>
+          </div>
+        </div>
+        <div class="ref-source">
+          <span class="ref-tag ref-tag-cost">Cost</span>
+          <div>
+            <strong>UN DSA rates — conflict-affected countries (ICSC/CIRC/DSA/574, 1 March 2023):</strong>
+            Sudan $270/day · Yemen $225/day · Somalia $175/day · South Sudan $270/day · CAR/Bangui $186/day.
+          </div>
+        </div>
+        <div class="ref-source">
+          <span class="ref-tag ref-tag-access">Access</span>
+          <div>
+            <strong>Sudan armed escort 2022: 60,000–100,000 SDG/vehicle/movement (~$92–$154/vehicle/trip).</strong>
+            Source: Achilli &amp; Osman, "Humanitarianism's Thin Red Line", <em>Journal of Humanitarian Affairs</em> Vol. 5(3), 2024.
+            <a href="https://www.manchesterhive.com/view/journals/jha/5/3/article-p23.xml" target="_blank" rel="noopener" class="ref-link"><i class="fas fa-external-link-alt"></i></a>
+          </div>
+        </div>
+        <div class="ref-source">
+          <span class="ref-tag ref-tag-access">Access</span>
+          <div>
+            <strong>Somalia security costs: ~$400M/year total humanitarian security cooperation (2017).</strong>
+            Source: NRC/Protect Humanitarian Space, <em>Cost of Operations in Hard-to-Reach Areas</em>, February 2024.
+            <a href="https://www.protecthumanitarianspace.com/sites/default/files/2024-02/Cost%20of%20Operations%20in%20H2R%20Areas.pdf" target="_blank" rel="noopener" class="ref-link"><i class="fas fa-external-link-alt"></i></a>
+          </div>
+        </div>
+        <div class="ref-source">
+          <span class="ref-tag ref-tag-unval">Unval.</span>
+          <div>
+            <strong>Paramedic daily rate ($150/day) — unvalidated after six-search validation (June 2026).</strong>
+            No peer-reviewed or operational source found for humanitarian paramedic daily deployment rate in ICRC, MSF, WHO, or UN documents.
+          </div>
+        </div>
+
+        <!-- UNVALIDATED PARAMETERS -->
+        <div class="ref-section-title"><i class="fas fa-exclamation-triangle me-1" style="color:#dc2626"></i>Unvalidated Parameters</div>
+        <div class="ref-note-box">
+          <p class="mb-2"><strong>The following parameters require further validation against non-public operational data:</strong></p>
+          <div class="ref-source" style="border-color:#fecaca">
+            <span class="ref-tag ref-tag-unval">Unval.</span>
+            <div><strong>Access cost multipliers L2–L4.</strong> Security overhead component is the dominant unvalidated element. No single published document provides an explicit multiplier for active-conflict delivery.</div>
+          </div>
+          <div class="ref-source" style="border-color:#fecaca">
+            <span class="ref-tag ref-tag-unval">Unval.</span>
+            <div><strong>Field medical treatment cost — $1,200/injury.</strong> Documented peer-reviewed range: $211–$1,013 (MSF Nigeria 2009, inflation-adjusted). Pending validation against ICRC surgical program cost data.</div>
+          </div>
+          <div class="ref-source" style="border-color:#fecaca">
+            <span class="ref-tag ref-tag-unval">Unval.</span>
+            <div><strong>Security personnel ratios.</strong> Estimated by risk level — require UNDSS field advisory data for validation.</div>
+          </div>
+          <div class="ref-source" style="border-color:#fecaca">
+            <span class="ref-tag ref-tag-unval">Unval.</span>
+            <div><strong>Ground extraction cost (30% of air rate).</strong> No published source found for this multiplier.</div>
+          </div>
+          <div class="ref-source" style="border-bottom:none;border-color:#fecaca">
+            <span class="ref-tag ref-tag-unval">Unval.</span>
+            <div>
+              <strong>Mortality model calibration — known limitations.</strong>
+              ERCF Mortality Model v4 is calibrated against 10 historical cases. 2/10 cases fall within 2× in auto mode (Kherson 0.59×, Mosul 0.71×). Sudan, Gaza, and Srebrenica fall outside model scope. Kosovo (0.28×) and CAR (0.49×) are undercounted. Full calibration data: See Model Limitations panel above the Days slider, or Historical Cases tab → case detail.
+              <br>
+              <strong>All weights are modelled estimates.</strong> No published IHL or humanitarian operations framework
+              specifies explicit numerical weights for the 7 dimensions. Validation against an expert panel
+              or empirical conflict data corpus is required before operational application.
+            </div>
+          </div>
+        </div>
+
+        <!-- Prototype note -->
+        <div class="ref-proto-note">
+          <i class="fas fa-flask me-1"></i>
+          <strong>Research prototype.</strong> This tool is a PhD research prototype developed for academic and training purposes. All cost estimates, risk scores, and impact projections are modelled approximations. They should be validated against country-specific operational data, current field intelligence, and expert humanitarian judgment before any operational application.
+        </div>
+
+      </div><!-- /modal-body -->
+      <div class="modal-footer" style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:.6rem 1.2rem">
+        <span style="font-size:.68rem;color:#94a3b8;flex:1">Last reviewed: June 2026 · ERCF v1.0</span>
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div><!-- /referencesModal -->
+
+
+<!-- Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999">
+  <div id="toast" class="toast align-items-center text-bg-success border-0" role="alert">
+    <div class="d-flex">
+      <div class="toast-body" id="toastMsg">Saved.</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ PIN DISTANCE MODAL ══════════════════ -->
+<div class="modal fade" id="pinModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(135deg,#1e3a8a,#1d4ed8);color:#fff;padding:.6rem 1rem">
+        <h5 class="modal-title" style="font-size:.9rem;font-weight:700">
+          <i class="fas fa-map-pin me-2"></i>Set Distance from Map
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="padding:0">
+        <div id="pinModalInstr" style="padding:.5rem .8rem;background:#f8fafc;border-bottom:1px solid #e2e8f0;font-size:.78rem;color:#475569">
+          <span id="pinInstrText">Step 1: Click the conflict location on the map below.</span>
+        </div>
+        <div style="padding:8px 12px;border-bottom:1px solid #e2e8f0">
+          <div style="font-size:.72rem;font-weight:600;color:#475569;margin-bottom:4px">🔴 Conflict Location</div>
+          <div style="position:relative">
+            <input
+              id="pinLocationSearch"
+              type="text"
+              placeholder="Search country or city (e.g. Mariupol, Sudan, Gaza...)"
+              style="width:100%;padding:8px 12px;border:1px solid #cbd5e1;border-radius:6px;font-size:14px;box-sizing:border-box;outline:none"
+            />
+            <div id="pinSearchResults" style="position:absolute;top:100%;left:0;right:0;background:white;border:1px solid #cbd5e1;border-radius:0 0 6px 6px;max-height:200px;overflow-y:auto;z-index:9999;display:none"></div>
+          </div>
+        </div>
+        <div id="pinMap" style="height:340px;background:#0f172a"></div>
+        <div style="padding:.5rem .8rem;background:#f8fafc;border-top:1px solid #e2e8f0">
+          <!-- AI suggestions (appear automatically when conflict pin is placed) -->
+          <div id="pinSuggestions" style="display:none;margin-bottom:.45rem">
+            <div style="font-size:.71rem;font-weight:600;color:#0c4a6e;margin-bottom:.25rem">
+              Nearest low-risk destinations:
+              <span style="font-size:.66rem;color:#64748b;font-weight:400"> · AI suggested based on ACAPS severity data</span>
+            </div>
+            <div id="pinSuggList"></div>
+          </div>
+          <!-- Divider -->
+          <div style="text-align:center;font-size:.68rem;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:.4rem;margin-bottom:.4rem">— or search manually —</div>
+          <!-- Safe zone manual search -->
+          <div style="margin-bottom:.4rem">
+            <label style="font-size:12px;font-weight:500;color:#475569;margin-bottom:4px;display:block">
+              🟢 Safe Zone / Destination
+            </label>
+            <div style="position:relative">
+              <input
+                id="pinSafeZoneSearch"
+                type="text"
+                placeholder="Search safe zone (e.g. Zaporizhzhia, Erbil, Port Sudan...)"
+                style="width:100%;padding:8px 12px;border:1px solid #22c55e;border-radius:6px;font-size:14px;box-sizing:border-box;outline:none"
+              />
+              <div id="pinSafeZoneResults" style="position:absolute;top:100%;left:0;right:0;background:white;border:1px solid #22c55e;border-radius:0 0 6px 6px;max-height:180px;overflow-y:auto;z-index:9999;display:none"></div>
+            </div>
+          </div>
+          <!-- Live distance display -->
+          <div id="pinDistResult" style="display:none;font-size:.8rem;margin-bottom:.4rem">
+            <strong id="pinDistText"></strong>
+          </div>
+          <button id="pinConfirmBtn" class="btn btn-sm btn-primary" style="font-size:.75rem" disabled onclick="confirmPinDistance()">
+            <i class="fas fa-check me-1"></i>Use this distance
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!-- /pinModal -->
+
+<!-- ══════════════════ CASE DETAIL MODAL ══════════════════ -->
+<div class="modal fade" id="caseModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(135deg,#1a237e,#283593);color:#fff">
+        <h5 class="modal-title" id="modalTitle" style="font-size:.9rem;font-weight:700"></h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="modalBody" style="font-size:.8rem;padding:1rem 1.2rem"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div><!-- /caseModal -->
+
+<!-- ══════════════════ VULN HELP PANEL ══════════════════ -->
+<div id="vulnHelpPanel" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+     z-index:9999;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:1rem 1.2rem;
+     max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,.15);font-size:.8rem">
+  <div style="font-weight:700;margin-bottom:.4rem;color:#1a237e">Vulnerability Breakdown</div>
+  <div id="vulnU5Display"></div>
+  <button onclick="document.getElementById('vulnHelpPanel').style.display='none'"
+          class="btn btn-sm btn-outline-secondary mt-2" style="font-size:.72rem">Close</button>
+</div>
+
+<!-- ══════════════════ SCRIPTS ══════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<script src="/static/app.js"></script>
+
+<!-- Methodology Modal -->
+<div class="modal fade" id="methodologyModal" tabindex="-1" aria-labelledby="methodologyModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header" style="background:#003F87;border-bottom:3px solid #009EDB">
+        <h5 class="modal-title text-white fw-semibold" id="methodologyModalLabel" style="font-size:13px;letter-spacing:.05em;text-transform:uppercase">
+          📋 ERCF — Methodology &amp; Model Documentation
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="font-size:.82rem;line-height:1.6;color:#1a2940">
+
+        <!-- Intro -->
+        <div style="background:#f0f8ff;border-left:3px solid #009EDB;padding:.6rem .9rem;border-radius:4px;margin-bottom:1.2rem">
+          <strong>Scope:</strong> The ERCF is a decision-support tool for prospective operational planning over a <strong>0–90 day window</strong> in active conflict zones. It is not a forecasting model, a real-time monitoring tool, or a substitute for field assessment. All outputs are planning-order-of-magnitude estimates unless explicitly marked as validated.
+        </div>
+
+        <!-- 1. 7-Dimension Framework -->
+        <h6 style="color:#003F87;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #dde3ec;padding-bottom:.3rem;margin-bottom:.7rem">1 · Seven-Dimension Risk Framework</h6>
+        <p>Risk is assessed across seven dimensions (D1–D7). Each is scored 1 (minimal) to 5 (critical). All weights are modelled estimates — no published IHL framework specifies numerical weights for civilian evacuation decisions.</p>
+        <table style="width:100%;border-collapse:collapse;font-size:.78rem;margin-bottom:.8rem">
+          <thead><tr style="background:#f2f5f9"><th style="padding:.3rem .5rem;text-align:left;color:#6b7c93;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em">Dim</th><th style="padding:.3rem .5rem;text-align:left">Name</th><th style="padding:.3rem .5rem;text-align:left">Weight</th><th style="padding:.3rem .5rem;text-align:left">IHL Reference</th><th style="padding:.3rem .5rem;text-align:left">Source Quality</th></tr></thead>
+          <tbody>
+            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem;font-weight:600">D1</td><td>Kinetic Threat</td><td>25%</td><td>GC IV Art. 49 — danger to civilian population</td><td><span style="color:#d97706">Estimated</span></td></tr>
+            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem;font-weight:600">D2</td><td>Mobility Constraints</td><td>20%</td><td>AP I Art. 58 — remove civilians from danger</td><td><span style="color:#d97706">Estimated</span></td></tr>
+            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem;font-weight:600">D3</td><td>Authorization &amp; Access</td><td>15%</td><td>GC IV Art. 17 — safe passage agreements</td><td><span style="color:#d97706">Estimated</span></td></tr>
+            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem;font-weight:600">D4</td><td>Logistics Capacity</td><td>15%</td><td>AP I Art. 70 — relief operations</td><td><span style="color:#d97706">Estimated</span></td></tr>
+            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem;font-weight:600">D5</td><td>Destination Viability</td><td>10%</td><td>GC IV Art. 49(3) — conditions at destination</td><td><span style="color:#d97706">Estimated</span></td></tr>
+            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem;font-weight:600">D6</td><td>Urgency &amp; Time Pressure</td><td>10%</td><td>AP I Art. 57(2)(c) — effective advance warning</td><td><span style="color:#d97706">Estimated</span></td></tr>
+            <tr><td style="padding:.3rem .5rem;font-weight:600">D7</td><td>Information Quality</td><td>5%</td><td>AP I Art. 57(2)(a)(i) — verification before attack</td><td><span style="color:#d97706">Estimated</span></td></tr>
+          </tbody>
+        </table>
+
+        <!-- 2. Three-Index System -->
+        <h6 style="color:#003F87;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #dde3ec;padding-bottom:.3rem;margin-bottom:.7rem;margin-top:1.2rem">2 · Three-Index Classification System</h6>
+        <table style="width:100%;border-collapse:collapse;font-size:.78rem;margin-bottom:.8rem">
+          <thead><tr style="background:#f2f5f9"><th style="padding:.3rem .5rem;text-align:left;color:#6b7c93;font-size:.7rem;text-transform:uppercase">Index</th><th style="padding:.3rem .5rem;text-align:left">Dimensions</th><th style="padding:.3rem .5rem;text-align:left">Interpretation</th></tr></thead>
+          <tbody>
+            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem;font-weight:600">Risk Severity</td><td>D1, D2, D6 (weighted)</td><td>How dangerous is the current situation for civilians?</td></tr>
+            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem;font-weight:600">Feasibility</td><td>D3, D4, D5 (inverted)</td><td>Is evacuation operationally viable right now?</td></tr>
+            <tr><td style="padding:.3rem .5rem;font-weight:600">Info Quality</td><td>D7 (inverted)</td><td>How reliable are the data inputs driving this assessment?</td></tr>
+          </tbody>
+        </table>
+        <p style="color:#6b7c93;font-size:.75rem">The final LEVEL (0–4) is derived from a weighted composite of all seven dimensions. Level thresholds: 0 ≤1.5 · 1 ≤2.5 · 2 ≤3.5 · 3 ≤4.2 · 4 &gt;4.2.</p>
+
+        <!-- 3. Mortality Model -->
+        <h6 style="color:#003F87;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #dde3ec;padding-bottom:.3rem;margin-bottom:.7rem;margin-top:1.2rem">3 · Mortality Model (v4)</h6>
+        <p>The mortality model estimates cumulative civilian deaths and injuries over a given duration. It uses a base mortality rate per risk level, modulated by conflict pattern (exposure factor), population size, and time.</p>
+        <ul style="padding-left:1.2rem;margin-bottom:.5rem">
+          <li><strong>Base rates by level:</strong> L0: 0.0002%/day · L1: 0.0005%/day · L2: 0.001%/day · L3: 0.003%/day · L4: 0.008%/day (estimated, calibrated against 10 historical cases)</li>
+          <li><strong>Injury ratio:</strong> 4:1 injuries per death (ICRC field data, standard planning assumption)</li>
+          <li><strong>Calibration:</strong> Tested against 10 conflict cases (1995–2024). 2/10 cases fall within 2× of recorded deaths in Auto mode. 3/10 across both Auto and Urban Siege modes. Srebrenica is excluded from calibration as a mass atrocity/genocide — the mortality process is categorically different from conflict attrition.</li>
+          <li><strong>Known limitation:</strong> The model captures kinetic mortality rates but not infrastructure-denial mortality (starvation, waterborne disease, hypothermia). This produces systematic underestimation in siege contexts (e.g. Mariupol, Aleppo).</li>
+        </ul>
+
+        <!-- 4. Evacuation Resource Model -->
+        <h6 style="color:#003F87;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #dde3ec;padding-bottom:.3rem;margin-bottom:.7rem;margin-top:1.2rem">4 · Evacuation Resource Model (Ground Transport)</h6>
+        <table style="width:100%;border-collapse:collapse;font-size:.78rem;margin-bottom:.8rem">
+          <thead><tr style="background:#f2f5f9"><th style="padding:.3rem .5rem;text-align:left;color:#6b7c93;font-size:.7rem;text-transform:uppercase">Parameter</th><th style="padding:.3rem .5rem;text-align:left">Value</th><th style="padding:.3rem .5rem;text-align:left">Source</th><th style="padding:.3rem .5rem;text-align:left">Quality</th></tr></thead>
+          <tbody>
+            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">Water</td><td>15 L/person/day</td><td>Sphere Handbook 2018</td><td><span style="color:#0a6e50">Validated</span></td></tr>
+            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">Food</td><td>0.5 kg/person/day (~2,100 kcal)</td><td>Sphere 2018 (kg conversion estimated)</td><td><span style="color:#d97706">Estimated</span></td></tr>
+            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">Tent ratio</td><td>1 tent per 5 people × D5 multiplier (0.5–2.0)</td><td>Sphere 2018 (ratio); D5 multiplier estimated</td><td><span style="color:#d97706">Estimated</span></td></tr>
+            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">Fuel cost</td><td>$1.20/L base</td><td>ACAPS Yemen Analysis Hub, Sep 2022</td><td><span style="color:#d97706">Estimated</span></td></tr>
+            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">Security personnel</td><td>$300/day</td><td>PSC mid-market rate; UNDSS not public</td><td><span style="color:#c0392b">Unvalidated</span></td></tr>
+            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">Medical staff</td><td>$200/day</td><td>No per-person field figure in public IOM/WFP docs</td><td><span style="color:#c0392b">Unvalidated</span></td></tr>
+            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">NGO personnel rate</td><td>$92/day (MSF midpoint)</td><td>MSF international salary $87–97/day (doctorswithoutborders.org, 2022)</td><td><span style="color:#0a6e50">Validated</span></td></tr>
+            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">UN personnel rate</td><td>×4.5 multiplier (~$414/day)</td><td>UN DSA Sudan $270/day, Yemen $225/day (ICSC/CIRC/DSA/574, Mar 2023)</td><td><span style="color:#0a6e50">Validated</span></td></tr>
+            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">D4 logistics multiplier</td><td>+10% per point above D4=1 on transport+fuel</td><td>Estimated, mirrors calcRemaining() convention</td><td><span style="color:#d97706">Estimated</span></td></tr>
+            <tr><td style="padding:.3rem .5rem">Contingency</td><td>15% of subtotal</td><td>Standard humanitarian planning convention</td><td><span style="color:#d97706">Estimated</span></td></tr>
+          </tbody>
+        </table>
+
+        <!-- 5. Air & Walking Evacuation -->
+        <h6 style="color:#003F87;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #dde3ec;padding-bottom:.3rem;margin-bottom:.7rem;margin-top:1.2rem">5 · Air &amp; Walking Evacuation Modules</h6>
+        <p><strong>Fixed-wing aircraft:</strong> $2.08/passenger-km (2023) or $1.98/pax-km (2024). Source: WFP Executive Board WFP/EB.A/2025/8-D (10 Jun 2025), UNHAS fleet-wide operational cost. <span style="color:#0a6e50">Validated.</span></p>
+        <p><strong>Helicopter (Mi-8/17 class):</strong> $2.22/pax-km central estimate (range $1.73–$3.11). Derived from UN Procurement Division contract PD/C0164/14 (Mi-8MTV, MINUSCA, USD 5.59M/year) ÷ estimated 600–1,080 flight hours/year. 50% load factor applied (conservative for emergency ops). <span style="color:#d97706">Estimated.</span></p>
+        <p><strong>Walking evacuation:</strong> Base speed 8 km/h (Flee migration model, arXiv:1903.08255), adjusted downward by vulnerable population % using UK Health Survey for England gait-speed data for adults 65+ (~3 km/h floor). 8 effective hours/day assumed (conservative — excludes night movement in conflict zones). Daily cost: $3.50/person/day UNHCR baseline + $92/day MSF rate for personnel. <span style="color:#d97706">Estimated.</span></p>
+
+        <!-- 6. Cost of Remaining -->
+        <h6 style="color:#003F87;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #dde3ec;padding-bottom:.3rem;margin-bottom:.7rem;margin-top:1.2rem">6 · Cost of Civilians Remaining (Assistance Model)</h6>
+        <ul style="padding-left:1.2rem;margin-bottom:.5rem">
+          <li><strong>Base supply cost:</strong> $3.50/person/day (UNHCR Baseline Operational Cost, existing ERCF anchor)</li>
+          <li><strong>Access overhead:</strong> scaled by D4 (logistics penalty +10–60%), D3 (access +10%), D7 (coordination +5%), and terrain multiplier</li>
+          <li><strong>Emergency extraction probability:</strong> modelled as 1 − exp(−k × days), calibrated against Mariupol, Aleppo, Mosul, DRC, and CAR cases. D1 and D3 modulate the probability.</li>
+          <li><strong>Field medical cost:</strong> $1,200/injury base (WHO Emergency Health cluster), scaled by D5 destination medical capacity (×1.0 at D5=5 to ×2.0 at D5=1).</li>
+          <li><strong>Financial estimate (separate):</strong> Risk-scaled survival estimate $1–$12/person/day by level — simpler model used for the time-series chart only, not for the full assistance cost.</li>
+        </ul>
+
+        <!-- 7. Evacuation Window -->
+        <h6 style="color:#003F87;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #dde3ec;padding-bottom:.3rem;margin-bottom:.7rem;margin-top:1.2rem">7 · Evacuation Window Estimates</h6>
+        <table style="width:100%;border-collapse:collapse;font-size:.78rem;margin-bottom:.5rem">
+          <thead><tr style="background:#f2f5f9"><th style="padding:.3rem .5rem;text-align:left;color:#6b7c93;font-size:.7rem;text-transform:uppercase">Level</th><th style="padding:.3rem .5rem;text-align:left">Window</th><th style="padding:.3rem .5rem;text-align:left">Basis</th></tr></thead>
+          <tbody>
+            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem;font-weight:600">L2</td><td>5–7 days (D6&lt;4) / 3–5 days (D6≥4)</td><td>Humanitarian contingency planning convention — <strong>no primary source identified</strong></td></tr>
+            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem;font-weight:600">L3</td><td>48–72 hours (D6&lt;4) / 24–48 hours (D6≥4)</td><td>Consistent with CERF Rapid Response 72h deployment standard (UN CERF, 2006)</td></tr>
+            <tr><td style="padding:.3rem .5rem;font-weight:600">L4</td><td>&lt;24 hours / &lt;6 hours (D6≥4)</td><td>Operational emergency threshold; GC IV Art. 49 duty to evacuate in imminent danger</td></tr>
+          </tbody>
+        </table>
+        <p style="color:#6b7c93;font-size:.75rem">All window estimates are planning conventions. GC IV Art. 49 and NATO NEO doctrine (AJP-3.25) do not specify day-count thresholds by threat level.</p>
+
+        <!-- 8. Seasonal Terrain -->
+        <h6 style="color:#003F87;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #dde3ec;padding-bottom:.3rem;margin-bottom:.7rem;margin-top:1.2rem">8 · Terrain &amp; Seasonal Constraints</h6>
+        <p>Terrain multipliers (×1.0 to ×4.0) are applied to transport and fuel costs. Source basis: World Bank HDM-4 vehicle operating cost relationships (roughness-to-cost) and NRC/Protect Humanitarian Space (2024) qualitative H2R cost ranges. <strong>No primary source provides validated numerical multipliers by terrain category for humanitarian evacuation specifically.</strong></p>
+        <p>Seasonal closure periods are estimated from latitude zone: northern temperate (lat&gt;30°): Dec–Mar; southern temperate (lat&lt;-30°): Jun–Sep; tropical (-30° to 30°): Apr–Oct (broad approximation). Closure boosts: terrain L1 +50%, L2 +30%, L3 +20%. These are planning-order-of-magnitude estimates.</p>
+
+        <!-- 9. Historical Calibration -->
+        <h6 style="color:#003F87;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #dde3ec;padding-bottom:.3rem;margin-bottom:.7rem;margin-top:1.2rem">9 · Historical Calibration Cases</h6>
+        <p>The model is calibrated against 10 conflict cases (1995–2024): Mariupol (2022), Gaza (2023–), Srebrenica (1995), Aleppo (2012–16), Kherson (2022), Mosul (2016–17), Kosovo (1999), CAR (2014), Sudan/Khartoum (2023–), and DRC/Goma (2024). Calibration accuracy: 2/10 within 2× of documented deaths in Auto mode. Srebrenica is included as a documented boundary case (mass atrocity, not modellable by attrition).</p>
+        <div style="background:#fff8f0;border-left:3px solid #d97706;border-radius:4px;padding:.5rem .8rem;margin-top:.6rem;font-size:.75rem">
+          <strong style="color:#92400e">Geographic Calibration Limitation:</strong> The calibration dataset is predominantly drawn from Middle East and Eastern Europe conflicts (where primary source documentation meeting ERCF criteria is most available). Sub-Saharan Africa is represented by 2 cases (CAR, DRC/Goma, Angola/Huambo), Latin America by 0 cases, and South/Central Asia by 0 cases outside Iraq/Afghanistan. This reflects a real documentation gap — verified civilian death counts with bounded populations and durations ≤90 days are rare in these regions — not a research omission. When applying ERCF to Sub-Saharan Africa or Latin America contexts, treat cost and mortality estimates with additional caution and seek local field data to supplement model outputs.
+        </div>
+
+        <!-- Footer -->
+        <div style="margin-top:1.5rem;padding:.75rem 1rem;background:#f2f5f9;border-radius:6px;font-size:.72rem;color:#6b7c93">
+          <strong style="color:#1a2940">Model version:</strong> ERCF v4 · Mortality Model v4 ·
+          <strong style="color:#1a2940">Academic reference:</strong> Based on the IHL &amp; Civilian Protection research framework by Teresa Cantero / NYU (Ref. Slide 16) ·
+          <strong style="color:#1a2940">Purpose:</strong> PhD Research Tool ·
+          <strong style="color:#1a2940">Not for operational deployment without field validation.</strong>
+        </div>
+
+      </div>
+      <div class="modal-footer" style="background:#f8fafc;border-top:1px solid #dde3ec">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
