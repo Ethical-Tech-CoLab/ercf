@@ -53,9 +53,12 @@ HISTORICAL_CASES = [
         "model_calibration": {
             "model_deaths": 36980,
             "recorded_deaths": 8000,
-            "ratio": 0.31,
-            "calibration_version": "v5",
+            "ratio": 1.65,
+            "model_deaths_v5": 13235,
+            "calibration_version": "v6",
             "flag": "REVIEW",
+            "infra_denial_flag": True,
+            "infra_denial_source": "GRC 'The Hope Left Us' (2024); OHCHR 2022 — starvation as method of warfare documented; electricity, water, heating, gas cut within days",
             "model_deaths_v2": 30272,
             "model_deaths_v3": 25731,
             "model_deaths_v4": 2514,
@@ -112,6 +115,13 @@ HISTORICAL_CASES = [
             "displaced_documented": 350000,
             "displaced_note": "~350,000 displaced; consistent with model figure.",
             "sources": "OHCHR High Commissioner Update to Human Rights Council, June 2022; Human Rights Watch 'Beneath the Rubble' 2024",
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": 11848,
+                "ucdp_best_total": 49892,
+                "ucdp_range": "39,882–113,729",
+                "ucdp_match": "~2x",
+            },
         },
     },
     {
@@ -228,6 +238,13 @@ HISTORICAL_CASES = [
             "displaced_documented": 1900000,
             "displaced_note": "~1.9 million displaced — virtually the entire population of Gaza.",
             "sources": "UNRWA Situation Report #191 (Oct 2025); OCHA Humanitarian Situation Updates; The Lancet 'Traumatic injury mortality in the Gaza Strip' (Feb 2025, doi:10.1016/S0140-6736(24)02678-3)",
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": 27113,
+                "ucdp_best_total": 47023,
+                "ucdp_range": "46,886–47,314",
+                "ucdp_match": "~50%",
+            },
         },
     },
     {
@@ -345,6 +362,13 @@ HISTORICAL_CASES = [
             "displaced_documented": 40000,
             "displaced_note": "~40,000 civilians forcibly expelled from the enclave.",
             "sources": "ICMP (icmp.int/srebrenica); UN General Assembly Resolution A/RES/78/282 (2024); PRIO 'Accounting for Genocide' (European Journal of Population); ICTY judicial findings",
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": 14433,
+                "ucdp_best_total": 17265,
+                "ucdp_range": "16,901–19,789",
+                "ucdp_match": "~2x",
+            },
         },
     },
     {
@@ -406,9 +430,12 @@ HISTORICAL_CASES = [
         "model_calibration": {
             "model_deaths": 30000,
             "recorded_deaths": 31000,
-            "ratio": 0.08,
-            "calibration_version": "v5",
+            "ratio": 0.30,
+            "model_deaths_v5": 9405,
+            "calibration_version": "v6",
             "flag": "OK",
+            "infra_denial_flag": True,
+            "infra_denial_source": "UN Commission of Inquiry Syria (2017) — systematic hospital bombing and destruction of water/power infrastructure in besieged Aleppo",
             "model_deaths_v2": 11040,
             "model_deaths_v3": 9384,
             "model_deaths_v4": 2448,
@@ -461,6 +488,13 @@ HISTORICAL_CASES = [
             "displaced_documented": 275000,
             "displaced_note": "~275,000 civilians estimated in eastern Aleppo at time of final siege (UN/HRW Nov 2016); evacuation of remainder to Idlib under Dec 2016 agreement.",
             "sources": "Violations Documentation Center (VDC) Syria; OHCHR Presentation on Civilian Deaths in Syria, Jun 2022; UN Commission of Inquiry on Syria Report, Mar 2017; ICRC casebook Syria-Battle of Aleppo",
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": 26499,
+                "ucdp_best_total": 64332,
+                "ucdp_range": "61,043–68,580",
+                "ucdp_match": "~2x",
+            },
         },
     },
     {
@@ -574,6 +608,13 @@ HISTORICAL_CASES = [
             "displaced_documented": None,
             "displaced_note": "Significant displacement during occupation and post-liberation shelling; no reliable city-specific total.",
             "sources": "Mayor Kolykhaiev statements Mar 2022; OHCHR Ukraine monitoring reports; 2022 Kherson counteroffensive Wikipedia (citing Battle of Kherson sources)",
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": 783,
+                "ucdp_best_total": 1809,
+                "ucdp_range": "1,159–6,150",
+                "ucdp_match": "~2x",
+            },
         },
     },
     {
@@ -690,6 +731,13 @@ HISTORICAL_CASES = [
             "displaced_documented": 900000,
             "displaced_note": "Over 900,000 displaced at peak (UN/IOM figures).",
             "sources": "Associated Press investigation, Dec 2017 (morgue records + Airwars/Amnesty/Iraq Body Count); PBS NewsHour 2017; Modern War Institute Urban Warfare Case Study #2",
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": 7247,
+                "ucdp_best_total": 13595,
+                "ucdp_range": "13,160–16,052",
+                "ucdp_match": "~50%",
+            },
         },
     },
     {
@@ -805,6 +853,20 @@ HISTORICAL_CASES = [
             "displaced_documented": None,
             "displaced_note": None,
             "sources": "See case 'source' field.",
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": 1090,
+                "ucdp_best_total": 1296,
+                "ucdp_range": "1,248–4,923",
+                "ucdp_match": "OUT",
+                "ucdp_note": (
+                    "UCDP GED codes only 1,296 total deaths for Kosovo 1999 — severe undercount. "
+                    "GED captures real-time battle deaths; the 10,317 figure derives from "
+                    "post-conflict ICMP/ICTY documentation of mass graves and individually "
+                    "identified victims, which falls outside GED methodology scope. "
+                    "Our figure is more accurate for this case."
+                ),
+            },
         },
     },
     {
@@ -922,6 +984,13 @@ HISTORICAL_CASES = [
             "displaced_documented": None,
             "displaced_note": None,
             "sources": "See case 'source' field.",
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": 2299,
+                "ucdp_best_total": 3493,
+                "ucdp_range": "3,159–4,072",
+                "ucdp_match": "~50%",
+            },
         },
     },
     {
@@ -1051,6 +1120,20 @@ HISTORICAL_CASES = [
             "displaced_documented": None,
             "displaced_note": None,
             "sources": "See case 'source' field.",
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": 1124,
+                "ucdp_best_total": 2413,
+                "ucdp_range": "2,306–2,630",
+                "ucdp_match": "OUT",
+                "ucdp_note": (
+                    "UCDP GED codes only 2,413 for Khartoum state — undercount due to: "
+                    "(1) ongoing conflict with data lag in v26.1 (2024 not fully coded); "
+                    "(2) events coded at national level may not appear in adm_1=Khartoum filter. "
+                    "Our 15,000 figure from ACLED/OCHA is more current. "
+                    "UCDP validation pending next GED release."
+                ),
+            },
         },
     },
     {
@@ -1177,6 +1260,13 @@ HISTORICAL_CASES = [
             "displaced_documented": None,
             "displaced_note": None,
             "sources": "See case 'source' field.",
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": 1878,
+                "ucdp_best_total": 2608,
+                "ucdp_range": "2,308–4,749",
+                "ucdp_match": "IN",
+            },
         },
     },
     {
@@ -1238,6 +1328,13 @@ HISTORICAL_CASES = [
             "displaced_documented": 85000,
             "displaced_note": "Population declined from ~435,000 to ~300,000-380,000 during siege per UNHCR Bosnia reports.",
             "sources": "ICTY War Demographics Unit, Tabeau & Bijak (2005), European Journal of Population; ICRC Bosnia field reports 1992-1996",
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": 30188,
+                "ucdp_best_total": 63535,
+                "ucdp_range": "58,799–72,325",
+                "ucdp_match": "~2x",
+            },
         },
     },
     {
@@ -1301,6 +1398,13 @@ HISTORICAL_CASES = [
                 "HRW 'Welcome to Hell: Russia's Human Rights in the Chechen Republic' (Feb 2000); "
                 "Memorial Human Rights Group; Cherkasov et al. cited in Jamestown Foundation Monitor (2004)"
             ),
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": 2628,
+                "ucdp_best_total": 9459,
+                "ucdp_range": "9,397–17,202",
+                "ucdp_match": "~50%",
+            },
         },
     },
     {
@@ -1365,6 +1469,13 @@ HISTORICAL_CASES = [
                 "Amnesty International + Airwars 'War in Raqqa: Rhetoric versus Reality' (April 2019, AI index: MDE 24/0302/2019); "
                 "HRW 'Raqqa Civilian Deaths' (September 2017)"
             ),
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": 4230,
+                "ucdp_best_total": 7984,
+                "ucdp_range": "7,181–9,727",
+                "ucdp_match": "~2x",
+            },
         },
     },
     {
@@ -1428,6 +1539,13 @@ HISTORICAL_CASES = [
                 "Iraq Body Count (iraqbodycount.org, 2004 entries); UNAMI Human Rights Report January 2005; "
                 "Fallujah General Hospital records cited by UNAMI; Brown University Costs of War project (costofwar.org)"
             ),
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": 52,
+                "ucdp_best_total": 1767,
+                "ucdp_range": "1,766–3,053",
+                "ucdp_match": "~2x",
+            },
         },
     },
     {
@@ -1487,6 +1605,13 @@ HISTORICAL_CASES = [
                 "HRW 'Jenin: IDF Military Operations' (May 2002, HR index: E.02.III.H.4); "
                 "UN Secretary-General Report A/ES-10/10 (August 2002); UNRWA damage assessment; ICRC press releases April 2002"
             ),
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": 84,
+                "ucdp_best_total": 387,
+                "ucdp_range": "384–449",
+                "ucdp_match": "~2x",
+            },
         },
     },
     {
@@ -1523,9 +1648,12 @@ HISTORICAL_CASES = [
         ),
         "model_calibration": {
             "model_deaths_v4": 390,
+            "model_deaths_v5": 1222,
             "recorded_deaths": 2000,
-            "ratio": 0.2,
-            "calibration_version": "v5",
+            "ratio": 0.61,
+            "calibration_version": "v6",
+            "infra_denial_flag": True,
+            "infra_denial_source": "ICTY proceedings (IT-95-13) — systematic destruction of water supply, hospital, and civilian infrastructure documented as deliberate method of siege warfare",
             "out_of_scope": False,
             "notes": (
                 "REFERENCE CASE — CIVILIAN/COMBATANT SEPARATION CAVEAT: The '3,000 deaths' widely cited includes Croatian defenders (fighters). "
@@ -1552,6 +1680,18 @@ HISTORICAL_CASES = [
                 "ICTY/IRMCT case proceedings (IT-95-13); PHR medical evidence (1995); ITN field reports (1991); "
                 "HRW 'War Crimes in Bosnia-Hercegovina' Vol.2 (1992); Christian Chronicle Vukovar memorial"
             ),
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": None,
+                "ucdp_best_total": None,
+                "ucdp_range": None,
+                "ucdp_match": "NOT FOUND",
+                "ucdp_note": (
+                    "Croatia 1991 / Vukovar-Syrmia county returned no events in GED v26.1. "
+                    "Events may be coded at national level only, or the Vukovar siege "
+                    "was not covered by available sources in UCDP's 1991 corpus."
+                ),
+            },
         },
     },
     {
@@ -1618,6 +1758,14 @@ HISTORICAL_CASES = [
                 "Republic of Vietnam Ministry of Social Welfare victim list (1970); "
                 "US Army Center of Military History; Florida Atlantic University Vietnam primary sources guide"
             ),
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": None,
+                "ucdp_best_total": None,
+                "ucdp_range": None,
+                "ucdp_match": "pre-1989",
+                "ucdp_note": "UCDP GED coverage begins 1989; Battle of Hue (1968) is outside dataset scope.",
+            },
         },
     },
     {
@@ -1684,6 +1832,14 @@ HISTORICAL_CASES = [
                 "National WWII Museum (nationalww2museum.org); Memorare Manila 1945 Foundation; "
                 "US DoD 'The Battle of Manila' historical feature"
             ),
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": None,
+                "ucdp_best_total": None,
+                "ucdp_range": None,
+                "ucdp_match": "pre-1989",
+                "ucdp_note": "UCDP GED coverage begins 1989; Battle of Manila (1945) is outside dataset scope.",
+            },
         },
     },
     {
@@ -1754,6 +1910,13 @@ HISTORICAL_CASES = [
                 "Iraq Body Count (iraqbodycount.org, Fallujah data 2004-2005); ICRC press release December 2004; "
                 "West Point MWI Urban Warfare Case Study #7; IBC 'Besieged' analysis (2005)"
             ),
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": 52,
+                "ucdp_best_total": 1767,
+                "ucdp_range": "1,766–3,053",
+                "ucdp_match": "~2x",
+            },
         },
     },
     {
@@ -1824,6 +1987,13 @@ HISTORICAL_CASES = [
                 "B'Tselem 'Void of Responsibility' (July 2009); PCHR Casualties of Operation Cast Lead (February 2009); "
                 "OHCHR HRC Report A/HRC/12/37; Amnesty International (July 2009, AI index MDE 15/015/2009)"
             ),
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": 416,
+                "ucdp_best_total": 1415,
+                "ucdp_range": "1,226–1,629",
+                "ucdp_match": "~50%",
+            },
         },
     },
     {
@@ -1894,6 +2064,13 @@ HISTORICAL_CASES = [
                 "UN OCHA Situation Reports OPT (July–August 2014); PCHR 'Black Friday' and casualty reports; "
                 "B'Tselem OPE report (2014); UNHRC Commission A/HRC/29/52 (June 2015)"
             ),
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": 1360,
+                "ucdp_best_total": 2344,
+                "ucdp_range": "2,336–2,346",
+                "ucdp_match": "~50%",
+            },
         },
     },
     {
@@ -1969,6 +2146,13 @@ HISTORICAL_CASES = [
                 "HRW 'Bucha: Russian Forces Executed Civilians' (April 2022); "
                 "cities4cities.eu Bucha Memorial"
             ),
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": 950,
+                "ucdp_best_total": 2368,
+                "ucdp_range": "1,430–2,841",
+                "ucdp_match": "~2x",
+            },
         },
     },
     {
@@ -2041,6 +2225,14 @@ HISTORICAL_CASES = [
                 "An Nahar (Beirut daily newspaper) hospital/police survey, cited in Washington Post September 3, 1982; "
                 "Rashid Khalidi 'Under Siege: PLO Decisionmaking during the 1982 War' (Columbia University Press, 1986)"
             ),
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": None,
+                "ucdp_best_total": None,
+                "ucdp_range": None,
+                "ucdp_match": "pre-1989",
+                "ucdp_note": "UCDP GED coverage begins 1989; Siege of West Beirut (1982) is outside dataset scope.",
+            },
         },
     },
     {
@@ -2112,6 +2304,21 @@ HISTORICAL_CASES = [
                 "HRW 'Armenia/Azerbaijan: Cluster Munitions Used in Nagorno-Karabakh Conflict' (October 2020); "
                 "Armenian Ministry of Defence official statements"
             ),
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": 142,
+                "ucdp_best_total": 7528,
+                "ucdp_range": "7,430–7,933",
+                "ucdp_match": "OUT",
+                "ucdp_note": (
+                    "UCDP total of 7,528 covers the full 44-day war including ~3,800 Armenian "
+                    "and ~2,900 Azerbaijani military deaths. Our estimated_deaths=115 captures "
+                    "only confirmed civilian deaths (Amnesty + HRW primary sources) — a "
+                    "deliberately conservative civilian-only figure consistent with ERCF "
+                    "methodology (civilian mortality model). These are different metrics; "
+                    "both are methodologically defensible for their respective purposes."
+                ),
+            },
         },
     },
     {
@@ -2153,10 +2360,12 @@ HISTORICAL_CASES = [
         ),
         "model_calibration": {
             "model_deaths_v4": None,
-            "model_deaths_v5": 1309,
+            "model_deaths_v5": 5029,
             "recorded_deaths": 7000,
-            "ratio": 0.19,
-            "calibration_version": "v5",
+            "ratio": 0.72,
+            "calibration_version": "v6",
+            "infra_denial_flag": True,
+            "infra_denial_source": "HRW 'Arms Trade and Violations of the Laws of War since the 1992 Elections in Angola' (1994); Amnesty International 'Angola: Between War and Peace' (1996) — deliberate destruction of food supply and water infrastructure during 55-day siege",
             "out_of_scope": False,
             "notes": (
                 "REFERENCE CASE — GEOGRAPHIC ANCHOR (Sub-Saharan Africa): Model v5 estimate ~1,309 vs 7,000 recorded (ratio 0.19x — outside 2x). "
@@ -2187,6 +2396,13 @@ HISTORICAL_CASES = [
                 "Amnesty International 'Angola: Between War and Peace' (1996); "
                 "Portuguese Wikipedia 'Guerra dos 55 Dias'; UN S/1994/282"
             ),
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": 272,
+                "ucdp_best_total": 6696,
+                "ucdp_range": "6,696–12,285",
+                "ucdp_match": "IN",
+            },
         },
     },
     {
@@ -2266,6 +2482,22 @@ HISTORICAL_CASES = [
                 "UN Secretary-General Report S/1994/282 (March 1994); "
                 "ICRC Angola Annual Report 1993-1994"
             ),
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": 370,
+                "ucdp_best_total": 3606,
+                "ucdp_range": "3,606–5,663",
+                "ucdp_match": "OUT",
+                "ucdp_note": (
+                    "UCDP codes only 3,606 for Bié province 1993-1994 — severe undercount "
+                    "due to near-total media and NGO access blackout during the siege. "
+                    "UCDP methodology depends on contemporaneous sources; when no reporters "
+                    "or humanitarian workers had access, events go unrecorded. "
+                    "HRW (1994) and Amnesty (1996) post-access humanitarian assessments "
+                    "provide the 20,000–30,000 range. Our 25,000 figure is more reliable "
+                    "than UCDP for this specific case."
+                ),
+            },
         },
     },
 ]

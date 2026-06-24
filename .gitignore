@@ -19,6 +19,10 @@ env/
 *.db
 *.sqlite3
 
+# Large data files (downloaded at runtime by ucdp_data.py — 261 MB, not for git)
+data/*.csv
+data/*.zip
+
 # macOS
 .DS_Store
 

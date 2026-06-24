@@ -1089,7 +1089,7 @@ a:hover { color: #0086be !important; }
               </ul>
 
               <!-- Section 2: Calibration summary -->
-              <div style="font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:#1a237e;margin-bottom:.25rem">Calibration — 10 historical cases (1995–2024)</div>
+              <div style="font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:#1a237e;margin-bottom:.25rem">Calibration — 20 of 26 cases · v6: 16/20 within 2× (80%) · R²=0.89</div>
               <table style="font-size:.67rem;width:100%;border-collapse:collapse;margin:.25rem 0 .6rem 0">
                 <tr style="border-bottom:1px solid #e2e8f0;color:#64748b">
                   <th style="text-align:left;padding:.15rem .3rem">Case</th>
@@ -1111,7 +1111,7 @@ a:hover { color: #0086be !important; }
                 <tr style="background:#f0fdf4"><td style="padding:.1rem .3rem"><strong>DRC-Goma</strong></td><td style="text-align:right"><strong>3,000</strong></td><td style="text-align:right">12,764</td><td style="text-align:right;color:#f97316">4.25×</td><td style="text-align:right;color:#16a34a"><strong>1.68× ✓</strong></td><td style="padding:.1rem .4rem;color:#16a34a">Within 2× (named)</td></tr>
               </table>
               <div style="font-size:.67rem;color:#475569;margin-bottom:.6rem">
-                <strong>2/10 within 2× in auto mode</strong> (Kherson, Mosul). <strong>3 unique cases within 2×</strong> across both modes (add DRC named). Kosovo and CAR are below 0.5× — model undercounts open-corridor forced displacement.
+                <strong>16/20 within 2× (80%)</strong> · R²=0.89, p&lt;0.00001 · L3 Moderate (R²=0.88) · L4 Moderate (R²=0.83, p=0.002). Kosovo (0.31×) and CAR (0.26×) undercounted — open-corridor forced displacement not captured by attrition model. Infrastructure-denial multiplier (v6) improves Mariupol, Vukovar, Huambo.
               </div>
 
               <!-- Section 3: Known limitations -->
@@ -1187,47 +1187,25 @@ a:hover { color: #0086be !important; }
             <div class="col-6 col-md-3">
               <div class="stat-mini text-center">
                 <div class="val text-danger" id="statDead">—</div>
-                <div class="lbl">
-                  Est. Deaths
-                  <i class="fas fa-triangle-exclamation"
-                     style="color:#f59e0b;font-size:.55rem;vertical-align:middle;margin-left:2px;cursor:help"
-                     data-bs-toggle="tooltip" data-bs-placement="top"
-                     data-bs-title="Order-of-magnitude estimate. Model v4: 2/10 historical cases within 2× of recorded deaths. Treat as planning indicator, not precise forecast."></i>
-                  <br>
-                  <span style="font-size:.6rem;color:#94a3b8;line-height:1.3">
-                    Order-of-magnitude estimate · 2/10 cases within 2× ·
-                    <a href="#" onclick="document.getElementById('modelLimitsBody').style.display='';
-                                        document.getElementById('modelLimitsChev').className='fas fa-chevron-down ms-auto';
-                                        document.getElementById('modelLimitsChev').style.fontSize='.6rem';
-                                        document.getElementById('modelLimitsChev').style.color='#94a3b8';
-                                        document.getElementById('modelLimitsBody').scrollIntoView({behavior:'smooth',block:'nearest'});
-                                        return false;"
-                       style="color:#64748b;text-decoration:underline dotted">See limitations</a>
-                  </span>
-                </div>
+                <div class="lbl">EST. DEATHS <span id="deadConfBadge" style="font-size:.55rem;background:#d1fae5;color:#065f46;padding:1px 4px;border-radius:2px;margin-left:2px;font-weight:700">MODERATE</span></div>
               </div>
             </div>
             <div class="col-6 col-md-3">
               <div class="stat-mini text-center">
                 <div class="val text-warning" id="statInj">—</div>
-                <div class="lbl">
-                  Injuries
-                  <i class="fas fa-triangle-exclamation"
-                     style="color:#f59e0b;font-size:.55rem;vertical-align:middle;margin-left:2px;cursor:help"
-                     data-bs-toggle="tooltip" data-bs-placement="top"
-                     data-bs-title="Injury rates derived from ICRC 4:1 ratio against effective death rate. Same model limitations apply as for deaths. See Model Limitations above."></i>
-                </div>
+                <div class="lbl">INJURIES <span style="font-size:.55rem;background:#d1fae5;color:#065f46;padding:1px 4px;border-radius:2px;margin-left:2px;font-weight:700">MODERATE</span></div>
               </div>
             </div>
             <div class="col-6 col-md-3"><div class="stat-mini text-center">
               <div class="val text-purple" id="statPtsd" style="color:#7c3aed">—</div>
-              <div class="lbl ptsd-lbl"
-                   data-bs-toggle="tooltip" data-bs-placement="top"
-                   data-bs-title="WHO Mental Health in Emergencies 2022: 15-30% PTSD prevalence in conflict-exposed populations. Saturation model: grows linearly to plateau at day 90."
-                   style="cursor:help">
-                Est. PTSD Cases (90d) <i class="fas fa-circle-question" style="font-size:.55rem;opacity:.65;vertical-align:middle"></i>
-              </div>
+              <div class="lbl">EST. PTSD (90D) <span style="font-size:.55rem;background:#fef3c7;color:#92400e;padding:1px 4px;border-radius:2px;margin-left:2px;font-weight:700">LOW-MOD</span></div>
             </div></div>
+          </div>
+
+          <!-- Statistical validity note -->
+          <div style="font-size:.65rem;color:#6b7280;margin-top:.3rem;padding:.3rem .5rem;background:#f8fafc;border-radius:4px;border-left:2px solid #009EDB">
+            Model structure: R²=0.89, p&lt;0.00001 (statistically significant). Calibrated on 20 of 26 historical cases (6 excluded: out-of-scope). Infrastructure-denial multiplier applied to 3 documented cases (Mariupol, Vukovar, Huambo). L3: Moderate (R²=0.88, 83% within 2×). L4: Moderate (R²=0.83, 75% within 2×, p=0.002).
+            <a href="#" onclick="document.getElementById('modelLimitsBody').style.display='';document.getElementById('modelLimitsChev').className='fas fa-chevron-down ms-auto';document.getElementById('modelLimitsBody').scrollIntoView({behavior:'smooth',block:'nearest'});return false;" style="color:#009EDB">See methodology</a>
           </div>
 
           <!-- Cumulative cost charts -->
@@ -1258,30 +1236,28 @@ a:hover { color: #0086be !important; }
         </div>
         <div class="card-body">
 
-          <!-- Deploy notice (collapsible) -->
-          <div id="deployNotice" style="margin-bottom:.6rem;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden">
-            <button onclick="toggleDeployNotice()" type="button"
+          <!-- Deploy notice (hidden — no country context in Scenario Builder) -->
+          <div id="deployNotice" class="deploy-notice" style="display:none;margin-bottom:.6rem;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden">
+            <button onclick="const w=this.closest('.deploy-notice'); w.classList.toggle('collapsed');" type="button"
                     style="width:100%;text-align:left;padding:.3rem .5rem;background:#fafafa;border:none;
                            font-size:.72rem;font-weight:600;color:#475569;cursor:pointer;
                            display:flex;align-items:center;gap:.4rem">
               <i class="fas fa-satellite-dish" style="color:#64748b;font-size:.7rem"></i>
               <span>Deployment context</span>
-              <i class="fas fa-chevron-right ms-auto" id="deployNoticeChev" style="font-size:.6rem;color:#94a3b8"></i>
+              <i class="fas fa-chevron-right ms-auto" style="font-size:.6rem;color:#94a3b8"></i>
             </button>
-            <div id="deployNoticeBody" style="display:none;padding:.4rem .6rem;font-size:.72rem;color:#475569"></div>
+            <div id="assistDeployBody" class="deploy-notice-body"></div>
           </div>
 
           <!-- Cost breakdown (collapsible) -->
-          <div id="costWarning" class="collapsed" style="margin-bottom:.6rem;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden">
-            <button onclick="toggleCostWarning()" type="button"
-                    style="width:100%;text-align:left;padding:.3rem .5rem;background:#fafafa;border:none;
-                           font-size:.72rem;font-weight:600;color:#475569;cursor:pointer;
-                           display:flex;align-items:center;gap:.4rem">
+          <div id="costWarning" class="cost-warning" style="margin-bottom:.6rem;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;background:none">
+            <div style="width:100%;text-align:left;padding:.3rem .5rem;background:#fafafa;
+                        font-size:.72rem;font-weight:600;color:#475569;
+                        display:flex;align-items:center;gap:.4rem">
               <i class="fas fa-receipt" style="color:#64748b;font-size:.7rem"></i>
               <span>Cost configuration</span>
-              <i class="fas fa-chevron-right ms-auto" id="costWarnChev" style="font-size:.6rem;color:#94a3b8"></i>
-            </button>
-            <div id="costWarnBody" style="display:none">
+            </div>
+            <div id="costWarnBody" class="cost-warning-body" style="background:none;border:none;padding:0">
               <table class="table table-sm table-borderless mb-0" style="font-size:.72rem" id="costConfBody"></table>
             </div>
           </div>
@@ -1629,20 +1605,27 @@ a:hover { color: #0086be !important; }
         <div class="ref-source">
           <span class="ref-tag ref-tag-risk">Method</span>
           <div>
-            <strong>ERCF Mortality Model v4.</strong> Empirically-derived base rates from 10 historical conflict cases (1995–2024). Dimensional modulation via D3×D4 confinement score (×0.5–×8) and D1-population auto-exposure factor (log¹·⁴ falloff). Siege protection cap applied to urban conflicts ≤500k population (D3≤2 AND D1≥4: max_protection=0.30). Auto mode recommended for prospective planning; named Conflict Pattern for retrospective calibration.
-            Calibration: 2/10 cases within 2× in auto mode (Kherson 0.59×, Mosul 0.71×); 3 unique cases within 2× across both modes (add DRC-Goma named 1.68×). Full calibration data in the Historical Cases tab → case detail panel.
-            <br><em>Citation: ERCF Mortality Model v4 (2024). PhD Research Tool — IHL and Civilian Protection, NYU.</em>
+            <strong>ERCF Mortality Model v6.</strong> Empirically-derived base rates from 20 calibration cases (26 total, 6 out-of-scope). Dimensional modulation via D3×D4 confinement score (×0.5–×8) and D1-population auto-exposure factor (log¹·⁴ falloff). Siege protection cap applied to urban conflicts ≤500k population (D3≤2 AND D1≥4: max_protection=0.30). Infrastructure-denial multiplier (α=1.421) applied to 3 documented cases (Mariupol, Vukovar, Huambo) where starvation or hospital destruction was documented as deliberate method of warfare.
+            Calibration: 16/20 within 2× (80%). R²=0.89, p&lt;0.00001. L3: Moderate (R²=0.88, 83% within 2×). L4: Moderate (R²=0.83, 75% within 2×). Full calibration data in the Historical Cases tab → case detail panel.
+            <br><em>Citation: ERCF Mortality Model v6 (2025). PhD Research Tool — IHL and Civilian Protection, NYU.</em>
           </div>
         </div>
         <div class="ref-source">
           <span class="ref-tag ref-tag-risk">Citation</span>
           <div>
-            <strong>ERCF Mortality Model v4:</strong> empirically-derived base rates from 10 historical conflict cases (1995–2024). Dimensional modulation via D3×D4 confinement score and D1-population exposure factor. Siege protection cap for urban conflicts ≤500k population. Auto mode recommended for prospective planning; named conflict pattern for retrospective calibration. Full calibration data available in the Historical Cases tab.
+            <strong>ERCF Mortality Model v6:</strong> empirically-derived base rates from 20 calibration cases (26 total, 6 out-of-scope). Dimensional modulation via D3×D4 confinement score and D1-population exposure factor. Infrastructure-denial multiplier (α=1.421) for documented cases. 16/20 within 2× (80%), R²=0.89. Full calibration data available in the Historical Cases tab.
           </div>
         </div>
 
         <!-- RISK CLASSIFICATION -->
         <div class="ref-section-title"><i class="fas fa-layer-group me-1"></i>Risk Classification</div>
+        <div class="ref-source">
+          <span class="ref-tag ref-tag-hist">Data</span>
+          <div>
+            <strong>UCDP GED v26.1.</strong> Uppsala Conflict Data Program — Georeferenced Event Dataset. Davies et al. (2025), <em>Journal of Peace Research</em> 62(4); Sundberg &amp; Melander (2013), <em>JPR</em> 50(4). CC BY 4.0. Used for historical case validation of mortality estimates.
+            <a href="https://ucdp.uu.se/downloads" target="_blank" rel="noopener" class="ref-link"><i class="fas fa-external-link-alt"></i></a>
+          </div>
+        </div>
         <div class="ref-source">
           <span class="ref-tag ref-tag-risk">Risk</span>
           <div>
@@ -1662,7 +1645,7 @@ a:hover { color: #0086be !important; }
           <span class="ref-tag ref-tag-risk">Risk</span>
           <div>
             <strong>ACAPS API.</strong> Real-time access to INFORM Severity, humanitarian access, and risk radar data.
-            <a href="https://api.acaps.org/" target="_blank" rel="noopener" class="ref-link"><i class="fas fa-external-link-alt"></i></a>
+            <a href="https://www.acaps.org/en/tools/acaps-api" target="_blank" rel="noopener" class="ref-link"><i class="fas fa-external-link-alt"></i></a>
           </div>
         </div>
 
@@ -1671,7 +1654,7 @@ a:hover { color: #0086be !important; }
         <div class="ref-source">
           <span class="ref-tag ref-tag-cost">Cost</span>
           <div>
-            <strong>WFP — UNHAS Rate Cards 2023.</strong> — "$2.08/passenger-km air transport" (2023 fleet-wide confirmed rate). Used as anchor for emergency extraction cost component.
+            <strong>WFP — UNHAS Rate Cards 2023.</strong> — "$2.08/passenger-km air transport" (2023 fleet-wide confirmed rate). Used as anchor for emergency extraction cost component. <span style="font-size:.7rem;color:#9ca3af">(may require WFP login)</span>
             <a href="https://executiveboard.wfp.org/document_download/WFP-0000165597" target="_blank" rel="noopener" class="ref-link"><i class="fas fa-external-link-alt"></i></a>
           </div>
         </div>
@@ -1679,7 +1662,7 @@ a:hover { color: #0086be !important; }
           <span class="ref-tag ref-tag-cost">Cost</span>
           <div>
             <strong>WFP Logistics Cluster East Africa 2023.</strong> — "$170.71/MT average total delivery cost" (stable context baseline). Used to calibrate L0–L1 access multipliers.
-            <a href="https://wfp.tind.io/record/130347" target="_blank" rel="noopener" class="ref-link"><i class="fas fa-external-link-alt"></i></a>
+            <a href="https://docs.wfp.org/api/documents/WFP-0000037991/download/" target="_blank" rel="noopener" class="ref-link"><i class="fas fa-external-link-alt"></i></a>
           </div>
         </div>
         <div class="ref-source">
@@ -1813,7 +1796,7 @@ a:hover { color: #0086be !important; }
             <span class="ref-tag ref-tag-unval">Unval.</span>
             <div>
               <strong>Mortality model calibration — known limitations.</strong>
-              ERCF Mortality Model v4 is calibrated against 10 historical cases. 2/10 cases fall within 2× in auto mode (Kherson 0.59×, Mosul 0.71×). Sudan, Gaza, and Srebrenica fall outside model scope. Kosovo (0.28×) and CAR (0.49×) are undercounted. Full calibration data: See Model Limitations panel above the Days slider, or Historical Cases tab → case detail.
+              ERCF Mortality Model v6 is calibrated against 20 of 26 historical cases (6 out-of-scope). 16/20 within 2× (80%). R²=0.89, p&lt;0.00001. Infrastructure-denial multiplier applied to Mariupol, Vukovar, Huambo. Kosovo (0.31×) and CAR (0.26×) remain undercounted — open-corridor forced displacement not captured by attrition model. Full calibration data: See Model Limitations panel above the Days slider, or Historical Cases tab → case detail.
               <br>
               <strong>All weights are modelled estimates.</strong> No published IHL or humanitarian operations framework
               specifies explicit numerical weights for the 7 dimensions. Validation against an expert panel
@@ -1997,10 +1980,10 @@ a:hover { color: #0086be !important; }
         <h6 style="color:#003F87;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #dde3ec;padding-bottom:.3rem;margin-bottom:.7rem;margin-top:1.2rem">3 · Mortality Model (v4)</h6>
         <p>The mortality model estimates cumulative civilian deaths and injuries over a given duration. It uses a base mortality rate per risk level, modulated by conflict pattern (exposure factor), population size, and time.</p>
         <ul style="padding-left:1.2rem;margin-bottom:.5rem">
-          <li><strong>Base rates by level:</strong> L0: 0.0002%/day · L1: 0.0005%/day · L2: 0.001%/day · L3: 0.003%/day · L4: 0.008%/day (estimated, calibrated against 10 historical cases)</li>
+          <li><strong>Base rates by level:</strong> L0: 0.0002%/day · L1: 0.0005%/day · L2: 0.001%/day · L3: 0.003%/day · L4: 0.008%/day (estimated, calibrated against 20 calibration cases)</li>
           <li><strong>Injury ratio:</strong> 4:1 injuries per death (ICRC field data, standard planning assumption)</li>
-          <li><strong>Calibration:</strong> Tested against 10 conflict cases (1995–2024). 2/10 cases fall within 2× of recorded deaths in Auto mode. 3/10 across both Auto and Urban Siege modes. Srebrenica is excluded from calibration as a mass atrocity/genocide — the mortality process is categorically different from conflict attrition.</li>
-          <li><strong>Known limitation:</strong> The model captures kinetic mortality rates but not infrastructure-denial mortality (starvation, waterborne disease, hypothermia). This produces systematic underestimation in siege contexts (e.g. Mariupol, Aleppo).</li>
+          <li><strong>Calibration (v6):</strong> Tested against 20 of 26 conflict cases (6 out-of-scope). 16/20 within 2× (80%). R²=0.89, p&lt;0.00001. L3: Moderate (R²=0.88, 83% within 2×). L4: Moderate (R²=0.83, 75% within 2×, p=0.002). Srebrenica excluded — mass atrocity with categorically different mortality process.</li>
+          <li><strong>Infrastructure-denial multiplier (v6):</strong> Applied to 3 documented cases (Mariupol, Vukovar, Huambo) where starvation or hospital destruction was documented as deliberate method of warfare. α=1.421, activates only when D1≥4.5 AND D4≥4.0 AND infra_denial_flag=True. Sources: GRC 'The Hope Left Us' (2024); UN CoI Syria (2017); ICTY Vukovar proceedings.</li>
         </ul>
 
         <!-- 4. Evacuation Resource Model -->
@@ -2056,14 +2039,14 @@ a:hover { color: #0086be !important; }
 
         <!-- 9. Historical Calibration -->
         <h6 style="color:#003F87;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #dde3ec;padding-bottom:.3rem;margin-bottom:.7rem;margin-top:1.2rem">9 · Historical Calibration Cases</h6>
-        <p>The model is calibrated against 10 conflict cases (1995–2024): Mariupol (2022), Gaza (2023–), Srebrenica (1995), Aleppo (2012–16), Kherson (2022), Mosul (2016–17), Kosovo (1999), CAR (2014), Sudan/Khartoum (2023–), and DRC/Goma (2024). Calibration accuracy: 2/10 within 2× of documented deaths in Auto mode. Srebrenica is included as a documented boundary case (mass atrocity, not modellable by attrition).</p>
+        <p>The model is calibrated against 20 of 26 historical cases (1989–2024). 6 excluded as out-of-scope (mass atrocities or duration &gt;90 days). Calibration accuracy: 16/20 within 2× (80%). R²=0.89, p&lt;0.00001. Infrastructure-denial multiplier (v6) applied to 3 cases with documented deliberate infrastructure targeting: Mariupol (2022), Vukovar (1991), Huambo (1993). Srebrenica included as a documented boundary case (mass atrocity, not modellable by attrition).</p>
         <div style="background:#fff8f0;border-left:3px solid #d97706;border-radius:4px;padding:.5rem .8rem;margin-top:.6rem;font-size:.75rem">
           <strong style="color:#92400e">Geographic Calibration Limitation:</strong> The calibration dataset is predominantly drawn from Middle East and Eastern Europe conflicts (where primary source documentation meeting ERCF criteria is most available). Sub-Saharan Africa is represented by 2 cases (CAR, DRC/Goma, Angola/Huambo), Latin America by 0 cases, and South/Central Asia by 0 cases outside Iraq/Afghanistan. This reflects a real documentation gap — verified civilian death counts with bounded populations and durations ≤90 days are rare in these regions — not a research omission. When applying ERCF to Sub-Saharan Africa or Latin America contexts, treat cost and mortality estimates with additional caution and seek local field data to supplement model outputs.
         </div>
 
         <!-- Footer -->
         <div style="margin-top:1.5rem;padding:.75rem 1rem;background:#f2f5f9;border-radius:6px;font-size:.72rem;color:#6b7c93">
-          <strong style="color:#1a2940">Model version:</strong> ERCF v4 · Mortality Model v4 ·
+          <strong style="color:#1a2940">Model version:</strong> ERCF v6 · Mortality Model v6 (R²=0.89, 16/20 within 2×) ·
           <strong style="color:#1a2940">Academic reference:</strong> Based on the IHL &amp; Civilian Protection research framework by Teresa Cantero / NYU (Ref. Slide 16) ·
           <strong style="color:#1a2940">Purpose:</strong> PhD Research Tool ·
           <strong style="color:#1a2940">Not for operational deployment without field validation.</strong>

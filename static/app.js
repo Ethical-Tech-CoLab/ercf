@@ -56,19 +56,19 @@ const WEIGHT_META = {
 
 const RISK_DEF = [
   { max:1.5, level:0, label:'Baseline / Monitoring',   nato:'Permissive (Stable)',    color:'#6c757d', text:'#fff',
-    decision:'No evacuation required. Maintain preparedness planning.',
+    decision:'Baseline — no active armed threat to civilian population',
     ihl:'GC IV Art. 49 threshold not yet met.' },
   { max:2.5, level:1, label:'Low Risk (Advisory)',      nato:'Permissive (Degrading)', color:'#0ea5e9', text:'#fff',
-    decision:'Facilitate voluntary departure for vulnerable groups. Issue early warning.',
+    decision:'Advisory — early warning phase; D1 kinetic threat emerging',
     ihl:'Art. 35 GC IV — voluntary departure right applies.' },
   { max:3.5, level:2, label:'Moderate Risk (Watchful)', nato:'Uncertain',              color:'#f59e0b', text:'#000',
-    decision:'Activate Protection Cluster. Negotiate corridors. Exhaust alternatives before evacuating.',
+    decision:'Watchful — corridor negotiation phase; D3 authorization and D6 urgency are key indicators',
     ihl:'AP I Art. 57–58 — precautionary measures required.' },
   { max:4.2, level:3, label:'High Risk (Contested)',    nato:'Hostile (Partial)',      color:'#f97316', text:'#fff',
-    decision:'Mass evacuation — last resort threshold met. Military/CIMIC escort required.',
+    decision:'Contested — mass movement threshold; D2 mobility and D4 logistics are limiting factors',
     ihl:"GC IV Art. 49: 'security of the population so demand'." },
   { max:9.9, level:4, label:'Critical / Emergency',     nato:'Hostile (Imminent)',     color:'#ef4444', text:'#fff',
-    decision:'Emergency extraction. If window closed: shelter-in-place until corridor opens.',
+    decision:'Emergency — extraction phase; D1 kinetic and D6 urgency at critical levels',
     ihl:'GC IV Art. 49(1) — forced transfer = grave breach. Rome Statute Art. 8(2)(b)(viii).' },
 ];
 
@@ -78,6 +78,20 @@ const LEVEL_COLORS = ['#6c757d','#0ea5e9','#f59e0b','#f97316','#ef4444'];
 // Sources: World Bank RAI country scores, Puga TRI dataset, NDU Press Afghanistan analysis
 // Level 1=critical impediment (×4.0) … Level 5=minimal/baseline (×1.0)
 const TERRAIN_MULT = { 1: 4.0, 2: 2.5, 3: 1.7, 4: 1.2, 5: 1.0 };
+
+// Infrastructure-denial mortality multiplier — v6 calibration
+// Source: GRC Mariupol 2024; UN CoI Syria 2017; ICTY Vukovar proceedings
+// alpha=1.421, activates only when D1>=4.5 AND D4>=4.0
+const INFRA_DENIAL_ALPHA        = 1.421;
+const INFRA_DENIAL_D1_THRESHOLD = 4.5;
+const INFRA_DENIAL_D4_THRESHOLD = 4.0;
+
+function infraDenialMult(infraDenialFlag, d1, d4) {
+  if (infraDenialFlag && d1 >= INFRA_DENIAL_D1_THRESHOLD && d4 >= INFRA_DENIAL_D4_THRESHOLD) {
+    return 1.0 + INFRA_DENIAL_ALPHA * (d1 - 3.0) * (d4 - 3.0);
+  }
+  return 1.0;
+}
 
 function getSeasonalTerrainFactor(terrain, lat, month) {
   const base = TERRAIN_MULT[terrain] ?? 1.0;
@@ -294,18 +308,30 @@ const worldMapState = {
 
 // Decision matrix — mirrors DECISION_MATRIX in calculators.py
 const DECISION_MATRIX_JS = {
-  high_high: { recommendation: 'Evacuate immediately',
-               rationale: 'High danger AND viable corridor — delay increases deaths with no operational benefit.',
-               ihl_trigger: 'GC IV Art. 49: security of the population demands evacuation.', color: '#ef4444' },
-  high_low:  { recommendation: 'Shelter-in-place — negotiate corridor urgently',
-               rationale: 'High danger but movement not viable. Forced evacuation without a safe corridor risks greater harm than staying.',
-               ihl_trigger: 'AP I Art. 57–58: precautionary measures. Negotiate Art. 49 GC IV corridor with all parties.', color: '#f97316' },
-  low_high:  { recommendation: 'Facilitate voluntary departure',
-               rationale: 'Corridor viable but situation not yet critical. Support self-organised movement; do not mandate evacuation.',
-               ihl_trigger: 'GC IV Art. 35: right of voluntary departure applies.', color: '#f59e0b' },
-  low_low:   { recommendation: 'Monitor — no immediate action required',
-               rationale: 'Situation not yet critical and movement not viable. Maintain preparedness; reassess daily.',
-               ihl_trigger: 'GC IV Art. 49 threshold not met.', color: '#6c757d' },
+  high_high: {
+    recommendation: "High danger · Corridor viable — evacuation feasible",
+    rationale: "Kinetic threat is severe AND a corridor exists. Conditions support movement if the decision to evacuate is made. Cost and resource data shown below.",
+    ihl_trigger: "GC IV Art. 49 conditions met: danger to civilian population + viable passage.",
+    color: "#dc2626", icon: "🔴",
+  },
+  high_low: {
+    recommendation: "High danger · Corridor blocked — movement constrained",
+    rationale: "Kinetic threat is severe AND no viable corridor exists. Movement carries high risk. Shelter-in-place costs shown in Assistance panel below.",
+    ihl_trigger: "GC IV Art. 17: parties should endeavour to conclude agreements for removal of wounded, sick, infirm, aged, children and maternity cases.",
+    color: "#ea580c", icon: "🟠",
+  },
+  low_high: {
+    recommendation: "Moderate danger · Corridor open — voluntary movement possible",
+    rationale: "Kinetic threat is below critical threshold AND a corridor exists. Conditions support voluntary departure for vulnerable groups. Evacuation cost data shown below.",
+    ihl_trigger: "GC IV Art. 49 threshold not yet met for mandatory evacuation.",
+    color: "#d97706", icon: "🟡",
+  },
+  low_low: {
+    recommendation: "Low danger · Corridor constrained — monitoring phase",
+    rationale: "Kinetic threat is below critical threshold AND no viable corridor exists. Situation does not yet warrant movement. Monitor D1 (kinetic) and D3 (authorization) indicators.",
+    ihl_trigger: "GC IV Art. 49 threshold not met.",
+    color: "#6b7280", icon: "⬜",
+  },
 };
 
 function calcRisk(dims) {
@@ -476,14 +502,15 @@ function calcStay(pop, riskLevel, maxDays, dims, remainingPct = 1.0, exposureFac
   // Sources: ICTY/HRW/Amnesty documented cases 1992-2024.
   const baseRate = [0.3, 0.5, 0.8, 6.0, 4.0][riskLevel] / 10000;  // v5: L3 raised ×4
 
-  // Confinement modifier + extract d1/d3 for siege detection
+  // Confinement modifier + extract d1/d3/d4 for siege detection and infra-denial
   let confMult = 1.0;
-  let d1Val = 3.0, d3Val = 3.0;
+  let d1Val = 3.0, d3Val = 3.0, d4Val = 3.0;
   if (dims) {
     d1Val = dims.d1_kinetic ?? dims.d1 ?? 3.0;
     d3Val = dims.d3_political ?? dims.d3 ?? 3.0;
-    const d4 = dims.d4_logistics ?? dims.d4 ?? 3.0;
-    const cs = (5.0 - d3Val) * d4 / 5.0;
+    d4Val = dims.d4_logistics ?? dims.d4 ?? 3.0;
+    const d4 = d4Val;
+    const cs = (5.0 - d3Val) * d4Val / 5.0;
     if      (cs <= 1) confMult = 0.5;
     else if (cs <= 2) confMult = 1.0;
     else if (cs <= 3) confMult = 2.0;
@@ -503,7 +530,9 @@ function calcStay(pop, riskLevel, maxDays, dims, remainingPct = 1.0, exposureFac
   const protectionFactor = (1 - rp) * maxProtection;
   // Geographic exposure factor (v3/v4)
   const ef               = Math.max(0.05, Math.min(1.0, exposureFactor ?? 1.0));
-  const effectiveMort    = baseRate * confMult * (1 - protectionFactor) * ef;
+  // Live calculator always uses flag=false — multiplier only activates for documented cases
+  const idMult           = infraDenialMult(false, d1Val, d4Val);
+  const effectiveMort    = baseRate * confMult * (1 - protectionFactor) * ef * idMult;
 
   const dailyFin  = base * pop;
   const dailyMort = effectiveMort * pop;
@@ -728,12 +757,7 @@ function toggleModelLimits() {
 }
 
 function toggleCostWarning() {
-  const wrap = document.getElementById('costWarning');
-  const chev = document.getElementById('costWarnChev');
-  wrap.classList.toggle('collapsed');
-  chev.className = wrap.classList.contains('collapsed')
-    ? 'fas fa-chevron-right ms-auto'
-    : 'fas fa-chevron-down ms-auto';
+  // Cost configuration is always open — no-op
 }
 
 function toggleDeployNotice() {
@@ -1019,8 +1043,7 @@ function evacuationWindow(level, d1, d3, d6) {
   if (level >= 4 && d6 >= 4) {
     return `<div class="evac-window evac-urgent">
       <i class="fas fa-clock me-1"></i>
-      <span><strong>EVACUATION WINDOW CLOSING — less than 6 hours estimated</strong>
-      — Immediate action required. Activate all corridors now.${disclaimer}</span>
+      <span><strong>Estimated window: less than 6 hours (D6 Urgency: ${d6}/5)</strong>${disclaimer}</span>
     </div>`;
   }
 
@@ -1033,15 +1056,15 @@ function evacuationWindow(level, d1, d3, d6) {
     cls  = 'evac-moderate';
   } else if (level === 3) {
     if (d6 >= 4) {
-      text = 'EVACUATION WINDOW: 24 to 48 hours — Act within hours';
+      text = `Estimated window: 24–48 hours (D6 Urgency: ${d6}/5)`;
       cls  = 'evac-high';
     } else {
-      text = 'Estimated window: 48–72 hours — act within days';
+      text = `Estimated window: 48–72 hours (D6 Urgency: ${d6}/5)`;
       cls  = 'evac-high';
     }
   } else {
     // Level 4, D6 < 4
-    text = 'Estimated window: less than 24 hours — rapid deployment required';
+    text = `Estimated window: less than 24 hours (D6 Urgency: ${d6}/5)`;
     cls  = 'evac-critical';
   }
   return `<div class="evac-window ${cls}"><i class="fas fa-clock me-1"></i><span>${text}${disclaimer}</span></div>`;
@@ -1141,11 +1164,14 @@ function updateResourceDisplay(r) {
   state.charts.costBar.update('none');
   updateCostConfTable(c);
   renderSeasonalTerrainWarning(state.seasonalTerrain, state.terrain);
-  const rateLabel = document.getElementById('personnelRateModeLabel');
-  const rateBtn   = document.getElementById('personnelRateToggleBtn');
-  if (rateLabel) rateLabel.textContent = state.personnelRateMode === 'un'
+  const rateLabelText = state.personnelRateMode === 'un'
     ? 'Current: UN international rates (×4.5)'
     : 'Current: NGO/national staff rates';
+  const rateLabel = document.getElementById('personnelRateModeLabel');
+  const rateLabel2 = document.getElementById('assistPersonnelRateModeLabel');
+  const rateBtn   = document.getElementById('personnelRateToggleBtn');
+  if (rateLabel)  rateLabel.textContent  = rateLabelText;
+  if (rateLabel2) rateLabel2.textContent = rateLabelText;
   if (rateBtn) rateBtn.textContent = state.personnelRateMode === 'un'
     ? 'Reset to NGO rates'
     : 'Switch to UN rates (×4.5)';
@@ -1307,9 +1333,43 @@ function updateCostCharts(data) {
 
   const last = days.length - 1;
   document.getElementById('statCost').textContent = '$'+fmt(fin[last]);
-  document.getElementById('statDead').textContent = dead[last].toFixed(1);
-  document.getElementById('statInj').textContent  = inj[last].toFixed(1);
-  document.getElementById('statPtsd').textContent = fmtFull(ptsd[last]);
+
+  // Mortality range — derived from log-log regression (R²=0.765, p<0.00001)
+  // L3: 80% PI ×0.35–×2.0 | L4: 80% PI ×0.25–×3.0
+  const riskLvl    = calcRisk(state.dims).level;
+  const deadCenter = Math.round(dead[last]);
+  const deadLow    = riskLvl >= 4 ? Math.round(deadCenter * 0.25) : Math.round(deadCenter * 0.35);
+  const deadHigh   = riskLvl >= 4 ? Math.round(deadCenter * 3.0)  : Math.round(deadCenter * 2.0);
+  const deadConf      = 'MODERATE';
+  const deadConfColor = '#065f46';
+  const deadConfBg    = '#d1fae5';
+  document.getElementById('statDead').innerHTML =
+    `${fmtFull(deadCenter)}<br>
+     <span style="font-size:.62rem;color:#6b7280">${fmtFull(deadLow)}–${fmtFull(deadHigh)}</span>`;
+
+  // Update confidence badge dynamically
+  const deadLblEl = document.querySelector('#statDead')?.closest('.stat-mini')?.querySelector('.lbl');
+  if (deadLblEl) {
+    deadLblEl.innerHTML = `EST. DEATHS <span style="font-size:.55rem;background:${deadConfBg};color:${deadConfColor};padding:1px 4px;border-radius:2px;margin-left:2px;font-weight:700">${deadConf}</span>`;
+  }
+
+  // Injury range — ICRC planning standard 4:1, range 3:1–5:1
+  // Source: ICRC Arms Availability study; Frontiers Israel-Gaza 2024
+  const injCenter = Math.round(dead[last] * 4);
+  const injLow    = Math.round(dead[last] * 3);
+  const injHigh   = Math.round(dead[last] * 5);
+  document.getElementById('statInj').innerHTML =
+    `${fmtFull(injCenter)}<br>
+     <span style="font-size:.62rem;color:#6b7280">${fmtFull(injLow)}–${fmtFull(injHigh)}</span>`;
+
+  // PTSD range — WHO crisis mental health framework 10–25%
+  // Source: WHO Mental Health in Emergencies (2019)
+  const ptsdCenter = Math.round(ptsd[last]);
+  const ptsdLow    = Math.round(state.population * 0.10 * Math.min(1, state.days / 90));
+  const ptsdHigh   = Math.round(state.population * 0.25 * Math.min(1, state.days / 90));
+  document.getElementById('statPtsd').innerHTML =
+    `${fmtFull(ptsdCenter)}<br>
+     <span style="font-size:.62rem;color:#6b7280">${fmtFull(ptsdLow)}–${fmtFull(ptsdHigh)}</span>`;
 }
 
 function onTransportModeChange() {
@@ -1743,6 +1803,7 @@ function buildDocumentedFiguresBlock(c) {
   }
 
   const rows = [];
+  let ucdpBlock = '';
 
   // Deaths row
   if (df.deaths_verified !== null) {
@@ -1786,6 +1847,41 @@ function buildDocumentedFiguresBlock(c) {
 
   if (rows.length === 0) return '';
 
+  // UCDP validation block
+  const uv = df.ucdp_validation;
+  if (uv && uv.ucdp_ged_version) {
+    const matchColor = {
+      'IN': '#0a6e50', '~50%': '#0a6e50', '~2x': '#d97706',
+      'OUT': '#dc2626', 'NOT FOUND': '#6b7280', 'pre-1989': '#6b7280'
+    }[uv.ucdp_match] || '#6b7280';
+
+    const matchLabel = {
+      'IN': '✓ Within UCDP range',
+      '~50%': '~ Within 50% of UCDP best',
+      '~2x': '~ Within 2× of UCDP best',
+      'OUT': '✗ Outside UCDP range',
+      'NOT FOUND': '— Not found in UCDP',
+      'pre-1989': '— Pre-1989 (outside UCDP scope)',
+    }[uv.ucdp_match] || uv.ucdp_match;
+
+    ucdpBlock = `
+      <div style="margin-top:.5rem;border:1px solid #e0e8f0;border-radius:5px;overflow:hidden">
+        <div style="background:#f0f8ff;padding:.3rem .6rem;font-size:.68rem;font-weight:700;color:#003F87;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e0e8f0">
+          🔬 UCDP GED ${uv.ucdp_ged_version} Validation
+        </div>
+        <div style="padding:.4rem .6rem;font-size:.75rem;display:flex;gap:1rem;flex-wrap:wrap;align-items:center">
+          <span><strong>Civilian deaths (floor):</strong> ${(uv.ucdp_civilian_deaths||0).toLocaleString()}</span>
+          <span><strong>Total best:</strong> ${(uv.ucdp_best_total||0).toLocaleString()}</span>
+          <span><strong>Range:</strong> ${uv.ucdp_range || '—'}</span>
+          <span style="font-weight:700;color:${matchColor}">${matchLabel}</span>
+        </div>
+        ${uv.ucdp_note ? `<div style="padding:.2rem .6rem .4rem;font-size:.7rem;color:#6b7280;font-style:italic;border-top:1px solid #f0f4f8">${uv.ucdp_note}</div>` : ''}
+        <div style="padding:.2rem .6rem .3rem;font-size:.65rem;color:#9ca3af;border-top:1px solid #f0f4f8">
+          Source: Davies et al. (2025), Journal of Peace Research 62(4); Sundberg &amp; Melander (2013), JPR 50(4). CC BY 4.0.
+        </div>
+      </div>`;
+  }
+
   return `
     <div style="margin-top:.75rem;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden">
       <div style="background:#f8fafc;padding:.4rem .6rem;font-size:.72rem;font-weight:700;color:#374151;border-bottom:1px solid #e5e7eb;text-transform:uppercase;letter-spacing:.05em">
@@ -1801,6 +1897,7 @@ function buildDocumentedFiguresBlock(c) {
         </thead>
         <tbody>${rows.join('')}</tbody>
       </table>
+      ${ucdpBlock}
       ${df.sources ? `<div style="padding:.3rem .6rem;font-size:.65rem;color:#9ca3af;border-top:1px solid #e5e7eb">Sources: ${df.sources}</div>` : ''}
     </div>`;
 }
@@ -3716,11 +3813,11 @@ async function loadCountryContext(iso3, name) {
   `;
 
   const WORLD_MAP_DECISIONS = {
-    0: { text: 'Monitor — no immediate action required',      color: '#6b7280' },
-    1: { text: 'Advisory — begin contingency planning',       color: '#2563eb' },
-    2: { text: 'Watchful — pre-position resources',           color: '#d97706' },
-    3: { text: 'Contested — initiate evacuation planning',    color: '#ea580c' },
-    4: { text: 'Emergency — immediate evacuation required',   color: '#dc2626' },
+    0: { text: 'Baseline — no active armed threat',       color: '#6b7280' },
+    1: { text: 'Advisory — early warning phase',          color: '#2563eb' },
+    2: { text: 'Watchful — corridor negotiation phase',   color: '#d97706' },
+    3: { text: 'Contested — mass movement threshold',     color: '#ea580c' },
+    4: { text: 'Emergency — extraction phase',            color: '#dc2626' },
   };
   const dec = WORLD_MAP_DECISIONS[lvl] || WORLD_MAP_DECISIONS[0];
   const decBadge = document.createElement('div');

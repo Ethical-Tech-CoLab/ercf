@@ -177,6 +177,7 @@ def fetch_active_crises() -> List[dict]:
 
 # ─── Combined country view ────────────────────────────────────────────────────
 
+
 def get_country_data(iso3: str) -> dict:
     """Call all four endpoints, filter by ISO3, return combined dict.
 
@@ -193,6 +194,7 @@ def get_country_data(iso3: str) -> dict:
 
 
 # ─── Field normalisation ──────────────────────────────────────────────────────
+
 
 def _normalise_iso3(field) -> str:
     """Return a plain uppercase string regardless of whether the API sent a list or string."""
