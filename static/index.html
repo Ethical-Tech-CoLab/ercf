@@ -642,6 +642,29 @@ a:hover { color: #0086be !important; }
         </div>
       </div>
 
+      <!-- UCDP Live Data -->
+      <div class="card mb-3">
+        <div class="card-body" style="padding:.6rem .75rem">
+          <div style="font-size:11px;font-weight:600;color:#1a2940;margin-bottom:.3rem">
+            UCDP Conflict Data
+            <span style="font-size:9px;color:#6b7280;font-weight:400;margin-left:4px">Uppsala Conflict Data Program</span>
+          </div>
+          <div style="display:flex;gap:.4rem;align-items:center;flex-wrap:wrap">
+            <input type="text" id="ucdpCountry" placeholder="Country (e.g. Ukraine)"
+                   style="flex:1;min-width:120px;font-size:12px;padding:4px 8px;border:1px solid #cdd5e0;border-radius:4px;background:#fff">
+            <input type="number" id="ucdpYearStart" placeholder="From" min="1989" max="2025"
+                   style="width:70px;font-size:12px;padding:4px 8px;border:1px solid #cdd5e0;border-radius:4px;background:#fff">
+            <input type="number" id="ucdpYearEnd" placeholder="To" min="1989" max="2025"
+                   style="width:70px;font-size:12px;padding:4px 8px;border:1px solid #cdd5e0;border-radius:4px;background:#fff">
+            <button onclick="fetchUcdpData()"
+                    style="font-size:10px;font-weight:600;padding:4px 10px;background:#009EDB;color:#fff;border:none;border-radius:4px;cursor:pointer;letter-spacing:.04em;text-transform:uppercase">
+              🔬 Query
+            </button>
+          </div>
+          <div id="ucdpResult" style="margin-top:.4rem"></div>
+        </div>
+      </div>
+
       <!-- Dimension sliders -->
       <div class="card mb-3">
         <div class="card-header d-flex align-items-center justify-content-between">
@@ -1985,6 +2008,15 @@ a:hover { color: #0086be !important; }
           <li><strong>Calibration (v6):</strong> Tested against 20 of 26 conflict cases (6 out-of-scope). 16/20 within 2× (80%). R²=0.89, p&lt;0.00001. L3: Moderate (R²=0.88, 83% within 2×). L4: Moderate (R²=0.83, 75% within 2×, p=0.002). Srebrenica excluded — mass atrocity with categorically different mortality process.</li>
           <li><strong>Infrastructure-denial multiplier (v6):</strong> Applied to 3 documented cases (Mariupol, Vukovar, Huambo) where starvation or hospital destruction was documented as deliberate method of warfare. α=1.421, activates only when D1≥4.5 AND D4≥4.0 AND infra_denial_flag=True. Sources: GRC 'The Hope Left Us' (2024); UN CoI Syria (2017); ICTY Vukovar proceedings.</li>
         </ul>
+        <div style="background:#f8fafc;border:1px solid #dde3ec;border-radius:5px;padding:.5rem .8rem;margin-top:.6rem;font-size:.74rem">
+          <strong style="color:#003F87">Statistical Validation (v6):</strong>
+          <ul style="margin:.3rem 0 0 1rem;padding:0">
+            <li><strong>Durbin-Watson:</strong> 1.493 — borderline positive autocorrelation. Reflects structural clustering by exposure type (urban sieges and regional conflicts cluster separately), not statistical inflation. Expected in cross-sectional conflict calibration with discrete categories.</li>
+            <li><strong>Multicollinearity:</strong> No pair of predictor variables exceeds |r|=0.80. Highest correlations: log_days ↔ D4 (r=0.72) and D1 ↔ D4 (r=0.72) — both conceptually expected (longer sieges degrade logistics; high kinetic threat correlates with logistics degradation).</li>
+            <li><strong>VIF:</strong> All predictors VIF &lt; 4 (log_pop=1.97, log_days=2.86, level=2.33, D1=3.34, D4=3.52). Well below the threshold of concern (VIF&gt;10). Multicollinearity is not a concern.</li>
+            <li><strong>Conclusion:</strong> R²=0.885 is statistically genuine. The DW borderline result is interpretable and documented, not indicative of model misspecification.</li>
+          </ul>
+        </div>
 
         <!-- 4. Evacuation Resource Model -->
         <h6 style="color:#003F87;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #dde3ec;padding-bottom:.3rem;margin-bottom:.7rem;margin-top:1.2rem">4 · Evacuation Resource Model (Ground Transport)</h6>

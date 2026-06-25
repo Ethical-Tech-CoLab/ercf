@@ -1132,6 +1132,51 @@ function togglePersonnelRate() {
   updateAll();
 }
 
+async function fetchUcdpData() {
+  const country   = document.getElementById('ucdpCountry').value.trim();
+  const yearStart = document.getElementById('ucdpYearStart').value;
+  const yearEnd   = document.getElementById('ucdpYearEnd').value;
+  const resultEl  = document.getElementById('ucdpResult');
+
+  if (!country || !yearStart || !yearEnd) {
+    resultEl.innerHTML = '<span style="font-size:.72rem;color:#dc2626">Please enter country and year range.</span>';
+    return;
+  }
+
+  resultEl.innerHTML = '<span style="font-size:.72rem;color:#6b7280">⏳ Querying UCDP GED v26.1...</span>';
+
+  try {
+    const params = new URLSearchParams({ country, year_start: yearStart, year_end: yearEnd });
+    const resp = await fetch(`/api/ucdp?${params}`);
+    const data = await resp.json();
+
+    if (data.error) {
+      resultEl.innerHTML = `<span style="font-size:.72rem;color:#dc2626">No data found for ${country} ${yearStart}–${yearEnd}.</span>`;
+      return;
+    }
+
+    resultEl.innerHTML = `
+      <div style="background:#f0f8ff;border:1px solid #a8d4f0;border-left:3px solid #009EDB;border-radius:4px;padding:.4rem .6rem;font-size:.72rem">
+        <div style="font-weight:600;color:#003F87;margin-bottom:.2rem">
+          🔬 UCDP GED v26.1 — ${data.country} ${data.period}
+          <span style="font-weight:400;color:#6b7280;margin-left:4px">${(data.total_events||0).toLocaleString()} events</span>
+        </div>
+        <div style="display:flex;gap:1rem;flex-wrap:wrap">
+          <span><strong>Civilian deaths (floor):</strong> ${(data.deaths_civilians_explicit||0).toLocaleString()}</span>
+          <span><strong>Total best:</strong> ${(data.total_best||0).toLocaleString()}</span>
+          <span><strong>Range:</strong> ${data.uncertainty_range||'—'}</span>
+          <span><strong>One-sided events:</strong> ${data.one_sided_events||0}</span>
+        </div>
+        <div style="margin-top:.2rem;color:#6b7280;font-size:.65rem">
+          deaths_civilians = explicitly identified civilian deaths (floor) · best/high/low = total fatality range incl. combatants ·
+          Source: Davies et al. (2025), JPR 62(4) · CC BY 4.0
+        </div>
+      </div>`;
+  } catch (err) {
+    resultEl.innerHTML = `<span style="font-size:.72rem;color:#dc2626">Error: ${err.message}</span>`;
+  }
+}
+
 function updateResourceDisplay(r) {
   document.getElementById('resVeh').textContent   = r.vehicles.total;
   document.getElementById('resPers').textContent  = r.personnel.total;

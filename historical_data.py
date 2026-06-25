@@ -2500,4 +2500,240 @@ HISTORICAL_CASES = [
             },
         },
     },
+    {
+        "id": 27,
+        "name": "Siege of Misrata, Libya",
+        "year": 2011,
+        "risk_level": 3,
+        "conflict_type": "Non-International Armed Conflict (internationalized)",
+        "exposure_type": "urban_siege",
+        "population_at_risk": 300000,
+        "duration_days": 89,
+        "estimated_deaths": 400,
+        "displaced": 150000,
+        "vulnerable_pct": 25,
+        "vulnerable_pct_source": "PHR 'Witness to War Crimes' (2011): significant elderly/child population documented in siege conditions",
+        "distance_km": 210,
+        "distance_km_source": "Misrata to Tripoli (nearest major safe zone under rebel control) ~210km via coastal highway",
+        "risk_indicators": {"d1": 4.5, "d2": 4.5, "d3": 2.0, "d4": 3.5, "d5": 2.5, "d6": 4.0, "d7": 3.0},
+        "key_lessons": [
+            "Grad rockets and cluster munitions used indiscriminately in civilian areas — D1=4.5 reflects indiscriminate weapons",
+            "Port remained partially operational — D4 logistics not fully degraded, enabling some supply",
+            "~90-day siege duration aligns with ERCF operational window — good calibration case",
+            "Hospital chief Dr. Fortia documented 398 killed by 30 March, 700 by 14 April — progressive mortality tracking",
+            "UN CoI (2012) confirmed IHL violations across all city sectors — well-documented for its era",
+        ],
+        "ihl_issues": ["Indiscriminate use of Grad rockets", "Cluster munitions in civilian areas", "Siege of civilian population"],
+        "source": "PHR 'Witness to War Crimes' (Aug 2011); HRW 'Libya: Indiscriminate Attacks Kill Civilians' (Apr 2011); Amnesty International 'Misratah — Under Siege and Under Fire' (Mar 2011); UN Commission of Inquiry on Libya (UNHRC A/HRC/17/44, 2012)",
+        "evacuated_count": 50000,
+        "remaining_count": 250000,
+        "corridor_status": "partial",
+        "corridor_notes": "Sea corridor via Misrata port intermittently operational for evacuation and resupply. NATO enforced no-fly zone from March 19. Land corridors blocked by Gaddafi forces throughout siege.",
+        "model_calibration": {
+            "model_deaths_v5": None,
+            "recorded_deaths": 400,
+            "ratio": None,
+            "calibration_version": "v6",
+            "notes": (
+                "CALIBRATION CASE (MODERATE): Civilian death count contested — official Misrata hospital: 700 by mid-April; "
+                "PHR/HRW: 300-700 range; UCDP explicit civilian: 102 (floor). Midpoint 400 used. "
+                "UCDP data inconsistency noted (total_low > total_best — v26 coding artefact). "
+                "Wide uncertainty range is a calibration caveat."
+            ),
+            "out_of_scope": True,
+            "out_of_scope_reason": (
+                "Civilian death count too uncertain for calibration (range 102–700, sources contested). "
+                "Model overestimates 6.8× at recorded=400 with pop=300k. "
+                "Retained as documented reference case — first Libya/North Africa case in dataset, "
+                "strong IHL documentation (PHR, HRW, Amnesty, UN CoI)."
+            ),
+            "infra_denial_flag": False,
+        },
+        "documented_figures": {
+            "deaths_verified": 102,
+            "deaths_estimate_range": "102–700",
+            "deaths_note": (
+                "UCDP GED v26.1 explicitly codes 102 civilian deaths. Misrata hospital chief Dr. Fortia: "
+                "398 killed by March 30, 700 by April 14 (80% civilian estimate). "
+                "PHR/HRW field investigations corroborate 300-700 range. "
+                "Wide uncertainty reflects contested civilian/combatant separation. Midpoint 400 used."
+            ),
+            "injuries_documented": None,
+            "injuries_note": "No comprehensive injury count; PHR documented significant caseload at Misrata Central Hospital.",
+            "displaced_documented": 150000,
+            "displaced_note": "~150,000 displaced from Misrata during siege per UNHCR Libya field reports (2011).",
+            "sources": "PHR 'Witness to War Crimes' (Aug 2011); HRW Apr 2011; Amnesty Mar 2011; UN CoI A/HRC/17/44 (2012)",
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": 102,
+                "ucdp_best_total": 1353,
+                "ucdp_range": "1,380–2,440",
+                "ucdp_match": "~2x",
+                "ucdp_note": (
+                    "UCDP data inconsistency: total_low > total_best (v26 coding artefact for this case). "
+                    "Explicit civilian deaths (102) is reliable floor; best total (1,353) includes combatants. "
+                    "True civilian figure estimated 300-700 based on hospital records."
+                ),
+            },
+        },
+    },
+    {
+        "id": 28,
+        "name": "Battle of Marawi, Philippines",
+        "year": 2017,
+        "risk_level": 3,
+        "conflict_type": "Non-International Armed Conflict",
+        "exposure_type": "urban_siege",
+        "population_at_risk": 200000,
+        "duration_days": 154,
+        "estimated_deaths": 400,
+        "displaced": 360000,
+        "vulnerable_pct": 30,
+        "vulnerable_pct_source": "Amnesty International 'The Battle of Marawi' (2017): significant elderly and disabled population unable to evacuate",
+        "distance_km": 90,
+        "distance_km_source": "Marawi to Iligan City (nearest safe zone) ~90km via Lake Lanao route",
+        "risk_indicators": {"d1": 4.5, "d2": 4.5, "d3": 2.0, "d4": 3.5, "d5": 3.0, "d6": 4.5, "d7": 3.0},
+        "key_lessons": [
+            "IS-affiliated Maute Group used civilians as human shields — D2 constrained by both IS and AFP operations",
+            "AFP urban warfare destroyed 80% of city — infrastructure denial component documented",
+            "Official 47 civilian deaths is a severe undercount — Amnesty documents ≥25 extrajudicial killings alone",
+            "360,000 displaced from 200,000 city population — displacement exceeded pre-battle population (IDPs from surroundings)",
+            "First major IS-linked urban siege in Southeast Asia — geographically unique in ERCF dataset",
+        ],
+        "ihl_issues": ["Human shields by IS-affiliated forces", "Disproportionate urban warfare (AFP)", "Extrajudicial killings", "Infrastructure destruction"],
+        "source": "Amnesty International 'The Battle of Marawi: Death and Destruction in the Philippines' (ASA 35/7427/2017, Nov 2017); AFP official figures; Canada Army Journal (2025); UCDP GED v26.1",
+        "evacuated_count": 160000,
+        "remaining_count": 40000,
+        "corridor_status": "partial",
+        "corridor_notes": "Philippine government opened partial evacuation corridors in first weeks. IS forces blocked exit in most areas. Significant civilian flight occurred before and during battle. City declared liberated October 23, 2017.",
+        "model_calibration": {
+            "model_deaths_v5": None,
+            "recorded_deaths": 400,
+            "ratio": None,
+            "calibration_version": "v6",
+            "notes": (
+                "OUT OF SCOPE — DURATION: 154 days exceeds ERCF 0-90 day planning window. "
+                "Included as documented reference case. Official civilian count (47) is known severe undercount; "
+                "Amnesty field investigation suggests hundreds; UCDP best total 1,269 (combatants + civilians). "
+                "Midpoint civilian estimate ~400 used. First Southeast Asia urban siege in ERCF dataset."
+            ),
+            "out_of_scope": True,
+            "out_of_scope_reason": (
+                "Duration (154 days) exceeds ERCF 0-90 day planning window. "
+                "Final intense phase (Aug-Oct 2017, ~60 days) would be within scope but cannot be isolated in available data."
+            ),
+            "infra_denial_flag": False,
+        },
+        "documented_figures": {
+            "deaths_verified": 73,
+            "deaths_estimate_range": "73–800 civilian",
+            "deaths_note": (
+                "UCDP GED v26.1 explicitly codes 73 civilian deaths (floor). AFP official: 47 civilian deaths (acknowledged undercount). "
+                "Amnesty International field investigation (48 survivor interviews): documents ≥25 confirmed extrajudicial killings alone, "
+                "total 'likely significantly higher' than official. Informal estimates up to 2,000. Midpoint ~400 used with wide uncertainty."
+            ),
+            "injuries_documented": None,
+            "injuries_note": "No comprehensive injury count published.",
+            "displaced_documented": 360000,
+            "displaced_note": "360,000 displaced at peak per Philippine government and UNHCR. Exceeds pre-battle city population due to IDPs from surrounding areas who had sought refuge in Marawi.",
+            "sources": "Amnesty International ASA 35/7427/2017 (Nov 2017); AFP official casualty figures; UCDP GED v26.1 (112 events, Lanao del Sur); Canada Army Journal 2025",
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": 73,
+                "ucdp_best_total": 1269,
+                "ucdp_range": "1,262–1,305",
+                "ucdp_match": "~2x",
+                "ucdp_note": (
+                    "UCDP explicitly codes 73 civilian deaths (floor) from 112 events. "
+                    "Best total 1,269 includes combatants. "
+                    "Official AFP figure (47 civilian) is known severe undercount per Amnesty field investigation."
+                ),
+            },
+        },
+    },
+    {
+        "id": 29,
+        "name": "Sri Lanka — Vanni Offensive (Final Phase)",
+        "year": 2009,
+        "risk_level": 4,
+        "conflict_type": "Non-International Armed Conflict",
+        "exposure_type": "enclave",
+        "population_at_risk": 300000,
+        "duration_days": 120,
+        "estimated_deaths": 7000,
+        "displaced": 280000,
+        "vulnerable_pct": 40,
+        "vulnerable_pct_source": "UN Panel of Experts (2011): civilian population included large proportion of elderly, disabled, and children unable to flee shrinking enclave",
+        "distance_km": 80,
+        "distance_km_source": "Mullaitivu (final enclave) to government-controlled safe zone ~80km",
+        "risk_indicators": {"d1": 5.0, "d2": 5.0, "d3": 1.0, "d4": 4.0, "d5": 2.0, "d6": 5.0, "d7": 2.5},
+        "key_lessons": [
+            "300,000 civilians trapped in shrinking enclave — textbook ERCF enclave scenario at maximum scale",
+            "Government media ban created near-total information blackout — D7=2.5 reflects deliberate restriction",
+            "LTTE used civilians as human shields while GoSL shelled civilian areas — both parties violated IHL",
+            "UN estimates 40,000 civilian deaths disputed by GoSL — range 7,000-40,000 reflects fundamental uncertainty",
+            "No humanitarian corridors opened despite ICRC and UN pressure — D3=1.0 reflects complete corridor denial",
+        ],
+        "ihl_issues": ["Shelling of civilian areas and hospitals (GoSL)", "Human shields (LTTE)", "Media ban preventing documentation", "Denial of humanitarian access", "No-fire zone violations"],
+        "source": "UN Secretary-General Internal Review Panel 'Report on Sri Lanka' (Nov 2012); HRW 'War on the Displaced' (Feb 2009); UN Panel of Experts on Sri Lanka (Mar 2011); ICRC field reports 2009; US Embassy Colombo incident tracking (2009)",
+        "evacuated_count": 20000,
+        "remaining_count": 280000,
+        "corridor_status": "none",
+        "corridor_notes": "No humanitarian corridors opened. GoSL declared 'no-fire zones' (NFZ) which were subsequently shelled. ICRC and UN repeatedly requested humanitarian access and corridor — denied by both GoSL and LTTE. 280,000 civilians eventually surrendered/displaced when LTTE was defeated in May 2009.",
+        "model_calibration": {
+            "model_deaths_v5": None,
+            "recorded_deaths": 7000,
+            "ratio": None,
+            "calibration_version": "v6",
+            "notes": (
+                "OUT OF SCOPE — DURATION + UNCERTAINTY: 120 days exceeds ERCF 90-day window. "
+                "Death range 7,000-40,000 (6× spread) exceeds ERCF calibration criterion (≤3×). "
+                "Included as documented reference case — strongest South Asia case in dataset with "
+                "UCDP civilian deaths of 6,705 (highest of any non-Middle-East case). "
+                "UN Panel of Experts estimate (40,000) disputed by GoSL; "
+                "UCDP (6,705) and HRW documentation support lower bound of 7,000+."
+            ),
+            "out_of_scope": True,
+            "out_of_scope_reason": (
+                "Duration (120 days) exceeds ERCF 0-90 day window. "
+                "Death range (7,000-40,000) exceeds 3× calibration criterion. "
+                "Included as documented reference — highest civilian death toll of any South/Southeast Asia case in dataset."
+            ),
+            "infra_denial_flag": False,
+        },
+        "documented_figures": {
+            "deaths_verified": 6705,
+            "deaths_estimate_range": "6,705–40,000",
+            "deaths_note": (
+                "UCDP GED v26.1 explicitly codes 6,705 civilian deaths for Northern Province 2009 — "
+                "highest UCDP civilian death count of any case in ERCF dataset outside Middle East. "
+                "UN Secretary-General Internal Review Panel (2012): 2,683 documented deaths Jan 20–Mar 2 in Mullaitivu alone. "
+                "UN Panel of Experts (2011): estimates up to 40,000 civilian deaths in final phase. "
+                "HRW: 1,123 deaths + 4,027 injuries in 3 weeks (Jan 20–Feb 13). "
+                "GoSL disputes high-end estimates. 7,000 used as conservative lower bound."
+            ),
+            "injuries_documented": 4027,
+            "injuries_note": "HRW documented 4,027 injuries in 3-week period (Jan 20–Feb 13, 2009) alone — likely a fraction of total.",
+            "displaced_documented": 280000,
+            "displaced_note": "~280,000 civilians surrendered or were displaced when LTTE defeated in May 2009 per UNHCR and UN OCHA field reports.",
+            "sources": (
+                "UN SG Internal Review Panel (Nov 2012, A/66/891); HRW 'War on the Displaced' (Feb 2009); "
+                "UN Panel of Experts A/HRC/30/CRP.2 (Mar 2011); ICRC Annual Report 2009; "
+                "UCDP GED v26.1 (355 events, Northern Province)"
+            ),
+            "ucdp_validation": {
+                "ucdp_ged_version": "v26.1",
+                "ucdp_civilian_deaths": 6705,
+                "ucdp_best_total": 10184,
+                "ucdp_range": "10,156–13,729",
+                "ucdp_match": "~50%",
+                "ucdp_note": (
+                    "UCDP explicitly codes 6,705 civilian deaths — highest of any South/Southeast Asia case. "
+                    "Best total 10,184 (incl. combatants). Our estimate (7,000) is within UCDP civilian range. "
+                    "UN Panel of Experts high-end estimate (40,000) disputed; "
+                    "UCDP lower bound considered more reliable for calibration."
+                ),
+            },
+        },
+    },
 ]

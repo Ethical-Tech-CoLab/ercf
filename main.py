@@ -233,6 +233,41 @@ async def historical_one(cid: int):
     raise HTTPException(404, "Not found")
 
 
+# ─── UCDP GED data ───────────────────────────────────────────────────────────
+
+@app.get("/api/ucdp")
+async def get_ucdp_data(
+    country: str,
+    year_start: int,
+    year_end: int,
+    adm1: str = None,
+    use_api: bool = False
+):
+    """
+    Query UCDP GED data for a given country and year range.
+    use_api=true queries the live UCDP API (uses daily quota).
+    use_api=false (default) uses the local CSV cache.
+    """
+    try:
+        from ucdp_data import summarise_ucdp
+        result = summarise_ucdp(
+            country=country,
+            year_start=year_start,
+            year_end=year_end,
+            adm1=adm1,
+            use_api=use_api
+        )
+        return result
+    except Exception as e:
+        return {"error": str(e), "country": country}
+
+@app.get("/api/ucdp/status")
+async def get_ucdp_status():
+    """Check UCDP API connectivity and token validity."""
+    from ucdp_data import check_api_status
+    return check_api_status()
+
+
 # ─── World risk map ──────────────────────────────────────────────────────────
 
 @app.get("/api/world-risk")
