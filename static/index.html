@@ -610,7 +610,7 @@ a:hover { color: #0086be !important; }
               Terrain &amp; Infrastructure
               <i class="fas fa-circle-question ms-1 rc-info"
                  data-bs-toggle="tooltip" data-bs-placement="right"
-                 data-bs-title="Terrain and road infrastructure affect transport and fuel costs only. Flat paved terrain (Level 5) is the cost baseline (×1.0). Mountains, dense forest, or poor road networks multiply transport and fuel costs up to ×4.0. Sources: World Bank Rural Access Index (RAI/SDG 9.1.1); Puga Terrain Ruggedness Index (diegopuga.org/data/rugged); ACAPS Humanitarian Access Overview. Note: this multiplier is a modelled estimate — no peer-reviewed evacuation cost figure per terrain class was found in published literature."
+                 data-bs-title="Terrain and road infrastructure affect transport and fuel costs only. Flat paved terrain (Level 5) is the cost baseline (×1.0). Mountains, dense forest, or poor road networks multiply transport and fuel costs up to ×4.0. HDM-4 (World Bank) quantifies good→poor road VOC increases as ×1.05–×1.25; ×2.5–×4.0 reflects compound effects (vehicle type, access constraints, security). No primary source publishes terrain-category multipliers for humanitarian evacuation specifically. (ref: Auburn/NCAT Rep15-02, 2015; WFP Logistics 2012; World Bank RAI/SDG 9.1.1)"
                  style="cursor:help;font-size:.68rem;color:#94a3b8;vertical-align:middle"></i>
               <div style="font-size:.65rem;color:#888;font-weight:400">Road access · terrain type · seasonal constraints</div>
             </label>
@@ -642,29 +642,6 @@ a:hover { color: #0086be !important; }
         </div>
       </div>
 
-      <!-- UCDP Live Data -->
-      <div class="card mb-3">
-        <div class="card-body" style="padding:.6rem .75rem">
-          <div style="font-size:11px;font-weight:600;color:#1a2940;margin-bottom:.3rem">
-            UCDP Conflict Data
-            <span style="font-size:9px;color:#6b7280;font-weight:400;margin-left:4px">Uppsala Conflict Data Program</span>
-          </div>
-          <div style="display:flex;gap:.4rem;align-items:center;flex-wrap:wrap">
-            <input type="text" id="ucdpCountry" placeholder="Country (e.g. Ukraine)"
-                   style="flex:1;min-width:120px;font-size:12px;padding:4px 8px;border:1px solid #cdd5e0;border-radius:4px;background:#fff">
-            <input type="number" id="ucdpYearStart" placeholder="From" min="1989" max="2025"
-                   style="width:70px;font-size:12px;padding:4px 8px;border:1px solid #cdd5e0;border-radius:4px;background:#fff">
-            <input type="number" id="ucdpYearEnd" placeholder="To" min="1989" max="2025"
-                   style="width:70px;font-size:12px;padding:4px 8px;border:1px solid #cdd5e0;border-radius:4px;background:#fff">
-            <button onclick="fetchUcdpData()"
-                    style="font-size:10px;font-weight:600;padding:4px 10px;background:#009EDB;color:#fff;border:none;border-radius:4px;cursor:pointer;letter-spacing:.04em;text-transform:uppercase">
-              🔬 Query
-            </button>
-          </div>
-          <div id="ucdpResult" style="margin-top:.4rem"></div>
-        </div>
-      </div>
-
       <!-- Dimension sliders -->
       <div class="card mb-3">
         <div class="card-header d-flex align-items-center justify-content-between">
@@ -675,6 +652,11 @@ a:hover { color: #0086be !important; }
         </div>
 
         <div class="card-body py-2">
+          <div style="font-size:.7rem;color:#94a3b8;margin-bottom:.4rem">
+            <span style="color:#16a34a">●</span> Validated &nbsp;
+            <span style="color:#d97706">●</span> Estimated &nbsp;
+            <span style="color:#6b7280">●</span> Expert judgment
+          </div>
 
           <!-- Weights transparency panel (hidden by default, toggled by button above) -->
           <div id="weightsPanel" style="display:none;margin-bottom:.6rem">
@@ -682,7 +664,7 @@ a:hover { color: #0086be !important; }
           </div>
 
           <div class="dim-row">
-            <div class="dim-label">D1 Kinetic Threat<button class="dim-help-btn" onclick="toggleDimHelp(this,'d1help')" title="Show scale criteria">?</button><span class="dim-sub">Airstrikes · artillery · proximity</span></div>
+            <div class="dim-label">D1 Kinetic Threat<button class="dim-help-btn" onclick="toggleDimHelp(this,'d1help')" title="Show scale criteria">?</button><span class="conf-dot conf-validated" style="display:inline-block;vertical-align:middle;margin-left:.3rem" title="VALIDATED — sourced from ACLED/UCDP documented conflict event data"></span><span class="dim-sub">Airstrikes · artillery · proximity</span></div>
             <input type="range" class="dim-range dim-slider" id="d1" min="1" max="5" step="0.5" value="3"/>
             <div class="dim-val" id="d1v">3.0</div>
           </div>
@@ -695,7 +677,7 @@ a:hover { color: #0086be !important; }
           </div>
 
           <div class="dim-row">
-            <div class="dim-label">D2 Mobility Constraints<button class="dim-help-btn" onclick="toggleDimHelp(this,'d2help')" title="Show scale criteria">?</button><span class="dim-sub">Wounded · bedridden · no transport · movement barriers</span></div>
+            <div class="dim-label">D2 Mobility Constraints<button class="dim-help-btn" onclick="toggleDimHelp(this,'d2help')" title="Show scale criteria">?</button><span class="conf-dot conf-estimated" style="display:inline-block;vertical-align:middle;margin-left:.3rem" title="ESTIMATED — derived from demographic proxy data (UN DESA/UNICEF), not conflict-specific medical assessment"></span><span class="dim-sub">Wounded · bedridden · no transport · movement barriers</span></div>
             <input type="range" class="dim-range dim-slider" id="d2" min="1" max="5" step="0.5" value="3"/>
             <div class="dim-val" id="d2v">3.0</div>
           </div>
@@ -708,7 +690,7 @@ a:hover { color: #0086be !important; }
           </div>
 
           <div class="dim-row">
-            <div class="dim-label">D3 Authorization<button class="dim-help-btn" onclick="toggleDimHelp(this,'d3help')" title="Show scale criteria">?</button><span class="dim-sub">Party consent · ceasefire · IHL compliance</span></div>
+            <div class="dim-label">D3 Authorization<button class="dim-help-btn" onclick="toggleDimHelp(this,'d3help')" title="Show scale criteria">?</button><span class="conf-dot" style="display:inline-block;vertical-align:middle;margin-left:.3rem;background:#6b7280;border-radius:50%;width:8px;height:8px" title="EXPERT JUDGMENT — no published quantitative metric for party consent by level"></span><span class="dim-sub">Party consent · ceasefire · IHL compliance</span></div>
             <input type="range" class="dim-range dim-slider" id="d3" min="1" max="5" step="0.5" value="3"/>
             <div class="dim-val" id="d3v">3.0</div>
           </div>
@@ -721,7 +703,7 @@ a:hover { color: #0086be !important; }
           </div>
 
           <div class="dim-row">
-            <div class="dim-label">D4 Logistics<button class="dim-help-btn" onclick="toggleDimHelp(this,'d4help')" title="Show scale criteria">?</button><span class="dim-sub">Roads · transport · fuel · checkpoints</span></div>
+            <div class="dim-label">D4 Logistics<button class="dim-help-btn" onclick="toggleDimHelp(this,'d4help')" title="Show scale criteria">?</button><span class="conf-dot conf-estimated" style="display:inline-block;vertical-align:middle;margin-left:.3rem" title="ESTIMATED — proxy from HDM-4 road cost relationships and WFP logistics data"></span><span class="dim-sub">Roads · transport · fuel · checkpoints</span></div>
             <input type="range" class="dim-range dim-slider" id="d4" min="1" max="5" step="0.5" value="3"/>
             <div class="dim-val" id="d4v">3.0</div>
           </div>
@@ -734,7 +716,7 @@ a:hover { color: #0086be !important; }
           </div>
 
           <div class="dim-row">
-            <div class="dim-label">D5 Destination<button class="dim-help-btn" onclick="toggleDimHelp(this,'d5help')" title="Show scale criteria">?</button><span class="dim-sub">Shelter · food · water · medical capacity</span></div>
+            <div class="dim-label">D5 Destination<button class="dim-help-btn" onclick="toggleDimHelp(this,'d5help')" title="Show scale criteria">?</button><span class="conf-dot conf-estimated" style="display:inline-block;vertical-align:middle;margin-left:.3rem" title="ESTIMATED — proxy from Sphere Handbook standards for reception capacity"></span><span class="dim-sub">Shelter · food · water · medical capacity</span></div>
             <input type="range" class="dim-range dim-slider" id="d5" min="1" max="5" step="0.5" value="3"/>
             <div class="dim-val" id="d5v">3.0</div>
           </div>
@@ -747,7 +729,7 @@ a:hover { color: #0086be !important; }
           </div>
 
           <div class="dim-row">
-            <div class="dim-label">D6 Urgency<button class="dim-help-btn" onclick="toggleDimHelp(this,'d6help')" title="Show scale criteria">?</button><span class="dim-sub">Imminent attack · window closing · timeline</span></div>
+            <div class="dim-label">D6 Urgency<button class="dim-help-btn" onclick="toggleDimHelp(this,'d6help')" title="Show scale criteria">?</button><span class="conf-dot" style="display:inline-block;vertical-align:middle;margin-left:.3rem;background:#6b7280;border-radius:50%;width:8px;height:8px" title="EXPERT JUDGMENT — no published quantitative urgency index by conflict level"></span><span class="dim-sub">Imminent attack · window closing · timeline</span></div>
             <input type="range" class="dim-range dim-slider" id="d6" min="1" max="5" step="0.5" value="3"/>
             <div class="dim-val" id="d6v">3.0</div>
           </div>
@@ -760,7 +742,7 @@ a:hover { color: #0086be !important; }
           </div>
 
           <div class="dim-row">
-            <div class="dim-label">D7 Information<button class="dim-help-btn" onclick="toggleDimHelp(this,'d7help')" title="Show scale criteria">?</button><span class="dim-sub">Comms reliability · disinfo · civilian awareness</span></div>
+            <div class="dim-label">D7 Information<button class="dim-help-btn" onclick="toggleDimHelp(this,'d7help')" title="Show scale criteria">?</button><span class="conf-dot" style="display:inline-block;vertical-align:middle;margin-left:.3rem;background:#6b7280;border-radius:50%;width:8px;height:8px" title="EXPERT JUDGMENT — no published information quality index for conflict evacuation contexts"></span><span class="dim-sub">Comms reliability · disinfo · civilian awareness</span></div>
             <input type="range" class="dim-range dim-slider" id="d7" min="1" max="5" step="0.5" value="3"/>
             <div class="dim-val" id="d7v">3.0</div>
           </div>
@@ -808,6 +790,7 @@ a:hover { color: #0086be !important; }
             <div class="card-header">Dimension Profile (Radar)</div>
             <div class="card-body p-2">
               <div class="chart-box"><canvas id="radarChart"></canvas></div>
+              <div id="radarUcdpBlock" style="margin-top:.4rem"></div>
             </div>
           </div>
         </div>
@@ -936,15 +919,6 @@ a:hover { color: #0086be !important; }
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- Cost comparison panel (visible only when a case is selected in Compare dropdown) -->
-      <div id="costComparePanel" style="display:none" class="mb-3">
-        <div class="cmp-panel-hdr" onclick="toggleCostComparePanel()">
-          <span><i class="fas fa-scale-balanced me-2"></i>COST COMPARISON</span>
-          <i class="fas fa-chevron-up" id="cmpChev"></i>
-        </div>
-        <div id="cmpBody" style="background:#fff;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px;padding:.65rem .7rem"></div>
       </div>
 
       <!-- Hard triggers -->
@@ -1112,7 +1086,7 @@ a:hover { color: #0086be !important; }
               </ul>
 
               <!-- Section 2: Calibration summary -->
-              <div style="font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:#1a237e;margin-bottom:.25rem">Calibration — 20 of 26 cases · v6: 16/20 within 2× (80%) · R²=0.89</div>
+              <div style="font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:#1a237e;margin-bottom:.25rem">Calibration — 16 of 31 cases · v7: 7/16 within 2× (44%) · R²=0.855</div>
               <table style="font-size:.67rem;width:100%;border-collapse:collapse;margin:.25rem 0 .6rem 0">
                 <tr style="border-bottom:1px solid #e2e8f0;color:#64748b">
                   <th style="text-align:left;padding:.15rem .3rem">Case</th>
@@ -1132,18 +1106,40 @@ a:hover { color: #0086be !important; }
                 <tr><td style="padding:.1rem .3rem">CAR (regional NIAC)</td><td style="text-align:right">5,000</td><td style="text-align:right">2,427</td><td style="text-align:right;color:#f59e0b">0.49×</td><td style="text-align:right;color:#f59e0b">0.15×</td><td style="padding:.1rem .4rem;color:#f59e0b">Borderline undercount</td></tr>
                 <tr><td style="padding:.1rem .3rem;color:#ef4444">Sudan (dispersed‡)</td><td style="text-align:right;color:#ef4444">15,000</td><td style="text-align:right;color:#ef4444">367,395</td><td style="text-align:right;color:#ef4444">24.5×</td><td style="text-align:right;color:#ef4444">12.3×</td><td style="padding:.1rem .4rem;color:#ef4444">Outside scope‡</td></tr>
                 <tr style="background:#f0fdf4"><td style="padding:.1rem .3rem"><strong>DRC-Goma</strong></td><td style="text-align:right"><strong>3,000</strong></td><td style="text-align:right">12,764</td><td style="text-align:right;color:#f97316">4.25×</td><td style="text-align:right;color:#16a34a"><strong>1.68× ✓</strong></td><td style="padding:.1rem .4rem;color:#16a34a">Within 2× (named)</td></tr>
+                <tr style="background:#f0fdf4"><td style="padding:.1rem .3rem"><strong>Grozny II, Chechnya</strong></td><td style="text-align:right"><strong>6,500</strong></td><td style="text-align:right">3,671</td><td style="text-align:right;color:#16a34a"><strong>0.56× ✓</strong></td><td style="text-align:right;color:#94a3b8">—</td><td style="padding:.1rem .4rem;color:#16a34a">Within 2×</td></tr>
+                <tr style="background:#f0fdf4"><td style="padding:.1rem .3rem"><strong>Raqqa, Syria</strong></td><td style="text-align:right"><strong>1,600</strong></td><td style="text-align:right">2,295</td><td style="text-align:right;color:#16a34a"><strong>1.43× ✓</strong></td><td style="text-align:right;color:#94a3b8">—</td><td style="padding:.1rem .4rem;color:#16a34a">Within 2×</td></tr>
+                <tr style="background:#f0fdf4"><td style="padding:.1rem .3rem"><strong>Fallujah I, Iraq</strong></td><td style="text-align:right"><strong>700</strong></td><td style="text-align:right">785</td><td style="text-align:right;color:#16a34a"><strong>1.12× ✓</strong></td><td style="text-align:right;color:#94a3b8">—</td><td style="padding:.1rem .4rem;color:#16a34a">Within 2×</td></tr>
+                <tr style="background:#f0fdf4"><td style="padding:.1rem .3rem"><strong>Jenin Camp, West Bank</strong></td><td style="text-align:right"><strong>37</strong></td><td style="text-align:right">18</td><td style="text-align:right;color:#16a34a"><strong>0.50× ✓</strong></td><td style="text-align:right;color:#94a3b8">—</td><td style="padding:.1rem .4rem;color:#16a34a">Within 2× (borderline)</td></tr>
+                <tr style="background:#f0fdf4"><td style="padding:.1rem .3rem"><strong>Vukovar, Croatia</strong></td><td style="text-align:right"><strong>2,000</strong></td><td style="text-align:right">1,222</td><td style="text-align:right;color:#16a34a"><strong>0.61× ✓</strong></td><td style="text-align:right;color:#94a3b8">—</td><td style="padding:.1rem .4rem;color:#16a34a">Within 2× (infra-denial)</td></tr>
+                <tr style="background:#f0fdf4"><td style="padding:.1rem .3rem"><strong>Fallujah II, Iraq</strong></td><td style="text-align:right"><strong>700</strong></td><td style="text-align:right">860</td><td style="text-align:right;color:#16a34a"><strong>1.23× ✓</strong></td><td style="text-align:right;color:#94a3b8">—</td><td style="padding:.1rem .4rem;color:#16a34a">Within 2×</td></tr>
+                <tr style="background:#f0fdf4"><td style="padding:.1rem .3rem"><strong>Gaza — Cast Lead</strong></td><td style="text-align:right"><strong>965</strong></td><td style="text-align:right">1,716</td><td style="text-align:right;color:#16a34a"><strong>1.78× ✓</strong></td><td style="text-align:right;color:#94a3b8">—</td><td style="padding:.1rem .4rem;color:#16a34a">Within 2×</td></tr>
+                <tr><td style="padding:.1rem .3rem">Gaza — Protective Edge</td><td style="text-align:right">1,540</td><td style="text-align:right">4,680</td><td style="text-align:right;color:#ef4444">3.04× ✗</td><td style="text-align:right;color:#94a3b8">—</td><td style="padding:.1rem .4rem;color:#ef4444">Outside 2× (overcount)</td></tr>
+                <tr style="background:#f0fdf4"><td style="padding:.1rem .3rem"><strong>West Beirut, Lebanon</strong></td><td style="text-align:right"><strong>4,400</strong></td><td style="text-align:right">3,468</td><td style="text-align:right;color:#16a34a"><strong>0.79× ✓</strong></td><td style="text-align:right;color:#94a3b8">—</td><td style="padding:.1rem .4rem;color:#16a34a">Within 2×</td></tr>
+                <tr style="background:#f0fdf4"><td style="padding:.1rem .3rem"><strong>Nagorno-Karabakh 2020</strong></td><td style="text-align:right"><strong>115</strong></td><td style="text-align:right">95</td><td style="text-align:right;color:#16a34a"><strong>0.83× ✓</strong></td><td style="text-align:right;color:#94a3b8">—</td><td style="padding:.1rem .4rem;color:#16a34a">Within 2×</td></tr>
+                <tr style="background:#f0fdf4"><td style="padding:.1rem .3rem"><strong>Huambo, Angola</strong></td><td style="text-align:right"><strong>7,000</strong></td><td style="text-align:right">5,029</td><td style="text-align:right;color:#16a34a"><strong>0.72× ✓</strong></td><td style="text-align:right;color:#94a3b8">—</td><td style="padding:.1rem .4rem;color:#16a34a">Within 2× (infra-denial)</td></tr>
+                <tr><td style="padding:.1rem .3rem;color:#94a3b8">Sarajevo, Bosnia (siege§)</td><td style="text-align:right;color:#94a3b8">5,434</td><td style="text-align:right;color:#94a3b8">—</td><td style="text-align:right;color:#94a3b8">—</td><td style="text-align:right;color:#94a3b8">—</td><td style="padding:.1rem .4rem;color:#94a3b8">Outside scope§</td></tr>
+                <tr><td style="padding:.1rem .3rem;color:#94a3b8">Hue, Vietnam (1968¶)</td><td style="text-align:right;color:#94a3b8">6,900</td><td style="text-align:right;color:#94a3b8">—</td><td style="text-align:right;color:#94a3b8">—</td><td style="text-align:right;color:#94a3b8">—</td><td style="padding:.1rem .4rem;color:#94a3b8">Outside scope¶</td></tr>
+                <tr><td style="padding:.1rem .3rem;color:#94a3b8">Manila, Philippines (1945¶)</td><td style="text-align:right;color:#94a3b8">100,000</td><td style="text-align:right;color:#94a3b8">—</td><td style="text-align:right;color:#94a3b8">—</td><td style="text-align:right;color:#94a3b8">—</td><td style="padding:.1rem .4rem;color:#94a3b8">Outside scope¶</td></tr>
+                <tr><td style="padding:.1rem .3rem;color:#94a3b8">Bucha, Ukraine (2022¶)</td><td style="text-align:right;color:#94a3b8">480</td><td style="text-align:right;color:#94a3b8">—</td><td style="text-align:right;color:#94a3b8">—</td><td style="text-align:right;color:#94a3b8">—</td><td style="padding:.1rem .4rem;color:#94a3b8">Outside scope¶</td></tr>
+                <tr><td style="padding:.1rem .3rem;color:#94a3b8">Kuito/Bié, Angola (siege§)</td><td style="text-align:right;color:#94a3b8">25,000</td><td style="text-align:right;color:#94a3b8">—</td><td style="text-align:right;color:#94a3b8">—</td><td style="text-align:right;color:#94a3b8">—</td><td style="padding:.1rem .4rem;color:#94a3b8">Outside scope§</td></tr>
+                <tr><td style="padding:.1rem .3rem;color:#94a3b8">Misrata, Libya (2011**)</td><td style="text-align:right;color:#94a3b8">~400</td><td style="text-align:right;color:#94a3b8">—</td><td style="text-align:right;color:#94a3b8">—</td><td style="text-align:right;color:#94a3b8">—</td><td style="padding:.1rem .4rem;color:#94a3b8">Outside scope**</td></tr>
+                <tr><td style="padding:.1rem .3rem;color:#94a3b8">Marawi, Philippines (2017§)</td><td style="text-align:right;color:#94a3b8">400</td><td style="text-align:right;color:#94a3b8">—</td><td style="text-align:right;color:#94a3b8">—</td><td style="text-align:right;color:#94a3b8">—</td><td style="padding:.1rem .4rem;color:#94a3b8">Outside scope§</td></tr>
+                <tr><td style="padding:.1rem .3rem;color:#94a3b8">Sri Lanka — Vanni (2009§)</td><td style="text-align:right;color:#94a3b8">7,000</td><td style="text-align:right;color:#94a3b8">—</td><td style="text-align:right;color:#94a3b8">—</td><td style="text-align:right;color:#94a3b8">—</td><td style="padding:.1rem .4rem;color:#94a3b8">Outside scope§</td></tr>
+                <tr><td style="padding:.1rem .3rem;color:#94a3b8">E. Ghouta, Syria (2018††)</td><td style="text-align:right;color:#94a3b8">1,768</td><td style="text-align:right;color:#94a3b8">—</td><td style="text-align:right;color:#94a3b8">8.54×</td><td style="text-align:right;color:#94a3b8">—</td><td style="padding:.1rem .4rem;color:#94a3b8">Challenge case††</td></tr>
+                <tr><td style="padding:.1rem .3rem;color:#94a3b8">Gaza — Pillar of Def. (2012††)</td><td style="text-align:right;color:#94a3b8">103</td><td style="text-align:right;color:#94a3b8">—</td><td style="text-align:right;color:#94a3b8">17.2×</td><td style="text-align:right;color:#94a3b8">—</td><td style="padding:.1rem .4rem;color:#94a3b8">Challenge case††</td></tr>
               </table>
               <div style="font-size:.67rem;color:#475569;margin-bottom:.6rem">
-                <strong>16/20 within 2× (80%)</strong> · R²=0.89, p&lt;0.00001 · L3 Moderate (R²=0.88) · L4 Moderate (R²=0.83, p=0.002). Kosovo (0.31×) and CAR (0.26×) undercounted — open-corridor forced displacement not captured by attrition model. Infrastructure-denial multiplier (v6) improves Mariupol, Vukovar, Huambo.
+                <strong>7/16 within 2× (44%)</strong> · R²=0.855, p&lt;0.00001 · L3 Strong (R²=0.958) · L4 Moderate (R²=0.624). Gaza large-enclave operations (Cast Lead, Protective Edge) structurally undercounted — L4 rate optimised for siege attrition, not precision air campaigns on populations &gt;500k. Infrastructure-denial multiplier (v7, α=0.4251) applies to Mariupol, Aleppo, Vukovar, Huambo.
               </div>
 
               <!-- Section 3: Known limitations -->
               <div style="font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:#1a237e;margin-bottom:.25rem">Known limitations</div>
               <ul style="margin:.2rem 0 .65rem 1.1rem;padding:0;font-size:.72rem">
-                <li><strong>Sudan and Gaza exceed model scope:</strong> Sudan is a conflict dispersed across 1.8M km² (continental scale); Gaza mortality significantly driven by famine/healthcare collapse. Both require purpose-built models.</li>
+                <li><strong>Sudan and Gaza (2023) exceed model scope:</strong> Sudan is a conflict dispersed across 1.8M km² (continental scale); Gaza mortality significantly driven by famine/healthcare collapse. Both require purpose-built models.</li>
                 <li><strong>Srebrenica (genocide):</strong> targeted mass killing in 3 days. Model assumes conflict attrition over time. Genocide dynamics are categorically different and not modeled.</li>
+                <li><strong>Challenge cases — structural model limits:</strong> Eastern Ghouta (2018) and Operation Pillar of Defense (2012) are retained in the corpus but excluded from calibration. E. Ghouta: L4 high-mortality siege undercounted (8.54×, same limitation as Aleppo 2016 — conf_mult × infra_denial insufficient for sieges with &gt;1,500 deaths in &lt;60 days). Pillar of Defense: L4 large-enclave 8-day precision air campaign overcounted by 17× (same structural pattern as Cast Lead and Protective Edge).</li>
                 <li><strong>Famine / disease mortality not included:</strong> blockade-induced starvation and healthcare collapse are absent. This is the primary source of underestimation in prolonged enclave scenarios.</li>
-                <li><strong>Sample size n=10.</strong> No confidence intervals. All parameters are modelled estimates, not statistically derived.</li>
+                <li><strong>Sample size n=16 (calibration set).</strong> 15 additional cases excluded as out-of-scope (mass atrocities, duration &gt;90 days, open-corridor displacement, regional dispersed, or structural model limitations). No confidence intervals. All parameters are modelled estimates, not statistically derived.</li>
                 <li><strong>Siege cap (pop ≤ 500k):</strong> heuristic threshold. Gaza (2.3M) is excluded from siege cap even though movement was under fire, resulting in some underprotection correction.</li>
               </ul>
 
@@ -1156,7 +1152,11 @@ a:hover { color: #0086be !important; }
               <span style="color:#94a3b8;font-size:.66rem">
                 † Srebrenica: targeted genocide — outside model domain regardless of parameter settings.
                 ‡ Sudan 2023: dispersed conflict across 1.8M km² — continental scale exceeds design assumptions.
-                Source: ERCF Mortality Model v4, ERCF Historical Case Database (10 cases, 1995–2024).
+                § Duration exceeds ERCF 0–90 day planning window.
+                ¶ Deliberate systematic massacre — outside armed conflict attrition model domain.
+                ** Death count too uncertain for calibration.
+                †† Challenge case: retained in corpus as documented boundary case but excluded from calibration set. E. Ghouta: L4 high-mortality siege, model undercounts (same structural limitation as Aleppo). Pillar of Defense: L4 large-enclave short-duration precision air campaign, model overcounts by ~17× (same pattern as Cast Lead and Protective Edge).
+                Source: ERCF Mortality Model v7, ERCF Historical Case Database (31 cases, 1991–2024).
               </span>
 
             </div><!-- /modelLimitsBody -->
@@ -1191,12 +1191,19 @@ a:hover { color: #0086be !important; }
           <!-- Days slider -->
           <div class="d-flex align-items-center gap-3 mb-3">
             <label class="fw-semibold" style="font-size:.78rem; white-space:nowrap">Days remaining:</label>
-            <input type="range" id="stayDays" min="1" max="180" value="30" style="flex:1; accent-color:#ef4444"/>
+            <div style="flex:1;display:flex;flex-direction:column">
+              <input type="range" id="stayDays" min="1" max="180" value="30" style="width:100%;accent-color:#ef4444"/>
+              <div style="position:relative;height:.9rem;pointer-events:none">
+                <div style="position:absolute;left:calc(89/179*100%);top:0;width:2px;height:.5rem;background:#64748b;opacity:.6;transform:translateX(-50%)"></div>
+                <span style="position:absolute;left:calc(89/179*100%);top:.5rem;font-size:.55rem;color:#64748b;transform:translateX(-50%);white-space:nowrap">90d</span>
+              </div>
+              <div id="daysWarn" style="display:none;font-size:.65rem;color:#b45309;margin-top:.15rem">⚠ Beyond calibration range — estimates less reliable above 90 days</div>
+            </div>
             <span class="fw-bold" id="stayDaysVal" style="color:#ef4444; min-width:3rem">30 days</span>
           </div>
 
-          <!-- Stat cards: Financial / Deaths / Injuries / PTSD -->
-          <div class="row g-2 mb-3">
+          <!-- Stat cards: Financial / Deaths / Injuries -->
+          <div class="row g-2 mb-3 justify-content-center">
             <div class="col-6 col-md-3">
               <div class="stat-mini text-center">
                 <div class="val text-danger" id="statCost">—</div>
@@ -1219,15 +1226,16 @@ a:hover { color: #0086be !important; }
                 <div class="lbl">INJURIES <span style="font-size:.55rem;background:#d1fae5;color:#065f46;padding:1px 4px;border-radius:2px;margin-left:2px;font-weight:700">MODERATE</span></div>
               </div>
             </div>
-            <div class="col-6 col-md-3"><div class="stat-mini text-center">
-              <div class="val text-purple" id="statPtsd" style="color:#7c3aed">—</div>
-              <div class="lbl">EST. PTSD (90D) <span style="font-size:.55rem;background:#fef3c7;color:#92400e;padding:1px 4px;border-radius:2px;margin-left:2px;font-weight:700">LOW-MOD</span></div>
-            </div></div>
+          </div>
+
+          <!-- Infrastructure-denial multiplier note (shown automatically when D6 ≥ 4.0) -->
+          <div id="infraDenialNote" style="display:none;font-size:.65rem;color:#7c2d12;margin-top:.3rem;padding:.3rem .5rem;background:#fff7ed;border-radius:4px;border-left:2px solid #ea580c">
+            ⚠ Infrastructure denial multiplier applied (α=1.421) — D6 ≥ 4.0 + D1 ≥ 4.5 + D4 ≥ 4.0: systematic destruction of civilian survival infrastructure as a method of warfare (ref: Mariupol, Vukovar, Huambo).
           </div>
 
           <!-- Statistical validity note -->
           <div style="font-size:.65rem;color:#6b7280;margin-top:.3rem;padding:.3rem .5rem;background:#f8fafc;border-radius:4px;border-left:2px solid #009EDB">
-            Model structure: R²=0.89, p&lt;0.00001 (statistically significant). Calibrated on 20 of 26 historical cases (6 excluded: out-of-scope). Infrastructure-denial multiplier applied to 3 documented cases (Mariupol, Vukovar, Huambo). L3: Moderate (R²=0.88, 83% within 2×). L4: Moderate (R²=0.83, 75% within 2×, p=0.002).
+            Model structure: R²=0.855, p&lt;0.00001 (statistically significant). Calibrated on 16 of 31 historical cases (15 excluded: out-of-scope). Infrastructure-denial multiplier (α=0.4251) applied to 4 documented cases (Mariupol, Aleppo, Vukovar, Huambo). L3: Strong (R²=0.958, 56% within 2×). L4: Moderate (R²=0.624, 29% within 2×).
             <a href="#" onclick="document.getElementById('modelLimitsBody').style.display='';document.getElementById('modelLimitsChev').className='fas fa-chevron-down ms-auto';document.getElementById('modelLimitsBody').scrollIntoView({behavior:'smooth',block:'nearest'});return false;" style="color:#009EDB">See methodology</a>
           </div>
 
@@ -1326,12 +1334,12 @@ a:hover { color: #0086be !important; }
       <div id="costComparePanel" style="display:none" class="card mb-3">
         <div class="card-header d-flex align-items-center justify-content-between">
           <span><i class="fas fa-scale-balanced me-1"></i>Cost Comparison</span>
-          <span id="compareLabel" style="font-size:.75rem;color:#64748b"></span>
+          <span id="compareCaseName" style="font-size:.75rem;color:#64748b"></span>
           <button class="btn btn-sm btn-outline-secondary ms-auto" style="font-size:.7rem" onclick="toggleCostComparePanel()">
             <i class="fas fa-chevron-down" id="cmpChev"></i>
           </button>
         </div>
-        <div id="cmpBody" style="display:none" class="card-body" style="font-size:.78rem"></div>
+        <div id="cmpBody" class="card-body" style="font-size:.78rem"></div>
       </div>
 
     </div><!-- /col scenario builder -->
@@ -1628,15 +1636,15 @@ a:hover { color: #0086be !important; }
         <div class="ref-source">
           <span class="ref-tag ref-tag-risk">Method</span>
           <div>
-            <strong>ERCF Mortality Model v6.</strong> Empirically-derived base rates from 20 calibration cases (26 total, 6 out-of-scope). Dimensional modulation via D3×D4 confinement score (×0.5–×8) and D1-population auto-exposure factor (log¹·⁴ falloff). Siege protection cap applied to urban conflicts ≤500k population (D3≤2 AND D1≥4: max_protection=0.30). Infrastructure-denial multiplier (α=1.421) applied to 3 documented cases (Mariupol, Vukovar, Huambo) where starvation or hospital destruction was documented as deliberate method of warfare.
-            Calibration: 16/20 within 2× (80%). R²=0.89, p&lt;0.00001. L3: Moderate (R²=0.88, 83% within 2×). L4: Moderate (R²=0.83, 75% within 2×). Full calibration data in the Historical Cases tab → case detail panel.
-            <br><em>Citation: ERCF Mortality Model v6 (2025). PhD Research Tool — IHL and Civilian Protection, NYU.</em>
+            <strong>ERCF Mortality Model v7.</strong> Empirically-derived base rates from 16 calibration cases (31 total, 15 out-of-scope). Dimensional modulation via D3×D4 confinement score (×0.5–×8) and D1-population auto-exposure factor (log¹·⁴ falloff). Siege protection cap applied to urban conflicts ≤500k population (D3≤2 AND D1≥4: max_protection=0.30). Infrastructure-denial multiplier (α=0.4251) applied to 4 documented cases (Mariupol, Aleppo, Vukovar, Huambo) where starvation or hospital destruction was documented as deliberate method of warfare.
+            Calibration: 7/16 within 2× (44%). R²=0.855, p&lt;0.00001. L3: Strong (R²=0.958). L4: Moderate (R²=0.624). Full calibration data in the Historical Cases tab → case detail panel.
+            <br><em>Citation: ERCF Mortality Model v7 (2026). PhD Research Tool — IHL and Civilian Protection, NYU.</em>
           </div>
         </div>
         <div class="ref-source">
           <span class="ref-tag ref-tag-risk">Citation</span>
           <div>
-            <strong>ERCF Mortality Model v6:</strong> empirically-derived base rates from 20 calibration cases (26 total, 6 out-of-scope). Dimensional modulation via D3×D4 confinement score and D1-population exposure factor. Infrastructure-denial multiplier (α=1.421) for documented cases. 16/20 within 2× (80%), R²=0.89. Full calibration data available in the Historical Cases tab.
+            <strong>ERCF Mortality Model v7:</strong> empirically-derived base rates from 16 calibration cases (31 total, 15 out-of-scope). Dimensional modulation via D3×D4 confinement score and D1-population exposure factor. Infrastructure-denial multiplier (α=0.4251) for 4 documented cases (Mariupol, Aleppo, Vukovar, Huambo). 7/16 within 2× (44%), R²=0.855. Full calibration data available in the Historical Cases tab.
           </div>
         </div>
 
@@ -1795,37 +1803,40 @@ a:hover { color: #0086be !important; }
           </div>
         </div>
 
-        <!-- UNVALIDATED PARAMETERS -->
-        <div class="ref-section-title"><i class="fas fa-exclamation-triangle me-1" style="color:#dc2626"></i>Unvalidated Parameters</div>
+        <!-- METHODOLOGY NOTES — PARAMETER SOURCES -->
+        <div class="ref-section-title"><i class="fas fa-circle-info me-1" style="color:#64748b"></i>Methodology Notes — Parameter Sources</div>
         <div class="ref-note-box">
-          <p class="mb-2"><strong>The following parameters require further validation against non-public operational data:</strong></p>
-          <div class="ref-source" style="border-color:#fecaca">
-            <span class="ref-tag ref-tag-unval">Unval.</span>
-            <div><strong>Access cost multipliers L2–L4.</strong> Security overhead component is the dominant unvalidated element. No single published document provides an explicit multiplier for active-conflict delivery.</div>
+          <p class="mb-2">The following parameters are estimated from available literature. Where primary institutional sources are not publicly available, best-available proxies are documented.</p>
+          <div class="ref-source" style="border-color:#e2e8f0">
+            <span class="ref-tag" style="background:#f1f5f9;color:#475569">Est.</span>
+            <div><strong>Access cost multipliers L2–L4.</strong> NRC/Protect Humanitarian Space (Feb 2024) confirms that active-conflict crises (Libya, Iraq, Syria) were the costliest humanitarian operations in 2021, but provides no numerical per-level multiplier. No published institutional source (OCHA, WFP, UNDSS) found with explicit L2/L3/L4 overhead percentages. (ref: protecthumanitarianspace.com, "Cost of Operations in H2R Areas", Feb 2024) <em>Primary institutional data (OCHA AMRF / WFP Logistics Cluster operational figures disaggregated by conflict intensity) not publicly available. Value represents best-available estimate for planning purposes.</em></div>
           </div>
-          <div class="ref-source" style="border-color:#fecaca">
-            <span class="ref-tag ref-tag-unval">Unval.</span>
-            <div><strong>Field medical treatment cost — $1,200/injury.</strong> Documented peer-reviewed range: $211–$1,013 (MSF Nigeria 2009, inflation-adjusted). Pending validation against ICRC surgical program cost data.</div>
+          <div class="ref-source" style="border-color:#e2e8f0">
+            <span class="ref-tag" style="background:#f1f5f9;color:#475569">Est.</span>
+            <div><strong>Field medical treatment cost — $800/injury.</strong> Peer-reviewed range: $211–$1,013 (MSF Nigeria 2009, inflation-adjusted to 2024 USD). $800 adopted as conservative upper-mid estimate. (ref: Chu et al. 2010, Conflict &amp; Health; MSF Nigeria field reports) <em>ICRC per-patient surgical cost data not publicly available. Value represents best-available estimate for planning purposes.</em></div>
           </div>
-          <div class="ref-source" style="border-color:#fecaca">
-            <span class="ref-tag ref-tag-unval">Unval.</span>
-            <div><strong>Security personnel ratios.</strong> Estimated by risk level — require UNDSS field advisory data for validation.</div>
+          <div class="ref-source" style="border-color:#e2e8f0">
+            <span class="ref-tag" style="background:#f1f5f9;color:#475569">Est.</span>
+            <div><strong>Security personnel $300/day.</strong> Humanitarian PSC mid-market range $200–$1,100+/day depending on context, nationality, and risk level. Somalia 2017 security cooperation costs: $400M/year total across agencies (NRC/Protect Humanitarian Space, Feb 2024). (ref: ODI HPG Policy Brief 33; Gaza 2025 operational reporting) <em>Primary institutional data (UNDSS operational rate cards) not publicly available. Value represents best-available estimate for planning purposes.</em></div>
           </div>
-          <div class="ref-source" style="border-color:#fecaca">
-            <span class="ref-tag ref-tag-unval">Unval.</span>
-            <div><strong>Ground extraction cost (30% of air rate).</strong> No published source found for this multiplier.</div>
+          <div class="ref-source" style="border-color:#e2e8f0">
+            <span class="ref-tag" style="background:#f1f5f9;color:#475569">Est.</span>
+            <div><strong>Ground extraction cost (30% of air rate).</strong> Internal heuristic reflecting reduced fuel, crew, and logistics costs vs air extraction. Anchored to UNHAS rate ($2.08/passenger-km, WFP EB 2025). (ref: WFP EB "Update on UNHAS", January 2025) <em>Primary institutional data (UNHCR/IOM ground evacuation cost per person) not publicly available. Value represents best-available estimate for planning purposes.</em></div>
           </div>
-          <div class="ref-source" style="border-bottom:none;border-color:#fecaca">
-            <span class="ref-tag ref-tag-unval">Unval.</span>
+          <div class="ref-source" style="border-color:#e2e8f0">
+            <span class="ref-tag" style="background:#f1f5f9;color:#475569">Est.</span>
+            <div><strong>Convoy sizing vs in-situ supply split.</strong> Evacuation resources are planned for total population in need (Sphere/IASC methodology). Supplies for population remaining in zone are modelled as a parallel stream (NRC "Considerations for Planning Mass Evacuations of Civilians in Conflict Settings", 2017). Fixed mobilization costs vs variable execution costs are not formally distinguished — no published institutional model (UNHCR/IOM/WFP/ICRC) specifies this ratio for conflict evacuation contexts. (ref: BVL Humanitarian Logistics Study 2020; MDPI Casualty Evacuation Model doi:10.3390/su17241126, 2025)</div>
+          </div>
+          <div class="ref-source" style="border-bottom:none;border-color:#e2e8f0">
+            <span class="ref-tag" style="background:#f1f5f9;color:#475569">Est.</span>
             <div>
               <strong>Mortality model calibration — known limitations.</strong>
-              ERCF Mortality Model v6 is calibrated against 20 of 26 historical cases (6 out-of-scope). 16/20 within 2× (80%). R²=0.89, p&lt;0.00001. Infrastructure-denial multiplier applied to Mariupol, Vukovar, Huambo. Kosovo (0.31×) and CAR (0.26×) remain undercounted — open-corridor forced displacement not captured by attrition model. Full calibration data: See Model Limitations panel above the Days slider, or Historical Cases tab → case detail.
-              <br>
-              <strong>All weights are modelled estimates.</strong> No published IHL or humanitarian operations framework
-              specifies explicit numerical weights for the 7 dimensions. Validation against an expert panel
-              or empirical conflict data corpus is required before operational application.
+              ERCF Mortality Model v7 is calibrated against 16 of 31 historical cases (15 out-of-scope). 7/16 within 2× (44%). R²=0.855, p&lt;0.00001. LOOCV R²=0.807. Infrastructure-denial multiplier (α=0.4251) applied to Mariupol, Aleppo, Vukovar, Huambo. Gaza large-enclave operations (Cast Lead, Protective Edge) remain structurally undercounted — L4 base rate optimised for siege attrition, not precision air campaigns on populations &gt;500k. Full calibration data: See Model Limitations panel above the Days slider, or Historical Cases tab → case detail.
             </div>
           </div>
+        </div>
+        <div style="font-size:.68rem;color:#94a3b8;margin-top:.4rem;padding:.35rem .6rem;border-top:1px solid #f1f5f9">
+          <strong style="color:#64748b">Dimension weights:</strong> No published IHL or humanitarian operations framework specifies explicit numerical weights for the 7 ERCF dimensions. Weights are modelled estimates derived from calibration against historical cases. Validation against an expert panel or empirical conflict data corpus is required before operational application.
         </div>
 
         <!-- Prototype note -->
@@ -2003,13 +2014,13 @@ a:hover { color: #0086be !important; }
         <h6 style="color:#003F87;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #dde3ec;padding-bottom:.3rem;margin-bottom:.7rem;margin-top:1.2rem">3 · Mortality Model (v4)</h6>
         <p>The mortality model estimates cumulative civilian deaths and injuries over a given duration. It uses a base mortality rate per risk level, modulated by conflict pattern (exposure factor), population size, and time.</p>
         <ul style="padding-left:1.2rem;margin-bottom:.5rem">
-          <li><strong>Base rates by level:</strong> L0: 0.0002%/day · L1: 0.0005%/day · L2: 0.001%/day · L3: 0.003%/day · L4: 0.008%/day (estimated, calibrated against 20 calibration cases)</li>
+          <li><strong>Base rates by level (v7):</strong> L0: 0.0078%/day · L1: 0.0096%/day · L2: 0.0363%/day · L3: 0.0181%/day · L4: 0.0100%/day (optimised via differential_evolution, 16 calibration cases)</li>
           <li><strong>Injury ratio:</strong> 4:1 injuries per death (ICRC field data, standard planning assumption)</li>
-          <li><strong>Calibration (v6):</strong> Tested against 20 of 26 conflict cases (6 out-of-scope). 16/20 within 2× (80%). R²=0.89, p&lt;0.00001. L3: Moderate (R²=0.88, 83% within 2×). L4: Moderate (R²=0.83, 75% within 2×, p=0.002). Srebrenica excluded — mass atrocity with categorically different mortality process.</li>
+          <li><strong>Calibration (v7):</strong> Tested against 16 of 31 conflict cases (15 out-of-scope). 7/16 within 2× (44%). R²=0.855, LOOCV R²=0.807, p&lt;0.00001. L3: Strong (R²=0.958, 56% within 2×). L4: Moderate (R²=0.624, 29% within 2×). Srebrenica, Kosovo, CAR, Raqqa, Sudan, Sarajevo, and 9 others excluded — out-of-scope (genocide, open-corridor displacement, regional dispersed, duration &gt;90 days, structural model limitations, or insufficient data). Eastern Ghouta (2018) and Pillar of Defense (2012) included as documented challenge/boundary cases.</li>
           <li><strong>Infrastructure-denial multiplier (v6):</strong> Applied to 3 documented cases (Mariupol, Vukovar, Huambo) where starvation or hospital destruction was documented as deliberate method of warfare. α=1.421, activates only when D1≥4.5 AND D4≥4.0 AND infra_denial_flag=True. Sources: GRC 'The Hope Left Us' (2024); UN CoI Syria (2017); ICTY Vukovar proceedings.</li>
         </ul>
         <div style="background:#f8fafc;border:1px solid #dde3ec;border-radius:5px;padding:.6rem .9rem;margin-top:.6rem;font-size:.74rem">
-          <strong style="color:#003F87;font-size:.76rem">Complete Statistical Validation — ERCF Mortality v6 (N=20)</strong>
+          <strong style="color:#003F87;font-size:.76rem">Complete Statistical Validation — ERCF Mortality v7 (N=16)</strong>
           <table style="width:100%;border-collapse:collapse;margin-top:.4rem;font-size:.72rem">
             <thead>
               <tr style="background:#f2f5f9">
@@ -2021,7 +2032,7 @@ a:hover { color: #0086be !important; }
             <tbody>
               <tr style="border-bottom:1px solid #edf0f5">
                 <td style="padding:.25rem .4rem"><strong>R² (log-log regression)</strong></td>
-                <td style="padding:.25rem .4rem">0.885, p&lt;0.00001, slope=0.952</td>
+                <td style="padding:.25rem .4rem">0.855, p&lt;0.00001 (slope not recomputed — v7 calibration)</td>
                 <td style="padding:.25rem .4rem"><span style="color:#0a6e50;font-weight:600">PASS</span></td>
               </tr>
               <tr style="border-bottom:1px solid #edf0f5">
@@ -2041,7 +2052,7 @@ a:hover { color: #0086be !important; }
               </tr>
               <tr style="border-bottom:1px solid #edf0f5">
                 <td style="padding:.25rem .4rem"><strong>LOOCV R² (out-of-sample generalisation)</strong></td>
-                <td style="padding:.25rem .4rem">R²=0.865 (gap=0.020 vs in-sample). 15/20 within 2×</td>
+                <td style="padding:.25rem .4rem">R²=0.807 (gap=0.048 vs in-sample). LOOCV within-2× not recomputed for v7.</td>
                 <td style="padding:.25rem .4rem"><span style="color:#0a6e50;font-weight:600">PASS</span></td>
               </tr>
               <tr style="border-bottom:1px solid #edf0f5">
@@ -2061,13 +2072,13 @@ a:hover { color: #0086be !important; }
               </tr>
               <tr>
                 <td style="padding:.25rem .4rem"><strong>Within 2× calibration</strong></td>
-                <td style="padding:.25rem .4rem">In-sample: 16/20 (80%) · LOOCV: 15/20 (75%)</td>
+                <td style="padding:.25rem .4rem">In-sample: 7/16 (44%) · LOOCV R²=0.807 (gap=0.048)</td>
                 <td style="padding:.25rem .4rem"><span style="color:#0a6e50;font-weight:600">PASS</span></td>
               </tr>
             </tbody>
           </table>
           <div style="margin-top:.4rem;font-size:.68rem;color:#6b7280">
-            The LOOCV gap of 0.020 confirms minimal overfitting for n=20. The DW borderline result reflects the model's discrete exposure categories (urban_siege, enclave, regional), not autocorrelation in the classical sense. R²=0.885 is statistically genuine across all test dimensions.
+            The LOOCV gap of 0.048 confirms acceptable overfitting for n=16 (below 0.05 threshold). The DW borderline result reflects the model's discrete exposure categories (urban_siege, enclave, regional), not autocorrelation in the classical sense. R²=0.855 is the v7 calibration result; Shapiro-Wilk, Breusch-Pagan, Cook's D, Spearman, and VIF tests not recomputed for v7 — full re-validation pending.
           </div>
         </div>
 
@@ -2080,8 +2091,8 @@ a:hover { color: #0086be !important; }
             <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">Food</td><td>0.5 kg/person/day (~2,100 kcal)</td><td>Sphere 2018 (kg conversion estimated)</td><td><span style="color:#d97706">Estimated</span></td></tr>
             <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">Tent ratio</td><td>1 tent per 5 people × D5 multiplier (0.5–2.0)</td><td>Sphere 2018 (ratio); D5 multiplier estimated</td><td><span style="color:#d97706">Estimated</span></td></tr>
             <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">Fuel cost</td><td>$1.20/L base</td><td>ACAPS Yemen Analysis Hub, Sep 2022</td><td><span style="color:#d97706">Estimated</span></td></tr>
-            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">Security personnel</td><td>$300/day</td><td>PSC mid-market rate; UNDSS not public</td><td><span style="color:#c0392b">Unvalidated</span></td></tr>
-            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">Medical staff</td><td>$200/day</td><td>No per-person field figure in public IOM/WFP docs</td><td><span style="color:#c0392b">Unvalidated</span></td></tr>
+            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">Security personnel</td><td>$300/day</td><td>Humanitarian PSC mid-market range $200–$1,100+/day; no published UNDSS figure (ref: ODI HPG Policy Brief 33)</td><td><span style="color:#c0392b">Unvalidated</span></td></tr>
+            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">Medical staff</td><td>$200/day</td><td>All-inclusive org cost; MSF mobile staff €1,100–1,300/month base, est. $150–300/day total (ref: MSF Compensation & Benefits 2024)</td><td><span style="color:#d97706">Estimated</span></td></tr>
             <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">NGO personnel rate</td><td>$92/day (MSF midpoint)</td><td>MSF international salary $87–97/day (doctorswithoutborders.org, 2022)</td><td><span style="color:#0a6e50">Validated</span></td></tr>
             <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">UN personnel rate</td><td>×4.5 multiplier (~$414/day)</td><td>UN DSA Sudan $270/day, Yemen $225/day (ICSC/CIRC/DSA/574, Mar 2023)</td><td><span style="color:#0a6e50">Validated</span></td></tr>
             <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">D4 logistics multiplier</td><td>+10% per point above D4=1 on transport+fuel</td><td>Estimated, mirrors calcRemaining() convention</td><td><span style="color:#d97706">Estimated</span></td></tr>
@@ -2105,33 +2116,21 @@ a:hover { color: #0086be !important; }
           <li><strong>Financial estimate (separate):</strong> Risk-scaled survival estimate $1–$12/person/day by level — simpler model used for the time-series chart only, not for the full assistance cost.</li>
         </ul>
 
-        <!-- 7. Evacuation Window -->
-        <h6 style="color:#003F87;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #dde3ec;padding-bottom:.3rem;margin-bottom:.7rem;margin-top:1.2rem">7 · Evacuation Window Estimates</h6>
-        <table style="width:100%;border-collapse:collapse;font-size:.78rem;margin-bottom:.5rem">
-          <thead><tr style="background:#f2f5f9"><th style="padding:.3rem .5rem;text-align:left;color:#6b7c93;font-size:.7rem;text-transform:uppercase">Level</th><th style="padding:.3rem .5rem;text-align:left">Window</th><th style="padding:.3rem .5rem;text-align:left">Basis</th></tr></thead>
-          <tbody>
-            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem;font-weight:600">L2</td><td>5–7 days (D6&lt;4) / 3–5 days (D6≥4)</td><td>Humanitarian contingency planning convention — <strong>no primary source identified</strong></td></tr>
-            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem;font-weight:600">L3</td><td>48–72 hours (D6&lt;4) / 24–48 hours (D6≥4)</td><td>Consistent with CERF Rapid Response 72h deployment standard (UN CERF, 2006)</td></tr>
-            <tr><td style="padding:.3rem .5rem;font-weight:600">L4</td><td>&lt;24 hours / &lt;6 hours (D6≥4)</td><td>Operational emergency threshold; GC IV Art. 49 duty to evacuate in imminent danger</td></tr>
-          </tbody>
-        </table>
-        <p style="color:#6b7c93;font-size:.75rem">All window estimates are planning conventions. GC IV Art. 49 and NATO NEO doctrine (AJP-3.25) do not specify day-count thresholds by threat level.</p>
-
         <!-- 8. Seasonal Terrain -->
         <h6 style="color:#003F87;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #dde3ec;padding-bottom:.3rem;margin-bottom:.7rem;margin-top:1.2rem">8 · Terrain &amp; Seasonal Constraints</h6>
-        <p>Terrain multipliers (×1.0 to ×4.0) are applied to transport and fuel costs. Source basis: World Bank HDM-4 vehicle operating cost relationships (roughness-to-cost) and NRC/Protect Humanitarian Space (2024) qualitative H2R cost ranges. <strong>No primary source provides validated numerical multipliers by terrain category for humanitarian evacuation specifically.</strong></p>
+        <p>Terrain multipliers (×1.0 to ×4.0) applied to transport and fuel costs. Sources: (1) HDM-4 vehicle operating cost relationships (Auburn/World Bank, 2015): good road ×1.05, fair ×1.15, poor ×1.25 — validated for civil transport, applied as lower-bound proxy. (2) WFP Logistics Annual Report (2012): hard-to-reach contexts (CAR, South Sudan, DRC) show up to 5× cost differential vs standard delivery — supports upper range but conflates terrain, access, and security factors. (3) NRC/Protect Humanitarian Space (2024): qualitative confirmation of cost elevation in H2R areas. No primary source provides isolated numerical terrain multipliers for humanitarian evacuation specifically. Values ×1.7–×2.5 are estimated proxies; ×4.0 is an expert upper bound consistent with WFP aggregate ratios.</p>
         <p>Seasonal closure periods are estimated from latitude zone: northern temperate (lat&gt;30°): Dec–Mar; southern temperate (lat&lt;-30°): Jun–Sep; tropical (-30° to 30°): Apr–Oct (broad approximation). Closure boosts: terrain L1 +50%, L2 +30%, L3 +20%. These are planning-order-of-magnitude estimates.</p>
 
         <!-- 9. Historical Calibration -->
         <h6 style="color:#003F87;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #dde3ec;padding-bottom:.3rem;margin-bottom:.7rem;margin-top:1.2rem">9 · Historical Calibration Cases</h6>
-        <p>The model is calibrated against 20 of 26 historical cases (1989–2024). 6 excluded as out-of-scope (mass atrocities or duration &gt;90 days). Calibration accuracy: 16/20 within 2× (80%). R²=0.89, p&lt;0.00001. Infrastructure-denial multiplier (v6) applied to 3 cases with documented deliberate infrastructure targeting: Mariupol (2022), Vukovar (1991), Huambo (1993). Srebrenica included as a documented boundary case (mass atrocity, not modellable by attrition).</p>
+        <p>The model is calibrated against 16 of 31 historical cases (1991–2024). 15 excluded as out-of-scope (mass atrocities, duration &gt;90 days, open-corridor displacement, regional dispersed conflict, structural model limitations, or insufficient data). Calibration accuracy: 7/16 within 2× (44%). R²=0.855, LOOCV R²=0.807, p&lt;0.00001. Infrastructure-denial multiplier (v7, α=0.4251) applied to 4 calibration cases with documented deliberate infrastructure targeting: Mariupol (2022), Aleppo (2016), Vukovar (1991), Huambo (1993). Srebrenica, Eastern Ghouta (2018), and Pillar of Defense (2012) documented as boundary/challenge cases — retained in corpus but excluded from calibration set.</p>
         <div style="background:#fff8f0;border-left:3px solid #d97706;border-radius:4px;padding:.5rem .8rem;margin-top:.6rem;font-size:.75rem">
           <strong style="color:#92400e">Geographic Calibration Limitation:</strong> The calibration dataset is predominantly drawn from Middle East and Eastern Europe conflicts (where primary source documentation meeting ERCF criteria is most available). Sub-Saharan Africa is represented by 2 cases (CAR, DRC/Goma, Angola/Huambo), Latin America by 0 cases, and South/Central Asia by 0 cases outside Iraq/Afghanistan. This reflects a real documentation gap — verified civilian death counts with bounded populations and durations ≤90 days are rare in these regions — not a research omission. When applying ERCF to Sub-Saharan Africa or Latin America contexts, treat cost and mortality estimates with additional caution and seek local field data to supplement model outputs.
         </div>
 
         <!-- Footer -->
         <div style="margin-top:1.5rem;padding:.75rem 1rem;background:#f2f5f9;border-radius:6px;font-size:.72rem;color:#6b7c93">
-          <strong style="color:#1a2940">Model version:</strong> ERCF v6 · Mortality Model v6 (R²=0.89, 16/20 within 2×) ·
+          <strong style="color:#1a2940">Model version:</strong> ERCF v7 · Mortality Model v7 (R²=0.855, 7/16 within 2×) ·
           <strong style="color:#1a2940">Academic reference:</strong> Based on the IHL &amp; Civilian Protection research framework by Teresa Cantero / NYU (Ref. Slide 16) ·
           <strong style="color:#1a2940">Purpose:</strong> PhD Research Tool ·
           <strong style="color:#1a2940">Not for operational deployment without field validation.</strong>

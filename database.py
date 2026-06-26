@@ -11,24 +11,37 @@ def get_conn():
 
 
 def _migrate_db(conn):
-    """Add new columns to existing scenarios table (idempotent — safe to re-run)."""
-    new_columns = [
-        ("conflict_lat",         "REAL DEFAULT NULL"),
-        ("conflict_lng",         "REAL DEFAULT NULL"),
-        ("safe_zone_lat",        "REAL DEFAULT NULL"),
-        ("safe_zone_lng",        "REAL DEFAULT NULL"),
-        ("safe_zone_name",       "TEXT DEFAULT NULL"),
-        ("distance_source",      "TEXT DEFAULT 'manual'"),
-        ("road_factor_applied",  "INTEGER DEFAULT 0"),
-        ("haversine_km",         "REAL DEFAULT NULL"),
-        ("terrain",              "INTEGER DEFAULT 3"),
-        ("conflict_pattern",     "INTEGER DEFAULT 5"),
-    ]
-    for col_name, col_def in new_columns:
-        try:
-            conn.execute(f"ALTER TABLE scenarios ADD COLUMN {col_name} {col_def}")
-        except Exception:
-            pass  # Column already exists
+    """Versioned schema migrations — idempotent, safe to re-run."""
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS _schema_version (
+            version    INTEGER NOT NULL,
+            applied_at TEXT    DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    row = conn.execute("SELECT MAX(version) FROM _schema_version").fetchone()
+    current = row[0] if row[0] is not None else 0
+
+    if current < 1:
+        # v1: add geolocation and operational columns to scenarios
+        v1_columns = [
+            ("conflict_lat",         "REAL DEFAULT NULL"),
+            ("conflict_lng",         "REAL DEFAULT NULL"),
+            ("safe_zone_lat",        "REAL DEFAULT NULL"),
+            ("safe_zone_lng",        "REAL DEFAULT NULL"),
+            ("safe_zone_name",       "TEXT DEFAULT NULL"),
+            ("distance_source",      "TEXT DEFAULT 'manual'"),
+            ("road_factor_applied",  "INTEGER DEFAULT 0"),
+            ("haversine_km",         "REAL DEFAULT NULL"),
+            ("terrain",              "INTEGER DEFAULT 3"),
+            ("conflict_pattern",     "INTEGER DEFAULT 5"),
+        ]
+        for col_name, col_def in v1_columns:
+            try:
+                conn.execute(f"ALTER TABLE scenarios ADD COLUMN {col_name} {col_def}")
+            except Exception:
+                pass  # Column already exists
+        conn.execute("INSERT INTO _schema_version (version) VALUES (1)")
+        current = 1
 
 
 def init_db():

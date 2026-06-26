@@ -258,8 +258,12 @@ async def get_ucdp_data(
             use_api=use_api
         )
         return result
+    except ValueError as e:
+        raise HTTPException(status_code=401, detail=f"UCDP API not configured: {e}")
+    except (TimeoutError, ConnectionError, OSError) as e:
+        raise HTTPException(status_code=503, detail=f"UCDP service unavailable: {e}")
     except Exception as e:
-        return {"error": str(e), "country": country}
+        raise HTTPException(status_code=500, detail=f"UCDP query failed: {e}")
 
 @app.get("/api/ucdp/status")
 async def get_ucdp_status():

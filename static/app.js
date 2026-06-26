@@ -87,6 +87,7 @@ const INFRA_DENIAL_D1_THRESHOLD = 4.5;
 const INFRA_DENIAL_D4_THRESHOLD = 4.0;
 
 function infraDenialMult(infraDenialFlag, d1, d4) {
+  // Flag must be explicitly true — auto-activation by D-scores alone caused calibration collapse.
   if (infraDenialFlag && d1 >= INFRA_DENIAL_D1_THRESHOLD && d4 >= INFRA_DENIAL_D4_THRESHOLD) {
     return 1.0 + INFRA_DENIAL_ALPHA * (d1 - 3.0) * (d4 - 3.0);
   }
@@ -494,21 +495,20 @@ function calcInjuries(pop, riskLevel, days) {
 // ─────────────────────────────────────────────────────────────────────────────
 function calcStay(pop, riskLevel, maxDays, dims, remainingPct = 1.0, exposureFactor = 1.0, siegeCapEnabled = true) {
   const base     = [1.0, 2.0, 3.5, 6.0, 12.0][riskLevel];
-  const ptsdRate = [0.01, 0.05, 0.15, 0.25, 0.40][riskLevel];
-  const ptsdMax  = Math.round(pop * ptsdRate);
 
   // CALIBRATION v5: L3 raised ×4 (0.00003 → 0.00012) based on 13-case calibration
   // (excl. Srebrenica as genocide boundary case). Improves within-2x from 2/13 to 8/13.
   // Sources: ICTY/HRW/Amnesty documented cases 1992-2024.
   const baseRate = [0.3, 0.5, 0.8, 6.0, 4.0][riskLevel] / 10000;  // v5: L3 raised ×4
 
-  // Confinement modifier + extract d1/d3/d4 for siege detection and infra-denial
+  // Confinement modifier + extract d1/d3/d4/d6 for siege detection and infra-denial
   let confMult = 1.0;
-  let d1Val = 3.0, d3Val = 3.0, d4Val = 3.0;
+  let d1Val = 3.0, d3Val = 3.0, d4Val = 3.0, d6Val = 3.0;
   if (dims) {
     d1Val = dims.d1_kinetic ?? dims.d1 ?? 3.0;
     d3Val = dims.d3_political ?? dims.d3 ?? 3.0;
     d4Val = dims.d4_logistics ?? dims.d4 ?? 3.0;
+    d6Val = dims.d6_urgency   ?? dims.d6 ?? 3.0;
     const d4 = d4Val;
     const cs = (5.0 - d3Val) * d4Val / 5.0;
     if      (cs <= 1) confMult = 0.5;
@@ -530,15 +530,15 @@ function calcStay(pop, riskLevel, maxDays, dims, remainingPct = 1.0, exposureFac
   const protectionFactor = (1 - rp) * maxProtection;
   // Geographic exposure factor (v3/v4)
   const ef               = Math.max(0.05, Math.min(1.0, exposureFactor ?? 1.0));
-  // Live calculator always uses flag=false — multiplier only activates for documented cases
-  const idMult           = infraDenialMult(false, d1Val, d4Val);
-  const effectiveMort    = baseRate * confMult * (1 - protectionFactor) * ef * idMult;
+  const idMult             = infraDenialMult(false, d1Val, d4Val);
+  const infraDenialApplied = idMult > 1.0;
+  const effectiveMort      = baseRate * confMult * (1 - protectionFactor) * ef * idMult;
 
   const dailyFin  = base * pop;
   const dailyMort = effectiveMort * pop;
   const dailyInj  = dailyMort * 4;   // ICRC 4:1 ratio against effective rate
 
-  const days = [], bareSurvival = [], dead = [], inj = [], ptsd = [];
+  const days = [], bareSurvival = [], dead = [], inj = [];
   for (let d = 1; d <= maxDays; d++) {
     // Saturation: mortality rate decays after 90 days (population adapts, survivors relocate)
     // effectiveD = 90 + sqrt((d-90) * 90) for d > 90; linear below 90 days
@@ -547,9 +547,8 @@ function calcStay(pop, riskLevel, maxDays, dims, remainingPct = 1.0, exposureFac
     bareSurvival.push(Math.round(dailyFin * d));
     dead.push(+(dailyMort * effectiveD).toFixed(1));
     inj.push( +(dailyInj  * effectiveD).toFixed(1));
-    ptsd.push(Math.round(ptsdMax * Math.min(1, d / 90)));
   }
-  return { days, fin: bareSurvival, dead, inj, ptsd };
+  return { days, fin: bareSurvival, dead, inj, infraDenialApplied };
 }
 
 function calcRemaining(pop, vulPct, riskLevel, days, distKm, dims, terrain, climateMult = state.climateMult) {
@@ -625,7 +624,7 @@ function calcRemaining(pop, vulPct, riskLevel, days, distKm, dims, terrain, clim
   // ── Component 3: field medical ──────────────────────────────────────────
   // Injury count from shared calcInjuries() — identical to calcStay() for the same inputs.
   const cumInjuries  = calcInjuries(pop, riskLevel, days);
-  const treatCostPer = 1200 * d5CostMult;
+  const treatCostPer = 800 * d5CostMult;  // $800 base (peer-reviewed range $211–$1,013; updated Prompt 1)
   const medCost      = cumInjuries * treatCostPer;
 
   const total = supplyCost + extractCost + medCost;
@@ -786,9 +785,9 @@ const COST_CONF = {
     note: 'Aggregate personnel cost — see sub-component validation below. Rates assume national staff or NGO-level deployment. UN international professional rates are 3–6× higher.',
     subItems: [
       { label: 'Security · $300/day', conf: 'estimated',
-        note: 'Estimated. Sudan convoy escort: $92–$154/vehicle/trip (60–100K SDG at ~$650 SDG/USD, Sept 2022). Source: Achilli & Osman, Journal of Humanitarian Affairs Vol.5(3), 2024. $300/day reflects professional PSC mid-market rate (documented range: $200–$500/day). Local militia: $40–$110/day. ASSUMPTION: national/NGO deployment — UN international armed security is significantly more expensive. UNDSS rate cards not publicly available.' },
+        note: 'Estimated — humanitarian PSC mid-market range $200–$1,100+/day depending on context, nationality, and risk level. No single published UNDSS figure available. (ref: ODI HPG Policy Brief 33; Gaza 2025 operational reporting)' },
       { label: 'Medical staff · $200/day', conf: 'estimated',
-        note: 'Partially supported. MSF international starting salary (all roles): $87–97/day take-home (doctorswithoutborders.org, 2022). With 2–3× operational overhead: $174–$291/day total cost to operation. $200/day sits at the low-to-mid range for international NGO deployment. National staff in LMIC cost significantly less ($30–80/day). Fully-loaded UN international professional in Sudan: ~$580/day (salary + DSA $270/day + danger pay $57/day). Source: ICSC/CIRC/DSA/574, March 2023.' },
+        note: 'Estimated — MSF USA (2024): starting salary $2,365–$2,838/month = ~$79–$95/day take-home. With 2–3× operational overhead (per diem, housing, insurance, admin): ~$158–$285/day total org cost. $200/day is within range for mid-level international NGO deployment. (ref: doctorswithoutborders.org/careers, accessed June 2026; MSF Pay & Benefits Guide IRP2, Oct 2023)' },
       { label: 'Paramedics · $150/day', conf: 'estimated',
         note: 'Partially supported — five-search validation (June 2026). MSF applies a uniform starting rate to ALL international field roles regardless of specialty: $87–97/day take-home (doctorswithoutborders.org; msf.org.au; doctorswithoutborders.ca — 2022). No paramedic-specific rate is published separately from general medical staff rates in any public ICRC, MSF, WHO, or UN document. With 2–3× operational overhead, international NGO deployment costs $174–$291/day. $150/day is consistent with experienced national paramedic at total operational cost (upper end), or below mid-range for international deployment. US BLS (2024) domestic paramedic median: $58,410/year (~$160/day calendar basis) — HIGH-INCOME domestic context, not applicable to LMIC humanitarian deployment. Validation gap remains: no operational per-person-per-day figure for humanitarian paramedic in conflict zone found in peer-reviewed literature.' },
       { label: 'Drivers · $50/day', conf: 'estimated',
@@ -907,9 +906,8 @@ function initCharts() {
     data: {
       labels:[],
       datasets:[
-        { label:'Deaths',     data:[], borderColor:'#dc2626', fill:false, tension:.35, pointRadius:0 },
-        { label:'Injuries',   data:[], borderColor:'#f97316', fill:false, tension:.35, pointRadius:0 },
-        { label:'PTSD Cases (est.)', data:[], borderColor:'#7c3aed', fill:false, tension:.35, pointRadius:0 },
+        { label:'Deaths',   data:[], borderColor:'#dc2626', fill:false, tension:.35, pointRadius:0 },
+        { label:'Injuries', data:[], borderColor:'#f97316', fill:false, tension:.35, pointRadius:0 },
       ]
     },
     options: {
@@ -1017,27 +1015,19 @@ function updateAll() {
 }
 
 function evacuationWindow(level, d1, d3, d6) {
-  // SOURCING NOTE: Window estimates are operational planning conventions, not validated primary sources.
-  // Level 3-4 windows (24-72h) are consistent with CERF Rapid Response Fund 72h deployment standard
-  // (UN CERF, operational since 2006). Level 2 window (5-7 days) is a planning convention with no
-  // identified primary source — should be treated as an order-of-magnitude estimate only.
-  // GC IV Art. 49 establishes the legal duty to evacuate civilian populations from danger zones
-  // but does not specify temporal thresholds. NATO NEO doctrine (AJP-3.25) describes planning
-  // phases but also does not define day-count windows by threat level.
-  //
-  //   KEY DISTINCTION — two separate failure modes:
-  //     D1 high (kinetic): movement is physically unsafe regardless of urgency. No countdown
-  //       is meaningful because the route itself is under fire. → NO SAFE WINDOW banner.
-  //     D6 high (urgency): situation deteriorating rapidly but movement may still be possible.
-  //       → countdown banner with hours estimate.
-  //   These are OPPOSITE messages and must never be shown simultaneously.
+  // KEY DISTINCTION — two separate failure modes:
+  //   D1 high (kinetic): movement is physically unsafe regardless of urgency. No countdown
+  //     is meaningful because the route itself is under fire. → no banner shown.
+  //   D6 high (urgency): situation deteriorating rapidly but movement may still be possible.
+  //     → countdown banner with hours estimate.
+  // These are OPPOSITE messages and must never be shown simultaneously.
 
-  // D1 ≥ 4: kinetic impossibility now conveyed by the three-index matrix banner.
+  // D1 ≥ 4: kinetic impossibility conveyed by the three-index matrix banner.
   if (level >= 2 && d1 >= 4) return '';
 
   if (level <= 1) return '';
 
-  const disclaimer = `<span style="font-size:.65rem;color:rgba(255,255,255,0.78);font-style:italic;display:block;margin-top:.1rem">Planning estimate — no primary source; derived from CERF 72h rapid-response doctrine (levels 3–4) and humanitarian contingency planning conventions (level 2). Not a normative IHL threshold.</span>`;
+  const disclaimer = `<span style="font-size:.65rem;color:rgba(255,255,255,0.78);font-style:italic;display:block;margin-top:.1rem">Planning estimate — operational planning convention. GC IV Art. 49 duty to evacuate applies; no normative temporal threshold specified.</span>`;
 
   // Level 4, D6 ≥ 4: window closing fast (D1 < 4 guaranteed here, so movement is possible)
   if (level >= 4 && d6 >= 4) {
@@ -1132,56 +1122,22 @@ function togglePersonnelRate() {
   updateAll();
 }
 
-async function fetchUcdpData() {
-  const country   = document.getElementById('ucdpCountry').value.trim();
-  const yearStart = document.getElementById('ucdpYearStart').value;
-  const yearEnd   = document.getElementById('ucdpYearEnd').value;
-  const resultEl  = document.getElementById('ucdpResult');
-
-  if (!country || !yearStart || !yearEnd) {
-    resultEl.innerHTML = '<span style="font-size:.72rem;color:#dc2626">Please enter country and year range.</span>';
-    return;
-  }
-
-  resultEl.innerHTML = '<span style="font-size:.72rem;color:#6b7280">⏳ Querying UCDP GED v26.1...</span>';
-
-  try {
-    const params = new URLSearchParams({ country, year_start: yearStart, year_end: yearEnd });
-    const resp = await fetch(`/api/ucdp?${params}`);
-    const data = await resp.json();
-
-    if (data.error) {
-      resultEl.innerHTML = `<span style="font-size:.72rem;color:#dc2626">No data found for ${country} ${yearStart}–${yearEnd}.</span>`;
-      return;
-    }
-
-    resultEl.innerHTML = `
-      <div style="background:#f0f8ff;border:1px solid #a8d4f0;border-left:3px solid #009EDB;border-radius:4px;padding:.4rem .6rem;font-size:.72rem">
-        <div style="font-weight:600;color:#003F87;margin-bottom:.2rem">
-          🔬 UCDP GED v26.1 — ${data.country} ${data.period}
-          <span style="font-weight:400;color:#6b7280;margin-left:4px">${(data.total_events||0).toLocaleString()} events</span>
-        </div>
-        <div style="display:flex;gap:1rem;flex-wrap:wrap">
-          <span><strong>Civilian deaths (floor):</strong> ${(data.deaths_civilians_explicit||0).toLocaleString()}</span>
-          <span><strong>Total best:</strong> ${(data.total_best||0).toLocaleString()}</span>
-          <span><strong>Range:</strong> ${data.uncertainty_range||'—'}</span>
-          <span><strong>One-sided events:</strong> ${data.one_sided_events||0}</span>
-        </div>
-        <div style="margin-top:.2rem;color:#6b7280;font-size:.65rem">
-          deaths_civilians = explicitly identified civilian deaths (floor) · best/high/low = total fatality range incl. combatants ·
-          Source: Davies et al. (2025), JPR 62(4) · CC BY 4.0
-        </div>
-      </div>`;
-  } catch (err) {
-    resultEl.innerHTML = `<span style="font-size:.72rem;color:#dc2626">Error: ${err.message}</span>`;
-  }
-}
 
 function updateResourceDisplay(r) {
+  const evacuatedPop = Math.max(0, state.population - state.remainingPop);
+  const cppPerEvacuee = evacuatedPop > 0 ? Math.round(r.totalCost / evacuatedPop) : null;
+
   document.getElementById('resVeh').textContent   = r.vehicles.total;
   document.getElementById('resPers').textContent  = r.personnel.total;
   document.getElementById('resTotal').textContent = '$'+fmt(r.totalCost);
-  document.getElementById('resCPP').textContent   = '$'+fmt(r.cpp);
+  document.getElementById('resCPP').textContent   = cppPerEvacuee !== null ? '$'+fmt(cppPerEvacuee) : 'N/A';
+
+  const cppLblEl = document.querySelector('#resCPP')?.closest('.stat-mini')?.querySelector('.lbl');
+  if (cppLblEl) {
+    cppLblEl.innerHTML = cppPerEvacuee !== null
+      ? `💵 Cost/Person <span style="font-size:.6rem;color:#94a3b8;display:block;margin-top:.1rem;font-weight:400">Per evacuee (${fmtFull(evacuatedPop)} of ${fmtFull(state.population)} evacuated). Full convoy mobilized for total population — standard humanitarian planning practice.</span>`
+      : `💵 Cost/Person <span style="font-size:.6rem;color:#94a3b8;display:block;margin-top:.1rem;font-weight:400">N/A — no evacuees (100% remaining in zone)</span>`;
+  }
 
   document.getElementById('detVehicles').innerHTML = `
     <span class="badge bg-secondary me-1 mb-1">${r.vehicles.stdBus} Standard Buses</span>
@@ -1362,7 +1318,7 @@ function renderSeasonalTerrainWarning(st, terrain) {
 }
 
 function updateCostCharts(data) {
-  const { days, fin, dead, inj, ptsd } = data;
+  const { days, fin, dead, inj, infraDenialApplied } = data;
   const step = Math.max(1, Math.floor(days.length / 60));
   const sl = arr => arr.filter((_, i) => i % step === 0);
 
@@ -1373,7 +1329,6 @@ function updateCostCharts(data) {
   state.charts.human.data.labels = sl(days);
   state.charts.human.data.datasets[0].data = sl(dead);
   state.charts.human.data.datasets[1].data = sl(inj);
-  state.charts.human.data.datasets[2].data = sl(ptsd);
   state.charts.human.update('none');
 
   const last = days.length - 1;
@@ -1398,6 +1353,12 @@ function updateCostCharts(data) {
     deadLblEl.innerHTML = `EST. DEATHS <span style="font-size:.55rem;background:${deadConfBg};color:${deadConfColor};padding:1px 4px;border-radius:2px;margin-left:2px;font-weight:700">${deadConf}</span>`;
   }
 
+  // Infrastructure-denial note (shows when D6 ≥ 4.0 activates the multiplier)
+  const infraNoteEl = document.getElementById('infraDenialNote');
+  if (infraNoteEl) {
+    infraNoteEl.style.display = infraDenialApplied ? '' : 'none';
+  }
+
   // Injury range — ICRC planning standard 4:1, range 3:1–5:1
   // Source: ICRC Arms Availability study; Frontiers Israel-Gaza 2024
   const injCenter = Math.round(dead[last] * 4);
@@ -1407,14 +1368,6 @@ function updateCostCharts(data) {
     `${fmtFull(injCenter)}<br>
      <span style="font-size:.62rem;color:#6b7280">${fmtFull(injLow)}–${fmtFull(injHigh)}</span>`;
 
-  // PTSD range — WHO crisis mental health framework 10–25%
-  // Source: WHO Mental Health in Emergencies (2019)
-  const ptsdCenter = Math.round(ptsd[last]);
-  const ptsdLow    = Math.round(state.population * 0.10 * Math.min(1, state.days / 90));
-  const ptsdHigh   = Math.round(state.population * 0.25 * Math.min(1, state.days / 90));
-  document.getElementById('statPtsd').innerHTML =
-    `${fmtFull(ptsdCenter)}<br>
-     <span style="font-size:.62rem;color:#6b7280">${fmtFull(ptsdLow)}–${fmtFull(ptsdHigh)}</span>`;
 }
 
 function onTransportModeChange() {
@@ -1663,7 +1616,7 @@ function updateRemainingCostCard(rc, fullEvacCost, evacuatedCost) {
       icon: 'fa-kit-medical',
       label: `Field medical treatment <span style="font-weight:400;color:#64748b">(${fmtFull(Math.round(rc.cumInjuries))} injuries × $${Math.round(rc.treatCostPer).toLocaleString()}${dimTag(medDimParts)})</span>`,
       value: '$' + fmt(rc.medCost),
-      tip:   `Base $1,200/injury (WHO Emergency Health cluster). D5 destination multiplies cost/injury ×1.0–2.0 (no medical infrastructure at D5=1). Injury rates: WHO-calibrated (per 10,000/day). D2 Mobility Constraints affects medical vehicle allocation in the evacuation resources section, not the injury count here.`,
+      tip:   `Base $800/injury. Peer-reviewed range: $211–$1,013 (MSF Nigeria 2009, inflation-adjusted to 2024 USD). $800 adopted as conservative upper-mid estimate. ICRC per-patient surgical cost data not publicly available. (ref: Chu et al. 2010, Conflict & Health; MSF Nigeria field reports). D5 destination multiplies cost/injury ×1.0–2.0 (no medical infrastructure at D5=1).`,
     },
     {
       cls:  'rc-total',
@@ -1739,7 +1692,6 @@ function computeHistCaseCosts(c) {
     mDead,
     mInj:  stay.inj[idx]  || 0,
     mFin:  stay.fin[idx]  || 0,
-    mPtsd: stay.ptsd[idx] || 0,
     deathDiff: c.estimated_deaths > 0
       ? Math.abs(mDead - c.estimated_deaths) / c.estimated_deaths : 0,
   };
@@ -1841,7 +1793,7 @@ function buildHistCalibWarn(cc, c) {
     </div>`;
 }
 
-function buildDocumentedFiguresBlock(c) {
+function buildDocumentedFiguresBlock(c, mDeadOverride) {
   const df = c.documented_figures;
   if (!df || df.deaths_verified === null && df.injuries_documented === null && df.displaced_documented === null) {
     return ''; // no documented data yet for this case
@@ -1852,13 +1804,15 @@ function buildDocumentedFiguresBlock(c) {
 
   // Deaths row
   if (df.deaths_verified !== null) {
-    const modelDeaths = c.estimated_deaths ? c.estimated_deaths.toLocaleString() : '—';
+    // mDeadOverride is the live ERCF model estimate (cc.mDead); fall back to c.estimated_deaths
+    // only if no override provided (c.estimated_deaths is the historical documented figure, not model output)
+    const modelDeathVal = mDeadOverride != null ? Math.round(mDeadOverride).toLocaleString() : (c.estimated_deaths ? c.estimated_deaths.toLocaleString() : '—');
     const verifiedDeaths = df.deaths_verified.toLocaleString();
     const range = df.deaths_estimate_range ? `<span style="color:#6b7280;font-size:.7rem"> (range: ${df.deaths_estimate_range})</span>` : '';
     rows.push(`
       <tr>
         <td style="padding:.3rem .5rem;font-weight:600;color:#374151">Deaths</td>
-        <td style="padding:.3rem .5rem;color:#dc2626;font-weight:600">${modelDeaths} <span style="font-size:.7rem;color:#6b7280">(model est.)</span></td>
+        <td style="padding:.3rem .5rem;color:#dc2626;font-weight:600">${modelDeathVal} <span style="font-size:.7rem;color:#6b7280">(model est.)</span></td>
         <td style="padding:.3rem .5rem;color:#16a34a;font-weight:600">${verifiedDeaths}${range} <span style="font-size:.7rem;color:#6b7280">(documented)</span></td>
       </tr>
       ${df.deaths_note ? `<tr><td colspan="3" style="padding:.1rem .5rem .4rem;font-size:.7rem;color:#6b7280;font-style:italic">${df.deaths_note}</td></tr>` : ''}
@@ -2066,7 +2020,10 @@ function selectHistCase(id) {
 
   document.getElementById('caseDetailCard').style.display = 'block';
   document.getElementById('caseDetailTitle').innerHTML =
-    `<span class="badge ${levelBadgeClass(c.risk_level)} me-1">L${c.risk_level}</span> ${c.name} (${c.year})`;
+    `<div class="d-flex align-items-center justify-content-between w-100">
+       <span><span class="badge ${levelBadgeClass(c.risk_level)} me-1">L${c.risk_level}</span> ${c.name} (${c.year})</span>
+       <button onclick="useHistCaseAsScenario(${c.id})" class="btn btn-sm btn-outline-secondary" style="font-size:.7rem;padding:2px 8px;white-space:nowrap;flex-shrink:0;margin-left:.5rem">↗ Use as Scenario</button>
+     </div>`;
 
   renderThreeIndexPanel(c.three_index, document.getElementById('histThreeIndexPanel'));
 
@@ -2109,10 +2066,9 @@ function selectHistCase(id) {
           ${costStatMini('Est. Deaths (model)',  Math.round(cc.mDead).toLocaleString())}
           ${costStatMini('Recorded Deaths',      fmtFull(c.estimated_deaths))}
           ${costStatMini('Est. Injuries',        Math.round(cc.mInj).toLocaleString(), 'model est.')}
-          ${costStatMini('Est. PTSD Cases',      fmtFull(cc.mPtsd),                   'model est.')}
         </div>
         ${buildHistCalibWarn(cc, c)}
-        ${buildDocumentedFiguresBlock(c)}
+        ${buildDocumentedFiguresBlock(c, cc.mDead)}
         <div style="font-size:.63rem;color:#94a3b8;margin-top:.4rem;line-height:1.45;
                     border-top:1px solid #f1f5f9;padding-top:.3rem">
           <span class="conf-dot conf-estimated"
@@ -2141,6 +2097,52 @@ function selectHistCase(id) {
       ${buildEvacStatusSection(c)}
     </div>
   `;
+}
+
+function useHistCaseAsScenario(id) {
+  const c = state.historicalCases.find(x => x.id === id);
+  if (!c) return;
+  const ri = c.risk_indicators;
+
+  const nameEl = document.getElementById('scenName');
+  if (nameEl) nameEl.value = `[Historical] ${c.name}`;
+
+  state.population = c.population_at_risk;
+  const popEl = document.getElementById('inPop');
+  if (popEl) popEl.value = c.population_at_risk;
+
+  const days = Math.min(c.duration_days ?? 30, 180);
+  state.days = days;
+  const daysEl = document.getElementById('stayDays');
+  if (daysEl) { daysEl.value = days; daysEl.style.accentColor = days > 90 ? '#94a3b8' : '#ef4444'; }
+  const daysValEl = document.getElementById('stayDaysVal');
+  if (daysValEl) daysValEl.textContent = days + ' days';
+  const daysWarnEl = document.getElementById('daysWarn');
+  if (daysWarnEl) daysWarnEl.style.display = days > 90 ? 'block' : 'none';
+
+  const EXPOSURE_TO_PATTERN = { urban_siege: 1, enclave: 2, city_conflict: 3, regional: 4 };
+  const pattern = EXPOSURE_TO_PATTERN[c.exposure_type] ?? 5;
+  state.conflictType = pattern;
+  const patternEl = document.getElementById('inConflictPattern');
+  if (patternEl) patternEl.value = pattern;
+
+  const dimMap = {
+    d1: ri.d1_kinetic,       d2: ri.d2_vulnerability, d3: ri.d3_political,
+    d4: ri.d4_logistics,     d5: ri.d5_destination,   d6: ri.d6_urgency,
+    d7: ri.d7_information,
+  };
+  for (const [k, v] of Object.entries(dimMap)) {
+    if (v == null) continue;
+    state.dims[k] = v;
+    const el = document.getElementById(k);
+    if (el) el.value = v;
+    const vEl = document.getElementById(k + 'v');
+    if (vEl) vEl.textContent = (+v).toFixed(1);
+  }
+
+  document.querySelector('[href="#paneBuilder"]').click();
+  updateAll();
+  showToast(`Scenario loaded: ${c.name} (${c.year})`);
 }
 
 function openCaseModal(id) {
@@ -2218,7 +2220,6 @@ function openCaseModal(id) {
               <td><strong>${Math.round(cc.mDead).toLocaleString()}</strong>
                   <span style="color:#94a3b8;font-size:.68rem"> vs recorded ${fmtFull(c.estimated_deaths)}</span></td></tr>
           <tr><td>Est. Injuries</td><td><strong>${Math.round(cc.mInj).toLocaleString()}</strong></td></tr>
-          <tr><td>Est. PTSD Cases</td><td><strong>${fmtFull(cc.mPtsd)}</strong></td></tr>
         </table>
         ${buildHistCalibWarn(cc, c)}
         ${buildDiscrepancyNote(c)}
@@ -2618,9 +2619,14 @@ function renderCostComparePanel() {
     return;
   }
 
-  panel.style.display = '';
+  panel.style.display = 'block';
   const body = document.getElementById('cmpBody');
-  if (!body || body.style.display === 'none') return; // collapsed — rendered fresh on expand
+  if (!body) return;
+  if (body.style.display === 'none') {
+    body.style.display = '';
+    const chev = document.getElementById('cmpChev');
+    if (chev) chev.className = 'fas fa-chevron-down';
+  }
 
   const curr = state._lastResources;
   const risk = state._lastRisk;
@@ -2743,11 +2749,53 @@ function renderCostComparePanel() {
     }
   }
 
+  // UCDP validation block (historical cases only)
+  let ucdpCompBlock = '';
+  if (comp.isHistorical) {
+    const uv = comp.ucdpValidation;
+    if (uv && uv.ucdp_ged_version) {
+      const matchColor = {
+        'IN': '#0a6e50', '~50%': '#0a6e50', '~2x': '#d97706',
+        'OUT': '#dc2626', 'NOT FOUND': '#6b7280', 'pre-1989': '#6b7280',
+      }[uv.ucdp_match] || '#6b7280';
+      const matchLabel = {
+        'IN':        '✓ Within UCDP range',
+        '~50%':      '~ Within 50% of UCDP best',
+        '~2x':       '~ Within 2× of UCDP best',
+        'OUT':       '✗ Outside UCDP range',
+        'NOT FOUND': '— Not found in UCDP',
+        'pre-1989':  '— Pre-1989 (outside UCDP scope)',
+      }[uv.ucdp_match] || uv.ucdp_match;
+      ucdpCompBlock = `
+        <div style="margin-top:.5rem;border:1px solid #e0e8f0;border-radius:5px;overflow:hidden">
+          <div style="background:#f0f8ff;padding:.3rem .6rem;font-size:.68rem;font-weight:700;color:#003F87;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e0e8f0">
+            🔬 UCDP GED ${uv.ucdp_ged_version} Validation — ${comp.caseName||''}
+          </div>
+          <div style="padding:.4rem .6rem;font-size:.72rem;display:flex;gap:.8rem;flex-wrap:wrap;align-items:center">
+            <span><strong>Civilian deaths (floor):</strong> ${(uv.ucdp_civilian_deaths||0).toLocaleString()}</span>
+            <span><strong>Total best:</strong> ${(uv.ucdp_best_total||0).toLocaleString()}</span>
+            <span><strong>Range:</strong> ${uv.ucdp_range||'—'}</span>
+            <span style="font-weight:700;color:${matchColor}">${matchLabel}</span>
+          </div>
+          ${uv.ucdp_note ? `<div style="padding:.2rem .6rem .4rem;font-size:.68rem;color:#6b7280;font-style:italic;border-top:1px solid #f0f4f8">${uv.ucdp_note}</div>` : ''}
+          <div style="padding:.2rem .6rem .3rem;font-size:.63rem;color:#9ca3af;border-top:1px solid #f0f4f8">
+            Source: Davies et al. (2025), JPR 62(4); Sundberg &amp; Melander (2013), JPR 50(4). CC BY 4.0.
+          </div>
+        </div>`;
+    } else {
+      ucdpCompBlock = `
+        <div style="margin-top:.5rem;padding:.35rem .6rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:4px;font-size:.68rem;color:#6b7280">
+          UCDP data not available for this case.
+        </div>`;
+    }
+  }
+
   body.innerHTML = `
     <div style="border:1px solid #e2e8f0;border-radius:6px;overflow:hidden">
       ${headerRow}${dataRows}
     </div>
     ${calibWarn}
+    ${ucdpCompBlock}
     <div class="cmp-footnote mt-2">
       <span class="conf-dot conf-estimated" style="display:inline-block;vertical-align:middle;margin-right:.3rem"></span>
       Cost figures for comparison case are model estimates computed from ERCF dimensions and population data — not actual recorded expenditures.
@@ -2762,14 +2810,15 @@ function renderCostComparePanel() {
 
 document.getElementById('compareCase').addEventListener('change', function() {
   const val       = this.value;
-  const lbl       = document.getElementById('compareLabel');
+  const lbl       = document.getElementById('compareCaseName');
 
   // Clear comparison
   if (!val) {
     state.charts.radar.data.datasets[1].hidden = true;
     state.charts.radar.update();
     state.comparisonData = null;
-    if (lbl) lbl.textContent = 'Compare on Radar';
+    if (lbl) lbl.textContent = '';
+    renderRadarUcdpBlock(null);
     renderCostComparePanel();
     return;
   }
@@ -2843,11 +2892,62 @@ document.getElementById('compareCase').addEventListener('change', function() {
     label: compLabel, isHistorical, pop, vulPct, distKm, days, riskLevel, dims: dimObj,
     resources: compResources, stayData: compStayData, historicalDeaths,
     remainingPct: compRemainingPct,
+    ucdpValidation: compHistCase?.documented_figures?.ucdp_validation || null,
+    caseName: compHistCase?.name || compLabel,
   };
 
-  if (lbl) lbl.textContent = 'Compare on Radar & Costs';
+  if (lbl) lbl.textContent = compLabel;
+  renderRadarUcdpBlock(compHistCase);
   renderCostComparePanel();
 });
+
+function renderRadarUcdpBlock(compHistCase) {
+  const el = document.getElementById('radarUcdpBlock');
+  if (!el) return;
+
+  if (!compHistCase) { el.innerHTML = ''; return; }
+
+  const uv = compHistCase.documented_figures?.ucdp_validation;
+
+  if (!uv || !uv.ucdp_ged_version) {
+    el.innerHTML = `
+      <div style="padding:.3rem .5rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:4px;font-size:.68rem;color:#6b7280">
+        UCDP data not available for this case.
+      </div>`;
+    return;
+  }
+
+  const matchColor = {
+    'IN': '#0a6e50', '~50%': '#0a6e50', '~2x': '#d97706',
+    'OUT': '#dc2626', 'NOT FOUND': '#6b7280', 'pre-1989': '#6b7280',
+  }[uv.ucdp_match] || '#6b7280';
+
+  const matchLabel = {
+    'IN':        '✓ Within UCDP range',
+    '~50%':      '~ Within 50% of UCDP best',
+    '~2x':       '~ Within 2× of UCDP best',
+    'OUT':       '✗ Outside UCDP range',
+    'NOT FOUND': '— Not found in UCDP',
+    'pre-1989':  '— Pre-1989 (outside UCDP scope)',
+  }[uv.ucdp_match] || uv.ucdp_match;
+
+  el.innerHTML = `
+    <div style="border:1px solid #e0e8f0;border-radius:5px;overflow:hidden">
+      <div style="background:#f0f8ff;padding:.3rem .6rem;font-size:.67rem;font-weight:700;color:#003F87;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e0e8f0">
+        🔬 UCDP GED ${uv.ucdp_ged_version} — ${compHistCase.name} (${compHistCase.year})
+      </div>
+      <div style="padding:.35rem .6rem;font-size:.71rem;display:flex;gap:.7rem;flex-wrap:wrap;align-items:center">
+        <span><strong>Civilian deaths (floor):</strong> ${(uv.ucdp_civilian_deaths||0).toLocaleString()}</span>
+        <span><strong>Total best:</strong> ${(uv.ucdp_best_total||0).toLocaleString()}</span>
+        <span><strong>Range:</strong> ${uv.ucdp_range||'—'}</span>
+        <span style="font-weight:700;color:${matchColor}">${matchLabel}</span>
+      </div>
+      ${uv.ucdp_note ? `<div style="padding:.2rem .6rem .35rem;font-size:.67rem;color:#6b7280;font-style:italic;border-top:1px solid #f0f4f8">${uv.ucdp_note}</div>` : ''}
+      <div style="padding:.2rem .6rem .25rem;font-size:.62rem;color:#9ca3af;border-top:1px solid #f0f4f8">
+        Source: Davies et al. (2025), JPR 62(4); Sundberg &amp; Melander (2013), JPR 50(4). CC BY 4.0.
+      </div>
+    </div>`;
+}
 
 // ═══════════════════════════════════════════════════════════
 // MAP PIN — CONFLICT LOCATION & DISTANCE CALCULATION
@@ -3604,6 +3704,8 @@ document.getElementById('inConflictPattern').addEventListener('change', function
 document.getElementById('stayDays').addEventListener('input', function() {
   state.days = parseInt(this.value);
   document.getElementById('stayDaysVal').textContent = state.days + ' days';
+  this.style.accentColor = state.days > 90 ? '#94a3b8' : '#ef4444';
+  document.getElementById('daysWarn').style.display = state.days > 90 ? 'block' : 'none';
   updateAll();
 });
 document.getElementById('remainPctToggle').addEventListener('change', function() {
@@ -3664,19 +3766,15 @@ function onEachCountry(feature, layer) {
 
   layer.on({
     mouseover(e) {
-      console.log('mouseover', feature.properties.name || feature.properties.ADMIN, performance.now());
       const lvl = d ? d.level : -1;
       e.target.setStyle({ fillOpacity: Math.min(0.92, (CHORO_OPACITY[lvl]||0.18)+0.2) });
       document.getElementById('worldHoverLabel').textContent =
         d ? `${name} — L${lvl}: ${RISK_DEF[Math.max(0,lvl)]?.label || 'No data'}`
           : `${name} — No ACAPS data`;
-      console.log('row height:', document.querySelector('[style*="min-height:2.4em"]').offsetHeight);
     },
     mouseout(e) {
-      console.log('mouseout', feature.properties.name || feature.properties.ADMIN, performance.now());
       worldMapState.geojsonLayer.resetStyle(e.target);
       document.getElementById('worldHoverLabel').textContent = 'Hover a country';
-      console.log('row height:', document.querySelector('[style*="min-height:2.4em"]').offsetHeight);
     },
     click() {
       if (iso3) loadCountryContext(iso3, name);
@@ -3830,7 +3928,19 @@ async function searchWorldMap() {
   const match = Object.entries(worldMapState.worldRisk).find(([, d]) =>
     d.name.toLowerCase().includes(q.toLowerCase())
   );
-  if (match) { loadCountryContext(match[0], match[1].name); return; }
+  if (match) {
+    const [iso3, data] = match;
+    // Zoom to country bounds via GeoJSON layer
+    if (worldMapState.geojsonLayer) {
+      worldMapState.geojsonLayer.eachLayer(layer => {
+        if (topoIdToIso3(layer.feature.id) === iso3) {
+          worldMapState.lmap.fitBounds(layer.getBounds(), { padding: [30, 30], maxZoom: 6 });
+        }
+      });
+    }
+    loadCountryContext(iso3, data.name);
+    return;
+  }
   try {
     const data = await fetch(
       `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`
@@ -3841,6 +3951,16 @@ async function searchWorldMap() {
 }
 
 // ── Country Context Panel ────────────────────────────────────────────────────
+
+const _countryContextCache = {};  // iso3 → { ctx, acaps, live, ucdp }
+
+function _fetchWithTimeout(url, options, ms) {
+  const ctrl  = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { ...options, signal: ctrl.signal })
+    .then(r => r.json())
+    .finally(() => clearTimeout(timer));
+}
 
 async function loadCountryContext(iso3, name) {
   worldMapState.selectedIso = iso3;
@@ -3870,30 +3990,44 @@ async function loadCountryContext(iso3, name) {
   decBadge.textContent = dec.text;
   ctxHeader.appendChild(decBadge);
 
+  // Serve from cache if already loaded this session
+  if (_countryContextCache[iso3]) {
+    const { ctx, acaps, live, ucdp } = _countryContextCache[iso3];
+    renderContextPanel(iso3, name, lvl, color, d, ctx, acaps, live, ucdp);
+    return;
+  }
+
   document.getElementById('ctxBody').innerHTML = `
     <div class="ctx-loading">
       <div class="spinner-ring"></div>
       <div style="font-size:.78rem;color:#888">Loading context…</div>
     </div>`;
 
-  try {
-    const [ctx, acaps, live] = await Promise.all([
-      fetch('/api/country-context', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ iso3, country_name: name }),
-      }).then(r => r.json()),
-      fetch(`/api/country-context-acaps/${iso3}`)
-        .then(r => r.json())
-        .catch(() => null),
-      fetch(`/api/acaps/${iso3}`)
-        .then(r => r.json())
-        .catch(() => null),
-    ]);
-    renderContextPanel(iso3, name, lvl, color, d, ctx, acaps, live);
-  } catch(e) {
-    document.getElementById('ctxBody').innerHTML =
-      `<div class="alert alert-danger m-2" style="font-size:.8rem">Failed: ${e.message}</div>`;
-  }
+  const currentYear = new Date().getFullYear();
+
+  // /api/country-context calls AI — 5s timeout with local-data fallback
+  const ctxFetch = _fetchWithTimeout('/api/country-context', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ iso3, country_name: name }),
+  }, 5000).catch(e => ({
+    summary:           d.crisis || '',
+    dimension_scores:  {},
+    population_at_risk: d.pop_at_risk || 0,
+    _ai_note: e.name === 'AbortError'
+      ? 'Context API timed out (>5s) — showing local ACAPS data only.'
+      : `Data unavailable — check connection (${e.message})`,
+  }));
+
+  const [ctx, acaps, live, ucdp] = await Promise.all([
+    ctxFetch,
+    fetch(`/api/country-context-acaps/${iso3}`).then(r => r.json()).catch(() => null),
+    fetch(`/api/acaps/${iso3}`).then(r => r.json()).catch(() => null),
+    fetch(`/api/ucdp?country=${encodeURIComponent(name)}&year_start=${currentYear-3}&year_end=${currentYear}`)
+      .then(r => r.json()).catch(() => null),
+  ]);
+
+  _countryContextCache[iso3] = { ctx, acaps, live, ucdp };
+  renderContextPanel(iso3, name, lvl, color, d, ctx, acaps, live, ucdp);
 }
 
 function renderAcapsSection(acaps) {
@@ -4015,7 +4149,7 @@ function renderAcapsLiveData(live) {
   return parts.join('');
 }
 
-function renderContextPanel(iso3, name, lvl, color, sd, ctx, acaps, live) {
+function renderContextPanel(iso3, name, lvl, color, sd, ctx, acaps, live, ucdp) {
   const dimKeys   = ['d1_kinetic','d2_vulnerability','d3_political','d4_logistics','d5_destination','d6_urgency','d7_information'];
   const dimLabels = ['D1 Kinetic','D2 Vulnerability','D3 Authorization','D4 Logistics','D5 Destination','D6 Urgency','D7 Information'];
   const ds = ctx.dimension_scores || {};
@@ -4125,6 +4259,31 @@ function renderContextPanel(iso3, name, lvl, color, sd, ctx, acaps, live) {
       <div class="fw-bold mb-1" style="font-size:.73rem">ACAPS CRISIS DATA</div>
       ${renderAcapsSection(acaps)}
     </div>
+
+    ${(() => {
+      if (!ucdp || ucdp.error || !ucdp.total_events) return '';
+      const yr = `${new Date().getFullYear()-3}–${new Date().getFullYear()}`;
+      return `<div style="margin-top:.6rem;margin-bottom:.5rem">
+        <div style="font-size:.68rem;font-weight:700;color:#003F87;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.3rem">
+          🔬 UCDP GED v26.1 — Conflict Data (${yr})
+        </div>
+        <div style="background:#f0f8ff;border:1px solid #a8d4f0;border-left:3px solid #009EDB;border-radius:4px;padding:.4rem .6rem;font-size:.72rem">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.2rem .8rem;margin-bottom:.3rem">
+            <span><strong>Events:</strong> ${ucdp.total_events.toLocaleString()}</span>
+            <span><strong>One-sided:</strong> ${ucdp.one_sided_events.toLocaleString()}</span>
+            <span><strong>Civilian deaths (floor):</strong> ${(ucdp.deaths_civilians_explicit||0).toLocaleString()}</span>
+            <span><strong>Total best:</strong> ${(ucdp.total_best||0).toLocaleString()}</span>
+          </div>
+          <div style="font-size:.68rem;color:#4a5568">
+            <strong>Range:</strong> ${ucdp.uncertainty_range||'—'}
+          </div>
+          ${ucdp.total_best === 0 ? '<div style="color:#6b7280;font-size:.68rem;margin-top:.2rem">No conflict events recorded in UCDP for this period.</div>' : ''}
+        </div>
+        <div style="font-size:.63rem;color:#9ca3af;margin-top:.2rem">
+          Source: Davies et al. (2025), JPR 62(4) · CC BY 4.0 · ucdp.uu.se
+        </div>
+      </div>`;
+    })()}
 
     <div class="mb-2">
       <button class="btn btn-sm w-100 d-flex justify-content-between align-items-center py-1 px-2"
@@ -4278,6 +4437,10 @@ async function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+document.getElementById('worldSearch').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); searchWorldMap(); }
+});
 
 document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
   tab.addEventListener('shown.bs.tab', () => {

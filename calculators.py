@@ -166,6 +166,9 @@ PERSONNEL_RATES = {
         "range_supported": "40–500",
         "confidence": "estimated",
         "scope": "mid-market estimate for mixed team (local + professional security)",
+        "source": "Estimated — humanitarian PSC mid-market range $200–$1,100+/day depending on "
+                  "context, nationality, and risk level. No single published UNDSS figure available. "
+                  "(ref: ODI HPG Policy Brief 33; Gaza 2025 reporting)",
     },
 
     # ── Medical staff: $200/day ───────────────────────────────────────────────
@@ -191,10 +194,16 @@ PERSONNEL_RATES = {
     # but NOT consistent with UN international professional total cost.
     "medical_staff_day_usd": {
         "value": 200,
-        "range_supported": "87–291 (international NGO operational cost)",
+        "range_supported": "79–285 (MSF USA 2024: $2,365–$2,838/month take-home = $79–$95/day; "
+                           "with 2–3× operational overhead: $158–$285/day total org cost)",
         "confidence": "estimated",
         "scope": "international NGO staff (MSF-level) or senior national staff + overhead; "
                  "not representative of full UN international professional rate (~$580/day in Sudan)",
+        "source": "MSF USA (doctorswithoutborders.org, 2024): starting salary $2,365–$2,838/month = ~$79–$95/day "
+                  "take-home. With 2–3× operational overhead (per diem, insurance, housing, admin): "
+                  "$158–$285/day total organizational cost. $200/day is within range for mid-level "
+                  "international NGO deployment. (ref: doctorswithoutborders.org/careers/work-internationally/pay-benefits, "
+                  "accessed June 2026; MSF Pay & Benefits Guide IRP2, October 2023)",
     },
 
     # ── Paramedics: $150/day ─────────────────────────────────────────────────
@@ -525,66 +534,46 @@ def calculate_risk(scores: Dict) -> Dict:
 # https://datacatalog.worldbank.org/dataset/0038250
 
 # ── Terrain & Infrastructure cost multipliers ─────────────────────────────
-# SOURCE AND METHODOLOGY NOTE (update if values change):
-#
-# These multipliers are ESTIMATED, calibrated against qualitative ranges from
-# the humanitarian logistics literature and the World Bank HDM-4 (Highway
-# Development and Management Model) vehicle operating cost relationships.
-#
-# Primary reference: World Bank HDM-4 Road User Costs Model (Version 5.0),
-# Archondo-Callao, R., World Bank Transport Research Support Program.
-# Available: https://datacatalog.worldbank.org/dataset/0065667
-# The HDM-4 model quantifies vehicle operating costs as a function of road
-# roughness (IRI, International Roughness Index), showing that unpaved roads
-# in poor condition have IRI values 3-4x higher than well-maintained paved
-# roads, with corresponding increases in fuel consumption, tyre wear, and
-# maintenance costs.
-#
-# Supporting qualitative evidence: NRC/Protect Humanitarian Space (2024),
-# "Cost of Operations in Hard-to-Reach Areas" — describes transport costs in
-# H2R areas as "substantially higher" than in accessible areas, with security
-# and access constraints compounding infrastructure-driven cost increases.
-# (Already cited in ERCF Sources list as source #11.)
-#
-# LIMITATION: No primary source provides validated numerical multipliers
-# specifically by terrain/infrastructure category for humanitarian evacuation
-# contexts. The HDM-4 model covers vehicle operating costs on roads of varying
-# roughness but does not directly map to the 5-category terrain typology used
-# here. The multipliers below are calibrated to be consistent with the
-# qualitative 3-4x cost range described in the humanitarian literature for
-# the most challenging terrain (level 1), with intermediate values interpolated
-# to reflect the relative difficulty of each category. These should be treated
-# as planning-order-of-magnitude estimates, not precise cost ratios.
-#
-# Seasonal closure months/year figures are based on general knowledge of
-# seasonal road closures in mountainous/tropical contexts; no single validated
-# source provides these thresholds universally.
+# Sources (Tavily search, June 2026):
+# (1) HDM-4 / Auburn/NCAT Rep15-02 (2015): good road ×1.05, fair ×1.15, poor ×1.25
+#     — validated for civil transport; applied here as lower-bound proxy.
+#     URL: eng.auburn.edu/research/centers/ncat/files/technical-reports/rep15-02.pdf
+# (2) WFP Logistics Annual Report (2012, wfp.tind.io/record/128161):
+#     CAR/South Sudan/DRC = $593/MT vs standard countries = $118/MT (5× ratio).
+#     Supports upper range but conflates terrain, access, and security factors.
+# (3) NRC/Protect Humanitarian Space (2024): qualitative H2R cost elevation confirmed.
+# GAP: No primary source publishes isolated terrain multipliers for humanitarian
+# evacuation. ×1.0–×1.2 consistent with HDM-4; ×1.7–×2.5 estimated proxies;
+# ×4.0 expert upper bound consistent with WFP aggregate ratios.
+# Seasonal closure periods: general knowledge; no single validated source.
 TERRAIN_MULT = {1: 4.0, 2: 2.5, 3: 1.7, 4: 1.2, 5: 1.0}
 
-# Infrastructure-denial mortality multiplier (v6 calibration)
+# Infrastructure-denial mortality multiplier (v7 calibration)
 # Applies ONLY when D1 (kinetic) AND D4 (logistics) are both critically high,
 # indicating documented deliberate destruction of survival infrastructure.
-# Calibrated on 5 documented cases: Mariupol, Aleppo, Vukovar, Huambo
-# (Grozny II excluded: 90-day duration insufficient for starvation mortality)
-# alpha=1.421, optimised via Nelder-Mead minimising mean squared log error
-# Result: within-2x improves 12/20 → 14/20 (70%), R²=0.789
+# Applied to 4 documented cases: Mariupol, Aleppo, Vukovar, Huambo
+# (flag infra_denial_flag=True in historical_data.py)
+# alpha=0.4251, optimised jointly with base rates via differential_evolution
+# minimising MSLE across 16 calibration cases. Prior alpha=1.421 (Nelder-Mead,
+# v6) was calibrated against a stale model state — see calibration/full_calibration.py
+# Effective multipliers v7: Mariupol ×2.275, Aleppo ×1.850, Vukovar ×1.638, Huambo ×1.850
 # Source: GRC 'The Hope Left Us' (2024) — starvation as method of warfare in Mariupol;
 # UN Commission of Inquiry Syria (2017) — hospital bombing in Aleppo;
-# ICTY proceedings — infrastructure targeting in Vukovar
-INFRA_DENIAL_ALPHA        = 1.421
+# ICTY proceedings — infrastructure targeting in Vukovar;
+# HRW/Amnesty Angola (1994/1996) — deliberate food/water destruction in Huambo
+INFRA_DENIAL_ALPHA        = 0.4251  # v7: α=0.4251 optimised jointly with base rates. Effective multipliers: Mariupol ×2.275, Aleppo ×1.850, Vukovar ×1.638, Huambo ×1.850
 INFRA_DENIAL_D1_THRESHOLD = 4.5   # D1 must be at or above this
 INFRA_DENIAL_D4_THRESHOLD = 4.0   # D4 must be at or above this
 
 
 def infra_denial_mult(infra_denial_flag: bool, d1: float, d4: float) -> float:
     """
-    Infrastructure-denial mortality multiplier.
-    Only activates when:
-    1. infra_denial_flag=True (deliberately set based on primary source documentation)
-    2. D1 >= 4.5 AND D4 >= 4.0 (plausibility check — high kinetic + logistics degradation)
-
-    The flag is the primary gate. D-scores are a plausibility check only.
-    Without documented evidence of deliberate infrastructure targeting, flag=False.
+    Infrastructure-denial mortality multiplier (v6).
+    Activates ONLY when infra_denial_flag=True (explicit primary-source documentation)
+    AND D1 >= 4.5 AND D4 >= 4.0 (plausibility check).
+    Flag is set in historical_data.py for Mariupol, Vukovar, Huambo only.
+    For live Scenario Builder: flag=False by default (reverted from Prompt 4 auto-activation).
+    Auto-activation by D-score thresholds alone caused calibration collapse (within-2× 80%→20%).
     """
     if infra_denial_flag and d1 >= INFRA_DENIAL_D1_THRESHOLD and d4 >= INFRA_DENIAL_D4_THRESHOLD:
         return 1.0 + INFRA_DENIAL_ALPHA * (d1 - 3.0) * (d4 - 3.0)
@@ -687,15 +676,47 @@ def calculate_resources(
     ===============================================
     Inputs: population P, vulnerable fraction V (as %), risk level R (0–4), distance D km.
 
+    PLANNING BASIS — POPULATION SIZING:
+    Supplies and personnel are dimensioned for the total population at risk (P), consistent
+    with humanitarian planning doctrine:
+    - Sphere Handbook (2018): minimum standards apply to the full disaster-affected population,
+      not only those who accept assistance. Planning figures use total population in need (PIN).
+      URL: spherestandards.org/wp-content/uploads/Sphere-Handbook-2018-EN.pdf
+    - IASC Caseload Support Package (2016): response plans project needs for the full PIN;
+      actual beneficiaries reached will be lower but planning must cover the total.
+      URL: gbvaor.net/sites/default/files/2019-07/2016 IASC caseload support package (EN).pdf
+
+    IN-SITU POPULATION NOTE:
+    NRC "Considerations for Planning Mass Evacuations of Civilians in Conflict Settings" (2017)
+    explicitly warns that convoy supplies must NOT be drawn from in-situ population resources:
+    "If a food warehouse is emptied to provide food for an evacuating convoy, the population
+    that would have otherwise benefited from those supplies may feel that humanitarians are
+    offering preferential treatment." The in-situ assistance stream is modelled separately
+    in calculate_remaining_costs().
+    URL: nrc.no/globalassets/pdf/reports/considerations-for-planning-mass-evacuations-of-civilians-in-conflict-settings
+
+    FIXED vs VARIABLE COST DISTINCTION — GAP:
+    No published institutional source (WFP, UNHCR, IOM, ICRC) explicitly documents a
+    fixed mobilization cost (scaled to total population) vs variable execution cost (scaled
+    to actual evacuees) for conflict evacuation operations. Academic ops research literature
+    (MDPI, 2025) models fixed+variable costs mathematically but for casualty evacuation,
+    not civilian humanitarian operations. BVL (2020) confirms logistics experts decline to
+    give generic figures due to context variability.
+    (ref: BVL "Insights on the Costs of Humanitarian Logistics", 2020;
+     MDPI Sustainability doi:10.3390/su17241126, 2025)
+
     VEHICLES
       vuln         = P × V/100
       non_vuln     = P - vuln
       std_buses    = ceil(non_vuln / 50)          # 50-pax assumption (unvalidated)
       med_buses    = ceil(vuln / 20)              # 20-pax medical buses (unvalidated)
-      ambulances   = max(1, ceil(vuln × 0.05 / 2))
-        → assumes 5% of vulnerable need ambulance-level care, capacity 2
-        KNOWN ISSUE: yields 1 ambulance per 40 vulnerable persons at typical inputs.
-        ICRC/WHO field norms suggest 1:150–250. Ambulance count is likely 3–5× too high.
+      ambulances   = max(1, ceil(vuln / 150))
+        → 1 ambulance per 150 vulnerable persons (revised from 1:40).
+        No published field standard found for humanitarian evacuation ambulance ratios
+        (ICRC 2015, WHO EMS standards, MSF — none specify evacuation ratios).
+        1:150 adopted as conservative operational estimate consistent with documented
+        field scarcity (Kosovo study PMC10068156: few ambulances, private vehicles used).
+        Prior value 1:40 (5% vuln / cap 2) was 3-5× above documented practice.
 
     PERSONNEL (daily cost rates, all unvalidated)
       security_ratio = [∞, 500, 200, 100, 50][risk_level]
@@ -716,6 +737,10 @@ def calculate_resources(
         $380 is conservative 2024 estimate below UNHCR replacement cost. Dominates subtotal.
       trauma_kits: /50 if R≥3 else /200
 
+    # Resources dimensioned for total population in need (PIN) per Sphere Handbook (2018)
+    # planning figure methodology and IASC Caseload Support Package (2016). Actual evacuee
+    # count may differ — convoy sizing follows total estimated caseload as per operational
+    # planning doctrine.
     COSTS (USD — all unit costs unvalidated unless noted)
       transport  = std_buses×$200 + med_buses×$400 + ambulances×$700 + drivers×$50  (updated Tavily Jun 2026)
         NOTE: drivers cost is labour mixed into a vehicle-hire line — consider separating.
@@ -726,7 +751,11 @@ def calculate_resources(
       food       = food_kg × $3/kg
       water      = water_l × $0.05/L (Sphere-adjacent, unvalidated for field contexts)
       shelter    = tents × $380      (DOMINANT LINE: updated Tavily Jun 2026 — UNHCR 2022: $400/unit)
-      medical    = med_kits×$50 + trauma_kits×$200
+      medical    = med_kits×$21 + trauma_kits×$200
+        med_kits cost revised $50→$21/kit (100-person kit): based on WHO/UNICEF IEHK
+        (~$20,584/10,000 persons/90 days × 3 days × 3× trauma adjustment = $0.207/person
+        → $20.7/kit for 100-person kit). PMC5321368 (2017, peer-reviewed).
+        Prior $50/kit = ~7× above IEHK equivalent for 3-day convoy.
       comms      = (ceil(vehicles/5)+5) × $500/radio
       contingency = subtotal × 15%
 
@@ -757,7 +786,11 @@ def calculate_resources(
 
     std_buses   = math.ceil(non_vuln / 50)
     med_buses   = math.ceil(vuln / 20 * _d2m)
-    ambulances  = max(1, math.ceil(vuln * 0.05 / 2 * _d2m))
+    # Revised from 1:40 to 1:150 vulnerable. No published field standard found (ICRC 2015,
+    # WHO EMS standards, MSF — none specify evacuation ambulance ratios). 1:150 adopted as
+    # conservative operational estimate consistent with documented field scarcity
+    # (Kosovo study, PMC10068156). Previous value 1:40 was 3-5× above documented practice.
+    ambulances  = max(1, math.ceil(vuln / 150 * _d2m))
     total_veh   = std_buses + med_buses + ambulances
 
     sec_ratio   = [99999, 500, 200, 100, 50][risk_level]
@@ -814,7 +847,16 @@ def calculate_resources(
         # UNHCR Emergency Shelter Design Catalogue Jan 2016: $229/unit (incl. transport 15% + labour 30%)
         # $380 used as conservative 2024 estimate below UNHCR stated replacement cost
         "shelter":     round(tents * 380 * climate_shelter_mult),
-        "medical":     round(med_kits*50 + trauma_kits*200),
+        # MED_KIT_COST updated $50→$21/kit (June 2026): Based on WHO/UNICEF Interagency
+        # Emergency Health Kit (IEHK): ~$20,584 per 10,000 persons per 3 months (PMC5321368,
+        # 2017, peer-reviewed). Adjusted: $20,584 / 10,000 / 90 days × 3 days × 3× trauma
+        # factor = $0.207/person = $20.7/kit (100-person kit). Rounded to $21.
+        # IEHK covers primary healthcare (not trauma-specific); ×3 adjustment for conflict
+        # evacuation context. Prior $50/kit was ~7× above IEHK equivalent for 3-day convoy.
+        # TRAUMA_KIT_COST $200/kit: UNVALIDATED — ICRC war surgery kits treat 1,000–5,000
+        # patients but pricing not publicly disclosed (ICRC Gaza 2023). $200/kit retained
+        # as planning estimate pending ICRC/MSF field data.
+        "medical":     round(med_kits*21 + trauma_kits*200),
         "comms":       round(radios * 500),
     }
     subtotal = sum(c.values())
@@ -828,7 +870,7 @@ def calculate_resources(
             "distance_km": distance_km,
             "risk_level": risk_level,
             "total_cost_usd": total,
-            "cost_per_person_usd": round(total / population, 2),
+            "cost_per_person_planned_usd": round(total / population, 2),  # denominator = total planned caseload (Sphere/IASC); per-evacuee cost requires caller to divide by (population - remaining_pop)
         },
         "vehicles": {
             "standard_buses_50pax": std_buses,
@@ -975,7 +1017,12 @@ REMAINING_COST_SOURCE_NOTES = {
         "prior_values": {"L2": 3.0, "L3": 5.0, "L4": 8.0},
         "revised": "June 2026 — reduced to upper bound of documented sources",
         "source": "WFP Logistics Cluster field data, conflict-affected contexts 2020–2023; "
-                  "OCHA Access Monitoring and Reporting Framework",
+                  "OCHA Access Monitoring and Reporting Framework. "
+                  "NRC/Protect Humanitarian Space (Feb 2024) 'Cost of Operations in Hard-to-Reach Areas' "
+                  "confirms qualitatively that Libya, Iraq, Syria (active conflict) were the three most expensive "
+                  "crises in 2021, but provides no numerical multiplier per level. "
+                  "No published source found with explicit L2/L3/L4 cost multipliers for active-conflict delivery. "
+                  "(ref: protecthumanitarianspace.com, Feb 2024)",
         "confidence": "estimated",
         "components": {
             "logistics_component": {
@@ -1129,7 +1176,9 @@ REMAINING_COST_SOURCE_NOTES = {
     },
     "extraction_ground_usd_per_person": {
         "value": 800,
-        "source": "ICRC field operation cost estimates, scaled from published per-capita figures",
+        "source": "Internal heuristic — no published source. Reflects reduced fuel, logistics, and "
+                  "personnel costs vs air extraction (computed as 30% of UNHAS air rate × distance). "
+                  "Requires validation against UNHCR/IOM field data.",
         "confidence": "estimated",
     },
     "extraction_medical_evac_usd_per_person": {
@@ -1148,11 +1197,11 @@ REMAINING_COST_SOURCE_NOTES = {
         "confidence": "estimated",
     },
     "field_treatment_cost_usd_per_injury": {
-        "value": 1200,
-        "source": "WHO Emergency Health cluster cost estimates (original, unvalidated). "
-                  "Five-source validation search conducted June 2026 found no WHO figure. "
-                  "See peer-reviewed sources below for documented range.",
-        "confidence": "estimated — ABOVE documented peer-reviewed range",
+        "value": 800,
+        "source": "Peer-reviewed range: $211–$1,013 (MSF Nigeria 2009, inflation-adjusted). "
+                  "$800 adopted as conservative upper-mid estimate. "
+                  "ICRC surgical cost data not publicly available per-patient.",
+        "confidence": "estimated",
         "validated_range_usd": "$211–$650 per surgical case (peer-reviewed, 2009–2022)",
         "inflation_adjusted_upper_bound_2026": "~$1,000 (MSF Haiti 2009 figure at 3%/yr)",
         "peer_reviewed_sources": {
@@ -1271,10 +1320,12 @@ DEATH_RATE_10K          = [0.3,  0.5,  1.5,  4.0, 10.0]   # v1 — kept for refe
 # Lower than WHO theoretical rates because real populations partially evacuate,
 # reducing cumulative exposure. Confinement modifier (×0.5–×8) then modulates
 # the effective rate based on D3/D4 interaction.
-# CALIBRATION v5: L3 raised ×4 (0.00003 → 0.00012) based on 13-case calibration
-# (excl. Srebrenica as genocide boundary case). Improves within-2x from 2/13 to 8/13.
-# Sources: ICTY/HRW/Amnesty documented cases 1992-2024.
-DEATH_RATE_10K_EMPIRICAL = [0.3,  0.5,  0.8,  6.0,  4.0]  # v5: L3 raised ×4 vs v2
+# v7 calibration: differential_evolution on 16 in-scope cases, MSLE=0.8051.
+# Prior v5 rates [0.3, 0.5, 0.8, 6.0, 4.0] computed against stale stored model_deaths.
+# L3>L4 ordering empirically validated: L3 cases (urban siege, city conflict) show
+# higher observed per-capita rates than L4 cases dominated by large-enclave operations.
+# Sources: ERCF Historical Case Database (29 cases, 1991–2024); calibration/full_calibration.py
+DEATH_RATE_10K_EMPIRICAL = [0.777, 0.964, 3.625, 1.805, 1.000]  # v7 calibration — 16 cases, R²=0.855, LOOCV=0.807, 7/16 within 2× (44%). Optimised via differential_evolution minimising MSLE. L3>L4 empirically validated.
 
 # ─── ERCF MORTALITY MODEL v3 — Geographic Exposure Factor ────────────────────
 #
@@ -1336,11 +1387,7 @@ CONFLICT_TYPE_EXPOSURE = {
 # calculate_staying_costs() now derives injuries directly from effective_mort × 4.
 INJURY_RATE_10K  = [1.2,  2.0,  6.0, 16.0, 40.0]
 
-# PTSD prevalence rates (WHO Mental Health in Emergencies 2022) — lifetime prevalence,
-# NOT daily incidence. Saturation model: grows to plateau at day 90.
-# [L0=1%, L1=5%, L2=15%, L3=25%, L4=40%]  (prior: daily per-1K rates → impossible values)
-PTSD_PREVALENCE  = [0.01, 0.05, 0.15, 0.25, 0.40]
-PTSD_RATE_1K     = [1.0,  5.0, 20.0, 60.0,150.0]   # kept for reference; no longer used in formula
+
 
 
 def calculate_injuries(
@@ -1431,23 +1478,25 @@ def calculate_staying_costs(
       effective_rate    = base_rate × conf_mult × (1−protection_factor) × exposure_factor
 
     INJURIES — ICRC 4:1 ratio against effective rate (unchanged from v2)
-    PTSD — WHO 2022 saturation model (unchanged from v1)
     """
-    base      = BASE_DAILY_COST[risk_level]
-    ptsd_rate = PTSD_PREVALENCE[risk_level]
+    if days <= 0:
+        raise ValueError(f"days must be positive, got {days}")
+    base = BASE_DAILY_COST[risk_level]
 
     # ── v2: confinement modifier ─────────────────────────────────────────────
     base_mort = DEATH_RATE_10K_EMPIRICAL[risk_level] / 10000
 
     conf_mult         = 1.0
     confinement_score = 2.0   # default (no dims) = baseline
-    # Extract d1, d3, d4 once — needed for confinement, siege detection, and infra-denial
+    # Extract d1, d3, d4, d6 once — needed for confinement, siege detection, and infra-denial
     d1_val = float(dims.get('d1_kinetic', dims.get('d1', 3.0))) if dims else 3.0
     d3_val = 3.0
     d4_val = 3.0
+    d6_val = 3.0
     if dims:
         d3_val = float(dims.get('d3_political', dims.get('d3', 3.0)))
         d4_val = float(dims.get('d4_logistics', dims.get('d4', 3.0)))
+        d6_val = float(dims.get('d6_urgency',   dims.get('d6', 3.0)))
         d4     = d4_val
         confinement_score = (5.0 - d3_val) * d4_val / 5.0
         if   confinement_score <= 1: conf_mult = 0.5
@@ -1480,13 +1529,11 @@ def calculate_staying_costs(
         exposure_score  = d1_val / pop_ratio
         exposure_factor = min(1.0, max(0.05, exposure_score / 5.0))
 
-    # Apply infrastructure-denial multiplier (v6)
-    # Live calculator always passes flag=False — multiplier only activates via
-    # historically documented cases (infra_denial_flag in historical_data.py)
-    id_mult        = infra_denial_mult(False, d1_val, d4_val)
+    # Apply infrastructure-denial multiplier — flag=False for live scenarios (primary-source only)
+    id_mult             = infra_denial_mult(False, d1_val, d4_val)
+    infra_denial_active = id_mult > 1.0
     effective_mort = base_mort * conf_mult * (1.0 - protection_factor) * exposure_factor * id_mult
 
-    ptsd_max   = round(population * ptsd_rate)
     daily_fin  = base * population
     daily_mort = effective_mort * population
     daily_inj  = daily_mort * 4.0    # ICRC 4:1 ratio against effective rate
@@ -1497,24 +1544,20 @@ def calculate_staying_costs(
         # effective_days = 90 + sqrt((d-90) * 90) for d > 90
         # Linear below 90 days; decelerating above 90 days
         effective_d = d if d <= 90 else 90 + math.sqrt((d - 90) * 90)
-        ptsd_cum = round(ptsd_max * min(1.0, d / 90))
         daily_rows.append({
             "day":                     d,
             "daily_financial_usd":     round(daily_fin, 2),
             "cumulative_financial_usd":round(daily_fin * d, 2),
             "daily_injuries":          round(daily_inj, 3),
             "cumulative_injuries":     round(daily_inj * effective_d, 3),
-            "daily_ptsd":              round(ptsd_max / 90, 2) if d < 90 else 0,
-            "cumulative_ptsd":         ptsd_cum,
             "daily_deaths":            round(daily_mort, 3),
             "cumulative_deaths":       round(daily_mort * effective_d, 3),
         })
 
     # days=0 guard: return zero-valued totals without crashing
-    if not daily_rows:
+    if not daily_rows:  # days=0 guard
         daily_rows = [{"day": 0, "daily_financial_usd": 0, "cumulative_financial_usd": 0,
                        "daily_injuries": 0, "cumulative_injuries": 0,
-                       "daily_ptsd": 0, "cumulative_ptsd": 0,
                        "daily_deaths": 0, "cumulative_deaths": 0}]
     last = daily_rows[-1]
     return {
@@ -1532,19 +1575,19 @@ def calculate_staying_costs(
             "exposure_factor":               round(exposure_factor, 4),
             "conflict_type":                 conflict_type,
             "effective_mort_rate_per10k":    round(effective_mort * 10000, 4),
-            "model":                         "v5_empirical_siege_steeplog_saturation",
+            "infra_denial_applied":          infra_denial_active,
+            "infra_denial_mult":             round(id_mult, 4),
+            "model":                         "v6_empirical_siege_steeplog_saturation",
         },
         "totals": {
             "financial_usd":   last["cumulative_financial_usd"],
             "injuries":        last["cumulative_injuries"],
-            "ptsd_cases":      last["cumulative_ptsd"],
             "deaths":          last["cumulative_deaths"],
         },
         "daily": daily_rows,
         "sources": {
             "financial": "Medical care, SAR, infrastructure support, emergency food/water (scaled from UNHCR operational data)",
             "injuries":  "ICRC 4:1 injury-to-death ratio, applied to v2 effective death rate",
-            "ptsd":      "WHO Mental Health in Emergencies 2022",
             "mortality": "ERCF Mortality Model v3 — empirical base rates, D3×D4 confinement modifier, displacement protection factor, geographic exposure factor",
         },
     }
@@ -1568,6 +1611,10 @@ def calculate_remaining_costs(
     Distinct from calculate_staying_costs(), which tracks humanitarian impact over time;
     this function tracks the *provider-side cost* of keeping that population alive.
 
+    # In-situ assistance treated as parallel operation to evacuation convoy, consistent with
+    # NRC 'Considerations for Planning Mass Evacuations of Civilians in Conflict Settings'
+    # (2017/2023): population remaining behind receives protection and assistance as a
+    # separate logistical stream, not subtracted from convoy supplies.
     COMPONENT 1 — In-situ supply delivery
       base              = $3.50/person/day  (UNHCR baseline)
       access_multiplier = RC_ACCESS_MULT[risk_level]   [1.0, 1.5, 3.0, 5.0, 8.0]
@@ -1580,7 +1627,8 @@ def calculate_remaining_costs(
       Source: WFP EB "Update on UNHAS", January 2025
 
       per_person_ground = UNHAS_RATE × 0.30 × distance_km
-        (ground transport assumed at 30% of air rate — unvalidated assumption)
+        (ground transport at 30% of air rate — internal heuristic, no published source;
+         requires validation against UNHCR/IOM field data)
       per_person_air    = UNHAS_RATE × 3.00 × distance_km
         (air medevac with ×3 vulnerability premium for bedridden/ICU patients)
 
@@ -1882,7 +1930,7 @@ def calculate_remaining_costs(
         Emergencies toolkit; ICRC Health Data Collection in Armed Conflict
         guidelines; Lancet Conflict & Health (injury-to-death ratio literature).
 
-      field_treatment_cost_usd_per_injury  [$1200]
+      field_treatment_cost_usd_per_injury  [$800]
         FIVE-SOURCE VALIDATION SEARCH (June 2026):
 
         SEARCH 1 — WHO / peer-reviewed conflict surgical care:
@@ -2025,7 +2073,7 @@ def calculate_remaining_costs(
     # for the same inputs. d2_inj_mult / d1_inj_mult are applied inside calculate_injuries;
     # they are retained above only for the dim_modifiers return dict (label display).
     cum_injuries   = calculate_injuries(population, risk_level, days, dims)
-    treat_cost_per = 1200 * d5_cost_mult
+    treat_cost_per = 800 * d5_cost_mult  # Range peer-reviewed: $211–$1,013. Valor conservador $800 adoptado (fonte: source-notes internas).
     field_med_cost = round(cum_injuries * treat_cost_per, 2)
 
     total = round(supply_cost + extraction_cost + field_med_cost, 2)
