@@ -393,10 +393,10 @@ function calcResources(pop, vulPct, riskLevel, distKm, d2Mobility, terrain, clim
   const totVeh  = stdBus + medBus + ambu;
   const secR    = [99999, 500, 200, 100, 50][riskLevel];
   const sec     = riskLevel > 0 ? Math.ceil(pop / secR) : 0;
-  const medS    = Math.ceil(pop / 500);
+  const medS    = Math.ceil(pop / 250); // Sphere 2018: 1 clinical officer per 250 people
   const para    = Math.ceil(pop / 100);
   const fuelL   = totVeh * distKm * 2 * 0.35;
-  const foodKg  = pop * 3 * 0.5;
+  const foodKg  = pop * 3 * 0.45; // Sphere 2018: 0.45 kg/person/day
   // WATER_L_PER_PERSON updated 15 → 20 (Tavily validation June 2026)
   // UNHCR full standard: 20 L/person/day; Sphere 2018 emergency minimum: 7.5-15 L
   const waterL  = pop * 3 * 20;
@@ -795,7 +795,7 @@ const COST_CONF = {
     ]
   },
   food:              { conf: 'estimated',   label: 'Food',
-    note: 'Dry-weight conversion estimated from Sphere 2018 (2100 kcal). Note: formula uses 0.5 kg/day vs Sphere 0.45 kg/day.' },
+    note: '0.45 kg/person/day (Sphere Handbook 2018: minimum 2,100 kcal/person/day dry-weight equivalent).' },
   water:             { conf: 'validated',   label: 'Water',               note: 'Updated 15→20 L/person/day (Tavily validation June 2026). UNHCR full planning standard: 20 L/person/day. Sphere 2018 emergency minimum: 7.5–15 L/person/day. Using UNHCR full standard for evacuation planning.' },
   shelter:           { conf: 'estimated',   label: 'Shelter',
     note: 'Quantity: Sphere 2018-consistent (3.5 m²/person × 5 pp/tent = 17.5 m²). Unit cost updated $150→$380 (Tavily validation June 2026). Source: The New Humanitarian Dec 2022 — direct UNHCR quote: "$400 to replace"; UNHCR Shelter Design Catalogue Jan 2016: $229/unit (incl. transport+labour). $380 = conservative 2024 estimate. Prior $150 = basic tarpaulin (short-duration only). Dominates subtotal.' },

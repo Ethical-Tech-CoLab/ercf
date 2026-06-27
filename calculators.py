@@ -721,14 +721,15 @@ def calculate_resources(
     PERSONNEL (daily cost rates, all unvalidated)
       security_ratio = [∞, 500, 200, 100, 50][risk_level]
       security   = ceil(P / security_ratio)    @ $300/person
-      med_staff  = ceil(P / 500)               @ $200/person  (Sphere recommends 1:250)
+      med_staff  = ceil(P / 250)               @ $200/person  (Sphere Handbook 2018: 1:250)
       paramedics = ceil(P / 100)               @ $150/person
       drivers    = total_vehicles              @ $50/person
 
     SUPPLIES
       fuel_l     = vehicles × distance × 2 (return trip) × 0.35 L/km/vehicle
-      food_kg    = P × 3 days × 0.5 kg/person/day   @ $3/kg
-        KNOWN ISSUE: formula uses 0.5 kg but SOURCE_CONFIDENCE cites 0.45 kg (Sphere 2018).
+      food_kg    = P × 3 days × 0.45 kg/person/day   @ $3/kg
+        Sphere Handbook 2018: minimum 2,100 kcal/person/day = ~0.45 kg dry food equivalent.
+        Previous value 0.5 kg was inconsistent with SOURCE_CONFIDENCE citing Sphere 0.45 kg.
       water_l    = P × 3 days × 20 L/person/day (UNHCR full standard; updated 15→20 Tavily Jun 2026)
       tents      = ceil(P / 5)                  @ $380/tent (updated $150→$380 Tavily Jun 2026)
         Quantity check: 3.5 m²/person × 5 people = 17.5 m²/tent — SPHERE-CONSISTENT
@@ -795,12 +796,18 @@ def calculate_resources(
 
     sec_ratio   = [99999, 500, 200, 100, 50][risk_level]
     security    = math.ceil(population / sec_ratio) if risk_level > 0 else 0
-    med_staff   = math.ceil(population / 500)
+    # Sphere Handbook 2018 Health chapter: 1 clinical officer per 250 people in emergency settings.
+    # Previous value 1:500 was deliberately set at 50% of Sphere standard without documented
+    # justification — corrected to Sphere minimum.
+    med_staff   = math.ceil(population / 250)
     paramedics  = math.ceil(population / 100)
     drivers     = total_veh
 
     fuel_l      = total_veh * distance_km * 2 * 0.35
-    food_kg     = population * 3 * 0.5
+    # Sphere Handbook 2018: minimum 2,100 kcal/person/day = ~0.45 kg dry food equivalent.
+    # Previous value 0.5 kg was inconsistent with internal SOURCE_CONFIDENCE comment citing
+    # Sphere 0.45 kg.
+    food_kg     = population * 3 * 0.45
     # WATER_L_PER_PERSON updated 15 → 20 (Tavily validation June 2026)
     # UNHCR full standard: 20 L/person/day
     # Sphere 2018 emergency minimum: 7.5-15 L/person/day
@@ -1009,20 +1016,36 @@ RC_INFIELD_INJ  = [0.0,  0.1,  0.5,  2.0,  8.0]
 REMAINING_COST_SOURCE_NOTES = {
     "base_supply_usd_per_person_day": {
         "value": 3.50,
-        "source": "UNHCR baseline operational cost for displaced persons in crisis settings",
+        "source": (
+            "WFP Annual Performance Report 2023 (WFP Executive Board, WFP-0000157354): "
+            "$0.42/beneficiary/day global average (food/cash assistance only, all contexts — "
+            "conflict and stable combined). ERCF base of $3.50 includes WASH, health, shelter, "
+            "and coordination components not in WFP food-only figure. "
+            "Ratio $3.50/$0.42 = 8.3× reflects multi-sector vs food-only scope. "
+            "UNHCR 2023 per-capita funding floor: $47/person/year = $0.13/day (funding received, "
+            "not cost of operations). Neither figure provides a conflict-specific daily cost. "
+            "URL: executiveboard.wfp.org/document_download/WFP-0000157354"
+        ),
         "confidence": "estimated",
     },
     "access_multipliers": {
         "value": {"L0": 1.0, "L1": 1.5, "L2": 2.0, "L3": 3.6, "L4": 4.0},
         "prior_values": {"L2": 3.0, "L3": 5.0, "L4": 8.0},
         "revised": "June 2026 — reduced to upper bound of documented sources",
-        "source": "WFP Logistics Cluster field data, conflict-affected contexts 2020–2023; "
-                  "OCHA Access Monitoring and Reporting Framework. "
-                  "NRC/Protect Humanitarian Space (Feb 2024) 'Cost of Operations in Hard-to-Reach Areas' "
-                  "confirms qualitatively that Libya, Iraq, Syria (active conflict) were the three most expensive "
-                  "crises in 2021, but provides no numerical multiplier per level. "
-                  "No published source found with explicit L2/L3/L4 cost multipliers for active-conflict delivery. "
-                  "(ref: protecthumanitarianspace.com, Feb 2024)",
+        "source": (
+            "WFP Logistics Cluster field data, conflict-affected contexts 2020–2023; "
+            "OCHA Access Monitoring and Reporting Framework. "
+            "NEW ANCHOR (L3): WFP Logistics Annual Report 2012 — $593/MT for CAR/South Sudan/DRC "
+            "vs $180/MT global overland average = ×3.3 ratio (terrain + conflict combined, not isolated). "
+            "ERCF L3=×3.6 is directionally consistent with this figure. "
+            "(ref: wfp.tind.io/record/128161). "
+            "NRC/Protect Humanitarian Space (Feb 2024) 'Cost of Operations in Hard-to-Reach Areas' "
+            "confirms qualitatively that Libya, Iraq, Syria (active conflict) were the three most expensive "
+            "crises in 2021, but provides no numerical multiplier per level. "
+            "No published source found with explicit L2/L3/L4 cost multipliers for active-conflict delivery. "
+            "L4=×4.0 remains directionally plausible but unconfirmed — no public figure found exceeding ×4. "
+            "(ref: protecthumanitarianspace.com, Feb 2024)"
+        ),
         "confidence": "estimated",
         "components": {
             "logistics_component": {
@@ -1171,7 +1194,19 @@ REMAINING_COST_SOURCE_NOTES = {
     },
     "supply_loss_rates": {
         "value": {"L0-1": "5%", "L2": "15%", "L3": "30%", "L4": "50%"},
-        "source": "OCHA access monitoring reports; WFP supply-chain loss estimates in conflict zones",
+        "source": (
+            "UNVALIDATED by conflict level. "
+            "Transparency International/U4 2024 (Darden 2019): sector estimates of losses to fraud "
+            "and corrupt diversion range from 2%–15% across ALL conflict levels combined — no breakdown "
+            "by conflict intensity published. "
+            "L0–1=5% anchored to OCHA Gaza ceasefire monitoring (~2% under active UN 2720 Mechanism "
+            "monitoring Oct–Dec 2025; 5% used as planning buffer including non-looting losses). "
+            "L2=15%, L3=30%, L4=50% are internal planning estimates with no published equivalents "
+            "found in WFP, OCHA, ICRC, or academic literature. "
+            "WFP audit reports for Sudan 2023–2024 (most likely source for conflict loss rates) "
+            "are internal documents not publicly accessible. "
+            "(ref: knowledgehub.transparencycdn.org/.../Corruption-in-humanitarian-assistance-in-conflict-settings_2024_Final.pdf)"
+        ),
         "confidence": "estimated",
     },
     "extraction_ground_usd_per_person": {
@@ -1260,7 +1295,13 @@ REMAINING_COST_SOURCE_NOTES = {
 }
 
 
-# USD per person per day — linear model (UNHCR operational cost estimates, scaled by severity)
+# USD per person per day — linear model, scaled by conflict severity (ERCF internal estimate)
+# UNVALIDATED by level: WFP Annual Performance Report 2023 (WFP-0000157354) gives $0.42/day global
+# average (food/cash only, all contexts). No published institutional source provides per-capita
+# daily costs broken down by conflict intensity level. NRC 2024 confirms active conflict is most
+# expensive but without numerical multipliers by level. Gradient L0→L4 is an internal planning
+# estimate; L0=$1.00 is plausible as multi-sector floor above WFP food-only $0.42.
+# (ref: executiveboard.wfp.org/document_download/WFP-0000157354; protecthumanitarianspace.com)
 BASE_DAILY_COST  = [1.0,  2.0,  3.5,  6.0, 12.0]
 
 # ─── ERCF MORTALITY MODEL v2 ──────────────────────────────────────────────────
@@ -1403,7 +1444,13 @@ def calculate_injuries(
     death rate rather than a fixed base rate.
 
     Rate: INJURY_RATE_10K[risk_level] / 10,000  (per person per day, v1 rates)
-    Source: ICRC 4:1 injury-to-death ratio applied to WHO CMR benchmarks.
+    Source: 4:1 injury-to-death ratio used as planning estimate.
+    Frontiers in Public Health (2021, PMC8581199, peer-reviewed systematic review):
+    deaths ≈ 30% of injured → ratio injured:dead ≈ 3.3:1 (lower bound).
+    ERCF uses 4:1 as conservative upper planning estimate consistent with ICRC guidance.
+    OHCHR Ukraine Dec 2025: 25.8:1 (frontline-specific, not generalizable).
+    4:1 retained as reasonable mid-range planning estimate between 3.3:1 and higher
+    frontline-specific ratios.
 
     dims parameter retained for API compatibility but is unused.
     """
