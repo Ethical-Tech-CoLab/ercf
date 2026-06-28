@@ -544,6 +544,7 @@ a:hover { color: #0086be !important; }
               </div>
               <input type="number" class="form-control form-control-sm" id="inVuln" value="20" min="0" max="100"/>
               <div id="vulnU5Display" style="font-size:.67rem;color:#64748b;margin-top:.25rem"></div>
+              <div id="vulnDemographicSuggestion" style="display:none;margin-top:.35rem;background:#eff6ff;border:1px solid #bfdbfe;border-radius:5px;padding:.3rem .5rem;font-size:.67rem;color:#1e40af;line-height:1.4"></div>
               <div class="dim-help-panel" id="vulnHelpPanel" style="margin-top:.3rem">
                 <div style="font-size:.7rem;line-height:1.6;color:#334155">
                   <strong>Vulnerable population includes:</strong> elderly (65+), people with
@@ -797,6 +798,48 @@ a:hover { color: #0086be !important; }
 
       </div>
 
+      <!-- Evacuation cost headline card — updates in real time with Scenario Builder -->
+      <div id="costHeadlineCard" style="background:#fff;border:1.5px solid #1e3a5f;border-radius:8px;padding:.55rem .85rem;margin-bottom:.75rem;display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+        <span style="font-size:1.1rem">💰</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#64748b;margin-bottom:.1rem">Evacuation Cost Estimate</div>
+          <div style="display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap">
+            <span id="costHeadlineTotal" style="font-size:1.55rem;font-weight:900;color:#1e3a5f;line-height:1">—</span>
+            <span id="costHeadlineSub" style="font-size:.72rem;color:#64748b">define scenario above</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Decision Analysis card — Act Now vs Wait -->
+      <div id="decisionAnalysisCard" style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:.65rem .85rem;margin-bottom:.75rem">
+        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#64748b;margin-bottom:.45rem">
+          ⚖️ Evacuation Decision Analysis — Act Now vs Wait
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.4rem;margin-bottom:.55rem" id="decisionStats">
+          <div style="background:#fef2f2;border-radius:6px;padding:.35rem .5rem">
+            <div style="font-size:.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em">Evacuate now</div>
+            <div id="decisionEvacCost" style="font-size:1rem;font-weight:800;color:#dc2626">—</div>
+            <div style="font-size:.6rem;color:#94a3b8">one-time cost</div>
+          </div>
+          <div style="background:#eff6ff;border-radius:6px;padding:.35rem .5rem">
+            <div style="font-size:.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em">Cost of remaining</div>
+            <div id="decisionDailyCost" style="font-size:1rem;font-weight:800;color:#2563eb">—</div>
+            <div style="font-size:.6rem;color:#94a3b8">per day (growing)</div>
+          </div>
+          <div style="background:#f0fdf4;border-radius:6px;padding:.35rem .5rem">
+            <div style="font-size:.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em">Break-even</div>
+            <div id="decisionBreakEven" style="font-size:1rem;font-weight:800;color:#16a34a">—</div>
+            <div id="decisionBreakEvenSub" style="font-size:.6rem;color:#94a3b8">define scenario above</div>
+          </div>
+        </div>
+        <div style="position:relative;height:110px">
+          <canvas id="decisionChart"></canvas>
+        </div>
+        <p style="font-size:.61rem;color:#94a3b8;margin:.45rem 0 0 0;line-height:1.4;font-style:italic">
+          This analysis compares one-time evacuation cost against cumulative in-zone assistance cost. It does not account for escalating risk over time, changing D-scores, or the cost of delayed evacuation under deteriorating conditions. Financial cost estimates are substantially more reliable than mortality projections.
+        </p>
+      </div>
+
       <div class="dim-help-panel" id="levelHelp" style="margin-bottom:.5rem">
         <div class="scale-level">
           <span class="scale-badge" style="background:#6c757d">0</span>
@@ -942,6 +985,7 @@ a:hover { color: #0086be !important; }
               <option value="ground">🚌 Ground vehicle (default)</option>
               <option value="walking">🚶 Walking (on foot)</option>
             </select>
+            <div id="transportWarnings" style="display:none;margin-top:.4rem"></div>
           </div>
           <div id="groundResourcePanel">
           <div class="row g-2 mb-3">
@@ -1216,7 +1260,7 @@ a:hover { color: #0086be !important; }
                 <div class="val text-danger" id="statCost">—</div>
                 <div class="lbl">Financial (USD)</div>
                 <div style="font-size:.61rem;color:#94a3b8;margin-top:.2rem;line-height:1.3">
-                  Risk-scaled survival estimate ($1–$12/person/day) · excludes extraction and medical ·
+                  Survival cost only — excludes logistics overhead. Risk-scaled estimate ($1–$12/person/day). ·
                   <a href="#" onclick="document.getElementById('assistanceCostCard').scrollIntoView({behavior:'smooth'});return false;" style="color:#94a3b8;text-decoration:underline dotted">see full delivery cost ↓</a>
                 </div>
               </div>
@@ -1808,6 +1852,63 @@ a:hover { color: #0086be !important; }
             <strong>Paramedic daily rate ($150/day) — unvalidated after six-search validation (June 2026).</strong>
             No peer-reviewed or operational source found for humanitarian paramedic daily deployment rate in ICRC, MSF, WHO, or UN documents.
           </div>
+        </div>
+
+        <!-- EVACUATION COST BENCHMARKS -->
+        <div class="ref-section-title"><i class="fas fa-scale-balanced me-1" style="color:#64748b"></i>Evacuation Cost Benchmarks — Real Operations</div>
+        <div class="ref-note-box">
+          <p class="mb-2">ERCF estimates model the immediate field evacuation operation (ground transport, personnel, supplies, 3-day buffer). Real humanitarian evacuation operations include additional components — international airlift, reception country costs, consular processing, multi-week hosting — that substantially increase the total cost per person. The table below contextualises ERCF outputs against documented real operations.</p>
+          <div style="overflow-x:auto;margin:.5rem 0 .75rem 0">
+            <table style="font-size:.72rem;width:100%;border-collapse:collapse;min-width:640px">
+              <thead>
+                <tr style="background:#f1f5f9;color:#475569;font-size:.67rem;text-transform:uppercase;letter-spacing:.03em">
+                  <th style="padding:.3rem .5rem;text-align:left;border-bottom:2px solid #e2e8f0">Operation</th>
+                  <th style="padding:.3rem .5rem;text-align:right;border-bottom:2px solid #e2e8f0">Year</th>
+                  <th style="padding:.3rem .5rem;text-align:left;border-bottom:2px solid #e2e8f0">Org</th>
+                  <th style="padding:.3rem .5rem;text-align:right;border-bottom:2px solid #e2e8f0">Evacuees</th>
+                  <th style="padding:.3rem .5rem;text-align:right;border-bottom:2px solid #e2e8f0">Total cost</th>
+                  <th style="padding:.3rem .5rem;text-align:right;border-bottom:2px solid #e2e8f0">Cost/person</th>
+                  <th style="padding:.3rem .5rem;text-align:left;border-bottom:2px solid #e2e8f0">Mode</th>
+                  <th style="padding:.3rem .5rem;text-align:left;border-bottom:2px solid #e2e8f0">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom:1px solid #e2e8f0">
+                  <td style="padding:.3rem .5rem"><strong>Kosovo → Europe (HEP)</strong><br><span style="font-size:.65rem;color:#64748b">IOM/UNHCR HEP, ReliefWeb</span></td>
+                  <td style="padding:.3rem .5rem;text-align:right">1999</td>
+                  <td style="padding:.3rem .5rem">IOM/UNHCR</td>
+                  <td style="padding:.3rem .5rem;text-align:right">60,549</td>
+                  <td style="padding:.3rem .5rem;text-align:right">$34M</td>
+                  <td style="padding:.3rem .5rem;text-align:right"><strong>$562</strong></td>
+                  <td style="padding:.3rem .5rem">Air (international, 20 countries)</td>
+                  <td style="padding:.3rem .5rem"><span style="color:#0a6e50">Validated</span> — published IOM figures</td>
+                </tr>
+                <tr style="border-bottom:1px solid #e2e8f0">
+                  <td style="padding:.3rem .5rem"><strong>Libya → countries of origin</strong><br><span style="font-size:.65rem;color:#64748b">IOM 7-Month Report 2011</span></td>
+                  <td style="padding:.3rem .5rem;text-align:right">2011</td>
+                  <td style="padding:.3rem .5rem">IOM</td>
+                  <td style="padding:.3rem .5rem;text-align:right">~50,000</td>
+                  <td style="padding:.3rem .5rem;text-align:right">~$49.2M (appeal)</td>
+                  <td style="padding:.3rem .5rem;text-align:right"><strong>~$984</strong></td>
+                  <td style="padding:.3rem .5rem">Air + maritime</td>
+                  <td style="padding:.3rem .5rem"><span style="color:#d97706">Estimated</span> — appeal budget, not audited final cost</td>
+                </tr>
+                <tr>
+                  <td style="padding:.3rem .5rem"><strong>Lebanon → Canada</strong><br><span style="font-size:.65rem;color:#64748b">Canadian Senate Committee Report, May 2007</span></td>
+                  <td style="padding:.3rem .5rem;text-align:right">2006</td>
+                  <td style="padding:.3rem .5rem">DFAIT/DND</td>
+                  <td style="padding:.3rem .5rem;text-align:right">~15,000</td>
+                  <td style="padding:.3rem .5rem;text-align:right">CAD $75–94M<br><span style="font-size:.65rem;color:#64748b">(~USD $65–82M)</span></td>
+                  <td style="padding:.3rem .5rem;text-align:right"><strong>~USD $4,500–5,700</strong></td>
+                  <td style="padding:.3rem .5rem">Naval + military air</td>
+                  <td style="padding:.3rem .5rem"><span style="color:#d97706">Estimated</span> — includes military asset costs</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size:.67rem;color:#64748b;font-style:italic;margin-bottom:0">
+            ERCF L2 scenario (10,000 persons, 50km, ground vehicle): ~$134/person. The 4–37× gap vs real operations reflects scope differences: ERCF covers field evacuation only; benchmarks include international transport, reception, and multi-week hosting. Military evacuation operations (Lebanon 2006) are substantially more expensive due to naval/air asset costs not applicable to humanitarian ground operations.
+          </p>
         </div>
 
         <!-- METHODOLOGY NOTES — PARAMETER SOURCES -->

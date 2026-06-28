@@ -995,6 +995,17 @@ function updateAll() {
     ? calcResources(evacuatedPop, state.vulnerablePct, risk.level, state.distanceKm, state.dims.d2, state.terrain, state.climateMult, effectiveTerrainMult, state.dims.d4, state.dims.d5).totalCost
     : 0;
   updateRemainingCostCard(remaining, resources.totalCost, evacuatedCost);
+
+  // Decision analysis: compare one-time evacuation cost vs daily in-zone assistance cost
+  // dailyFin from calcStay = BASE_DAILY_COST[level] × remainingPop (risk-scaled survival only)
+  // This matches the "Financial (USD)" stat card — the survival-cost component, not full delivery cost
+  const BASE_DAILY = [1.0, 2.0, 3.5, 6.0, 12.0];
+  const dailyAssist = (BASE_DAILY[risk.level] ?? 3.5) * (state.remainingPop || 0);
+  updateDecisionAnalysis(resources.totalCost, dailyAssist);
+
+  const _tMode = document.getElementById('transportMode')?.value ?? 'ground';
+  renderTransportWarnings(_tMode, state.dims, state.population);
+
   updateStayContext();
   updateHistRadar();
   renderCostComparePanel();
@@ -1126,6 +1137,26 @@ function togglePersonnelRate() {
 function updateResourceDisplay(r) {
   const evacuatedPop = Math.max(0, state.population - state.remainingPop);
   const cppPerEvacuee = evacuatedPop > 0 ? Math.round(r.totalCost / evacuatedPop) : null;
+
+  // ── Headline cost card (above risk level panel) ─────────────────────────────
+  const headlineTotal = document.getElementById('costHeadlineTotal');
+  const headlineSub   = document.getElementById('costHeadlineSub');
+  if (headlineTotal && headlineSub) {
+    if (state.population > 0) {
+      headlineTotal.textContent = '$' + fmt(r.totalCost);
+      const modeLabel = (() => {
+        const m = document.getElementById('transportMode')?.value;
+        if (m === 'walking') return 'Walking';
+        if (m === 'air')     return 'Air';
+        return 'Ground';
+      })();
+      const cppStr = cppPerEvacuee !== null ? '$' + fmt(cppPerEvacuee) + '/evacuee · ' : '';
+      headlineSub.textContent = cppStr + fmtFull(state.population) + ' persons · ' + modeLabel + ' · ' + state.distanceKm + ' km';
+    } else {
+      headlineTotal.textContent = '—';
+      headlineSub.textContent   = 'define scenario above';
+    }
+  }
 
   document.getElementById('resVeh').textContent   = r.vehicles.total;
   document.getElementById('resPers').textContent  = r.personnel.total;
@@ -1370,6 +1401,87 @@ function updateCostCharts(data) {
 
 }
 
+function getTransportWarnings(mode, dims, population) {
+  const d = dims || {};
+  const d1 = d.d1 ?? 3; const d2 = d.d2 ?? 3;
+  const d3 = d.d3 ?? 3; const d4 = d.d4 ?? 3;
+  const warnings = [];
+
+  if (mode === 'ground') {
+    if (d4 >= 4.0) warnings.push({
+      priority: 1,
+      text: 'Ground transport may be severely compromised — D4 indicates critical logistics constraints (destroyed roads, checkpoints, fuel shortage). Consider air evacuation or verify route viability.',
+    });
+    if (d1 >= 4.5) warnings.push({
+      priority: 2,
+      text: 'High kinetic threat — ground convoys face significant exposure risk at D1≥4.5. Air evacuation or armoured ground transport may be required.',
+    });
+  }
+  if (mode === 'walking') {
+    if (population > 5000) warnings.push({
+      priority: 1,
+      text: 'Walking evacuation for >' + Math.round(population/1000) + ',000 persons is rarely feasible in conflict contexts — insufficient for this population size. Consider ground or air transport.',
+    });
+    if (d2 >= 3.5) warnings.push({
+      priority: 2,
+      text: 'Mobility constraints (D2≥3.5) indicate significant proportion of wounded/bedridden — walking evacuation not suitable for this vulnerability profile.',
+    });
+  }
+  if (mode === 'air' && d3 <= 2.0) warnings.push({
+    priority: 1,
+    text: 'Air evacuation requires airspace authorization — D3 indicates limited or absent party consent. Verify airspace clearance before planning air operations.',
+  });
+
+  return warnings.sort((a, b) => a.priority - b.priority).slice(0, 2);
+}
+
+function renderTransportWarnings(mode, dims, population) {
+  const el = document.getElementById('transportWarnings');
+  if (!el) return;
+  const warnings = getTransportWarnings(mode, dims, population);
+  if (!warnings.length) {
+    el.style.display = 'none';
+    el.innerHTML = '';
+    return;
+  }
+  el.style.display = 'block';
+  el.innerHTML = warnings.map(w =>
+    `<div style="background:#fefce8;border:1px solid #fde68a;border-radius:5px;padding:.3rem .5rem;font-size:.68rem;color:#78350f;margin-top:.25rem;line-height:1.4">
+      <span style="font-weight:700">⚠</span> ${w.text}
+    </div>`
+  ).join('');
+}
+
+// ── Demographic vulnerability suggestion ──────────────────────────────────────
+async function suggestVulnerablePct(countryName) {
+  const el = document.getElementById('vulnDemographicSuggestion');
+  if (!el || !countryName) return;
+  try {
+    const resp = await fetch(`/api/demographics/${encodeURIComponent(countryName.toLowerCase())}`);
+    if (!resp.ok) { el.style.display = 'none'; return; }
+    const d = await resp.json();
+    const est = Math.round(d.vulnerable_estimate);
+    el.style.display = 'block';
+    el.innerHTML = `
+      📊 <strong>Suggested for ${countryName}:</strong> ~${est}%
+      (under-5: ${d.pct_under5}%, over-60: ${d.pct_over60}%, disability est.: ${d.pct_disabled}%)
+      — adjust based on local assessment.
+      <span style="color:#64748b">Source: ${d.source}</span>
+      ${d.note ? `<br><em style="color:#64748b">${d.note}</em>` : ''}
+      <br>
+      <button type="button" onclick="document.getElementById('inVuln').value=${est};document.getElementById('vulnDemographicSuggestion').style.display='none';updateAll();"
+              style="margin-top:.25rem;font-size:.65rem;padding:.1rem .4rem;background:#2563eb;color:#fff;border:none;border-radius:3px;cursor:pointer">
+        Use suggested value (${est}%)
+      </button>
+      <button type="button" onclick="document.getElementById('vulnDemographicSuggestion').style.display='none';"
+              style="margin-top:.25rem;margin-left:.3rem;font-size:.65rem;padding:.1rem .4rem;background:transparent;color:#64748b;border:1px solid #cbd5e1;border-radius:3px;cursor:pointer">
+        Dismiss
+      </button>`;
+  } catch (_) {
+    el.style.display = 'none';
+  }
+}
+
 function onTransportModeChange() {
   const mode = document.getElementById('transportMode').value;
   const groundPanel = document.getElementById('groundResourcePanel');
@@ -1383,6 +1495,7 @@ function onTransportModeChange() {
     altPanel.style.display    = 'block';
     fetchAltModeResult(mode);
   }
+  renderTransportWarnings(mode, state.dims, state.population);
 }
 
 async function fetchAltModeResult(mode) {
@@ -1536,6 +1649,145 @@ function renderAltModeResult(data, container) {
   }
 }
 
+// ── Decision Analysis: Act Now vs Wait ────────────────────────────────────────
+function updateDecisionAnalysis(evacCost, dailyAssistCost) {
+  const elEvac      = document.getElementById('decisionEvacCost');
+  const elDaily     = document.getElementById('decisionDailyCost');
+  const elBreakEven = document.getElementById('decisionBreakEven');
+  const elBESub     = document.getElementById('decisionBreakEvenSub');
+  if (!elEvac) return;
+
+  if (!evacCost || !dailyAssistCost || dailyAssistCost <= 0) {
+    elEvac.textContent      = '—';
+    elDaily.textContent     = '—';
+    elBreakEven.textContent = '—';
+    elBESub.textContent     = 'define scenario above';
+    _renderDecisionChart(null, null, null);
+    return;
+  }
+
+  const breakEvenDay = Math.ceil(evacCost / dailyAssistCost);
+  elEvac.textContent  = '$' + fmt(Math.round(evacCost));
+  elDaily.textContent = '$' + fmt(Math.round(dailyAssistCost)) + '/day';
+
+  if (breakEvenDay > 90) {
+    elBreakEven.textContent = '>90 days';
+    elBESub.textContent     = 'Beyond planning window — evacuation still recommended on risk grounds';
+    elBreakEven.style.color = '#d97706';
+  } else {
+    elBreakEven.textContent = 'Day ' + breakEvenDay;
+    elBESub.textContent     = 'after day ' + breakEvenDay + ', evacuation is lower-cost';
+    elBreakEven.style.color = '#16a34a';
+  }
+
+  _renderDecisionChart(evacCost, dailyAssistCost, breakEvenDay);
+}
+
+function _renderDecisionChart(evacCost, dailyAssistCost, breakEvenDay) {
+  const canvas = document.getElementById('decisionChart');
+  if (!canvas) return;
+
+  if (state.charts._decision) {
+    state.charts._decision.destroy();
+    state.charts._decision = null;
+  }
+
+  if (!evacCost || !dailyAssistCost) return;
+
+  const DAYS = 90;
+  const labels  = Array.from({length: DAYS}, (_, i) => i + 1);
+  const cumCost = labels.map(d => Math.round(dailyAssistCost * d));
+  const evacLine = labels.map(() => Math.round(evacCost));
+
+  // Annotation point for break-even (clamped to 90)
+  const beDay = Math.min(breakEvenDay, DAYS);
+
+  state.charts._decision = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Evacuation cost (one-time)',
+          data: evacLine,
+          borderColor: '#dc2626',
+          backgroundColor: 'rgba(220,38,38,.06)',
+          borderWidth: 2,
+          borderDash: [5, 3],
+          pointRadius: 0,
+          fill: false,
+        },
+        {
+          label: 'Cumulative in-zone cost',
+          data: cumCost,
+          borderColor: '#2563eb',
+          backgroundColor: 'rgba(37,99,235,.08)',
+          borderWidth: 2,
+          pointRadius: 0,
+          fill: true,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          mode: 'index',
+          intersect: false,
+          callbacks: {
+            label: ctx => ctx.dataset.label + ': $' + ctx.parsed.y.toLocaleString(),
+          },
+        },
+      },
+      scales: {
+        x: {
+          ticks: {
+            font: { size: 9 },
+            maxTicksLimit: 10,
+            callback: v => 'd' + (v + 1),
+          },
+          grid: { color: 'rgba(0,0,0,.04)' },
+        },
+        y: {
+          ticks: {
+            font: { size: 9 },
+            callback: v => v >= 1e6 ? '$' + (v/1e6).toFixed(1) + 'M'
+                        : v >= 1e3 ? '$' + (v/1e3).toFixed(0) + 'K' : '$' + v,
+          },
+          grid: { color: 'rgba(0,0,0,.04)' },
+        },
+      },
+    },
+    plugins: [{
+      // Vertical break-even marker
+      id: 'beMarker',
+      afterDraw(chart) {
+        if (breakEvenDay > DAYS) return;
+        const { ctx, scales: { x, y } } = chart;
+        const xPx = x.getPixelForValue(beDay - 1);
+        const top  = y.top;
+        const bot  = y.bottom;
+        ctx.save();
+        ctx.beginPath();
+        ctx.setLineDash([3, 3]);
+        ctx.strokeStyle = '#16a34a';
+        ctx.lineWidth = 1.5;
+        ctx.moveTo(xPx, top);
+        ctx.lineTo(xPx, bot);
+        ctx.stroke();
+        ctx.fillStyle = '#16a34a';
+        ctx.font = 'bold 8px system-ui';
+        ctx.textAlign = 'center';
+        ctx.fillText('Day ' + breakEvenDay, xPx, top + 9);
+        ctx.restore();
+      },
+    }],
+  });
+}
+
 function updateRemainingCostCard(rc, fullEvacCost, evacuatedCost) {
   document.getElementById('rcTotal').textContent   = '$' + fmt(rc.total);
   document.getElementById('rcExtProb').textContent = (rc.prob * 100).toFixed(0) + '%';
@@ -1588,19 +1840,19 @@ function updateRemainingCostCard(rc, fullEvacCost, evacuatedCost) {
     <div style="font-size:.7rem;color:#475569;background:#f8fafc;border:1px dashed #cbd5e1;
                 border-radius:6px;padding:.4rem .65rem;margin-bottom:.45rem;line-height:1.6">
       <i class="fas fa-arrow-turn-down me-1" style="opacity:.35;font-size:.6rem"></i>
-      <strong style="color:#334155">From section above:</strong>
+      <strong style="color:#334155">Supply delivery breakdown:</strong>
       Base survival <strong>$${fmt(baseCost)}</strong>
-      <span style="color:#94a3b8">($3.50/person/day × ${fmtFull(remPop)} × ${state.days}d)</span>
-      + Access overhead <strong style="color:#2563eb">+$${fmt(accessPremium)}</strong>
-      <span style="color:#94a3b8">(×${rc.effectiveAccessMult.toFixed(2)} access · ×${rc.terrainMult.toFixed(1)} terrain · +${pct(rc.effectiveLossRate)}% loss)</span>
-      = <strong>$${fmt(rc.supplyCost)}</strong> supply delivery
+      <span style="color:#94a3b8;font-style:italic">(what people need — $3.50/person/day × ${fmtFull(remPop)} × ${state.days}d)</span>
+      + Logistics overhead <strong style="color:#2563eb">+$${fmt(accessPremium)}</strong>
+      <span style="color:#94a3b8;font-style:italic">(what it costs to deliver in this context — ×${rc.effectiveAccessMult.toFixed(2)} access · ×${rc.terrainMult.toFixed(1)} terrain · +${pct(rc.effectiveLossRate)}% loss)</span>
+      = <strong>$${fmt(rc.supplyCost)}</strong> total supply delivery
     </div>`;
 
   const rows = [
     {
       cls:  'rc-supply',
       icon: 'fa-truck',
-      label: `Supply delivery <span style="font-weight:400;color:#64748b">(×${rc.effectiveAccessMult.toFixed(2)} access · ×${rc.terrainMult.toFixed(1)} terrain · +${pct(rc.effectiveLossRate)}% loss${dimTag(supplyDimParts)})</span>`,
+      label: `Supply delivery <span style="font-weight:400;color:#64748b">(×${rc.effectiveAccessMult.toFixed(2)} access · ×${rc.terrainMult.toFixed(1)} terrain · +${pct(rc.effectiveLossRate)}% loss${dimTag(supplyDimParts)})</span> <span title="Delivery cost includes access multiplier, terrain factor, and supply loss rate. The base survival cost ($3.50/person/day) represents minimum needs; the total delivery cost reflects what it actually costs to get those supplies to the population in this conflict context." style="cursor:help;color:#94a3b8;font-size:.75rem;font-weight:400;border:1px solid #cbd5e1;border-radius:50%;padding:0 .25rem;line-height:1.4;display:inline-block;margin-left:.2rem">?</span>`,
       value: '$' + fmt(rc.supplyCost),
       tip:   `Daily survival cost ($3.50/person/day × ${fmtFull(remPop)} remaining × ${state.days}d = $${fmt(baseCost)}) plus conflict access overhead (+$${fmt(accessPremium)}). Access multiplier ×${rc.effectiveAccessMult.toFixed(2)} (WFP Logistics Cluster 2020–2023). Terrain multiplier ×${rc.terrainMult.toFixed(1)} (Level ${state.terrain}: ${['','Critical — mountains/forest unpaved','High — hilly mostly unpaved','Moderate — mixed terrain','Low — mostly flat paved','Minimal — flat paved all-season'][state.terrain]}) reflects road access difficulty affecting all aid delivery logistics. Applied on top of conflict access multiplier. Source: World Bank RAI (SDG 9.1.1); Puga TRI dataset. Loss rate +${pct(rc.effectiveLossRate)}% (OCHA access monitoring).`,
     },
@@ -3553,6 +3805,12 @@ function confirmPinDistance() {
   bootstrap.Modal.getInstance(document.getElementById('pinModal'))?.hide();
   showToast(`Distance set to ${fmtDist(finalKm)}`, 'success');
   fetchClimateContext();
+  // Suggest vulnerable % if a country was selected on the map
+  if (worldMapState.selectedIso) {
+    const iso = worldMapState.selectedIso;
+    const d   = worldMapState.worldRisk?.[iso];
+    if (d?.name) suggestVulnerablePct(d.name);
+  }
 }
 
 function applyRoadFactor(checked) {
@@ -3964,6 +4222,7 @@ function _fetchWithTimeout(url, options, ms) {
 
 async function loadCountryContext(iso3, name) {
   worldMapState.selectedIso = iso3;
+  suggestVulnerablePct(name);   // show demographic suggestion when country selected from map
   const d     = worldMapState.worldRisk[iso3] || {};
   const lvl   = d.level ?? 0;
   const color = LEVEL_COLORS[lvl] || '#6c757d';

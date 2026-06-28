@@ -13,6 +13,7 @@ import uvicorn
 from database import init_db, create_scenario, get_scenario, list_scenarios, update_scenario, delete_scenario
 from calculators import calculate_risk, calculate_resources, calculate_staying_costs, calculate_remaining_costs
 from historical_data import HISTORICAL_CASES
+from demographic_data import get_demographics
 from world_risk import get_all_risk_levels, get_risk_by_iso3, NUM_TO_ISO3
 from context_ai import analyze_country
 from weather_data import get_climate_context
@@ -231,6 +232,16 @@ async def historical_one(cid: int):
             three_index = calculate_risk(indicators) if indicators else None
             return {**c, "three_index": three_index}
     raise HTTPException(404, "Not found")
+
+
+# ─── Demographics ─────────────────────────────────────────────────────────────
+
+@app.get("/api/demographics/{country_name}")
+async def get_demographic_data(country_name: str):
+    data = get_demographics(country_name)
+    if data is None:
+        raise HTTPException(404, f"No demographic data for '{country_name}'")
+    return data
 
 
 # ─── UCDP GED data ───────────────────────────────────────────────────────────
