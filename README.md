@@ -1,6 +1,6 @@
 # ERCF — Evacuation Risk and Cost Framework
 
-**Version:** v7.1
+**Version:** v7.2
 
 A decision-support tool for estimating the human and financial cost of civilian evacuation in armed conflict. Developed as part of doctoral research in International Humanitarian Law and civilian protection at NYU.
 
@@ -43,6 +43,19 @@ The mortality model is **indicative, not predictive**. Financial cost estimates 
 
 Calibration is fully reproducible: `python3 calibration/calibrate.py`
 
+**Statistical Validation (v7, N=16, June 2026)** — full re-validation via `calibration/validate_v7.py`:
+
+| Test | Result | Verdict |
+|------|--------|---------|
+| R² (log-log) | 0.855, p=3.01e-07 | PASS |
+| Shapiro-Wilk | W=0.974, p=0.902 | PASS |
+| Breusch-Pagan | LM=0.316, p=0.574 | PASS |
+| Cook's Distance | 1/16 above threshold — Aleppo D=0.613 | NOTE |
+| LOOCV R² | 0.807 (gap=0.048) | PASS |
+| Spearman ρ | ρ=0.845, p=3.83e-05 | PASS |
+| Durbin-Watson | DW=1.413 | DOCUMENTED |
+| VIF | max=3.90 (D1), max\|r\|=0.758 (D1×D4) | PASS |
+
 ## Cost Model — Key Parameters
 
 | Parameter | Value | Source | Status |
@@ -77,12 +90,15 @@ ERCF models the immediate field evacuation operation only (~$134/person at L2, 5
 | Out-of-scope (structural) | 13 | Srebrenica, Sarajevo, Kosovo, CAR, Sudan, Raqqa |
 | Challenge cases | 2 | Eastern Ghouta 2018, Pillar of Defense 2012 |
 
+Badge legend in Historical Cases tab: **OOS** (grey) = out-of-scope, excluded from calibration. **CHAL** (orange) = challenge/boundary case (Eastern Ghouta 2018, Pillar of Defense 2012) — retained in corpus but structurally outside model domain.
+
 ## Decision Support Features
 
-- **Break-even Analysis** — compares one-time evacuation cost vs cumulative daily in-zone assistance cost. Identifies the day after which evacuation is financially lower-cost. Uses `BASE_DAILY_COST[level] × remaining_pop` as the daily assistance rate.
+- **Break-even Analysis** — compares two options: (A) evacuate now + daily assistance for remaining population vs (B) no evacuation with full population assistance. Break-even = `evacCost / (dailyCostB - dailyCostA)`. Daily costs derived from the Assistance Cost module (access overhead, terrain, extraction, medical). Special case: 0% remaining shows evacuate-all vs no-evacuation comparison using `BASE_DAILY[level] × population` as the no-evacuation baseline.
 - **Transport Warnings** — alerts for five inconsistency patterns: Ground + D4≥4.0 (logistics breakdown), Ground + D1≥4.5 (kinetic exposure), Walking + pop>5,000 (scale infeasibility), Walking + D2≥3.5 (mobility constraints), Air + D3≤2.0 (airspace authorization gap).
 - **Demographic Context** — calls `/api/demographics/{country}` to suggest vulnerable population % from 18-country dataset (UNICEF/UN DESA 2023). Suggestion is always advisory — user confirms or dismisses.
 - **Historical Comparison** — radar overlay of D1–D7 scores for current scenario vs any of 31 documented historical cases. Highlights which cases are structurally most similar.
+- **Cost Comparison Table in Compare on Radar** — side-by-side table (population, evac cost, cost/evacuee, duration, deaths) for current scenario vs selected historical case.
 
 ## Tech Stack
 
@@ -90,7 +106,7 @@ ERCF models the immediate field evacuation operation only (~$134/person at L2, 5
 - **Frontend:** HTML/JS + Leaflet + Chart.js
 - **Data:** UCDP GED v26.1 API + CSV, ACAPS INFORM Severity Index
 - **Demographics:** `demographic_data.py` — 18-country dataset, UNICEF/UN DESA 2023
-- **Calibration:** `calibration/calibrate.py` + `calibration/full_calibration.py`
+- **Calibration:** `calibration/calibrate.py` + `calibration/full_calibration.py` + `calibration/validate_v7.py`
 
 ## Installation
 
@@ -116,6 +132,9 @@ python3 calibration/calibrate.py --no-infra-denial  # without infra-denial multi
 # Optimise base rates and α via differential_evolution (requires scipy)
 # Variant A: no infra-denial  |  Variant B: infra-denial for 4 cases + α as 6th parameter
 python3 calibration/full_calibration.py --variant b
+
+# Full statistical re-validation: Shapiro-Wilk, Breusch-Pagan, Cook's D, Spearman, DW, VIF
+python3 calibration/validate_v7.py
 ```
 
 The v7 parameters were derived by running Variant B against 16 in-scope cases:
