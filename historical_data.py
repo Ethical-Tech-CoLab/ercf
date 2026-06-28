@@ -2860,6 +2860,7 @@ HISTORICAL_CASES = [
             "ratio": 8.54,
             "calibration_version": "v7",
             "out_of_scope": True,
+            "challenge_case": True,
             "out_of_scope_reason": (
                 "Challenge case — L4 high-mortality urban siege. Model undercounts "
                 "(same structural limitation as Aleppo 2016: conf_mult × infra_denial insufficient "
@@ -2988,6 +2989,7 @@ HISTORICAL_CASES = [
             "ratio": 17.17,
             "calibration_version": "v7",
             "out_of_scope": True,
+            "challenge_case": True,
             "out_of_scope_reason": (
                 "Challenge case — L4 large-enclave short-duration operation (8 days, 1.7M pop). "
                 "Model overcounts by ~17× (same structural pattern as Cast Lead and Protective Edge). "

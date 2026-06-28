@@ -1767,7 +1767,9 @@ function updateDecisionAnalysis(evacCost, dailyCostA, dailyCostB) {
   const diff = dailyCostB - dailyCostA;
   if (diff <= 0) {
     elBreakEven.textContent = 'No break-even';
-    elBESub.textContent     = 'Evacuation is always more expensive in this scenario';
+    elBESub.textContent     = evacCost === 0
+      ? 'No evacuees defined — set population remaining below 100% to see break-even analysis'
+      : 'Evacuation is always more expensive in this scenario';
     elBreakEven.style.color = '#d97706';
     _renderDecisionChart(evacCost, dailyCostA, dailyCostB, null);
     return;
@@ -2279,19 +2281,30 @@ function renderHistTable(filter) {
     ? state.historicalCases.filter(c => String(c.risk_level) === filter)
     : state.historicalCases;
 
-  document.getElementById('histTableBody').innerHTML = cases.map(c => `
-    <tr onclick="selectHistCase(${c.id})">
-      <td class="ps-3">
-        <span class="badge ${levelBadgeClass(c.risk_level)} rounded-pill" style="font-size:.7rem">L${c.risk_level}</span>
-      </td>
+  document.getElementById('histTableBody').innerHTML = cases.map(c => {
+    const mc       = c.model_calibration || {};
+    const isOos    = mc.out_of_scope    === true;
+    const isChal   = mc.challenge_case  === true;
+    const rowStyle = isOos ? ' style="opacity:.6"' : '';
+    let badge;
+    if (isChal) {
+      badge = `<span class="badge rounded-pill" style="font-size:.7rem;background:#f97316;color:#fff">CHAL</span>`;
+    } else if (isOos) {
+      badge = `<span class="badge rounded-pill" style="font-size:.7rem;background:#9ca3af;color:#fff">OOS</span>`;
+    } else {
+      badge = `<span class="badge ${levelBadgeClass(c.risk_level)} rounded-pill" style="font-size:.7rem">L${c.risk_level}</span>`;
+    }
+    return `
+    <tr onclick="selectHistCase(${c.id})"${rowStyle}>
+      <td class="ps-3">${badge}</td>
       <td><strong>${c.name}</strong></td>
       <td>${c.year}</td>
       <td>${fmtFull(c.population_at_risk)}</td>
       <td>${fmtFull(c.estimated_deaths)}</td>
       <td>${c.duration_days}d</td>
       <td><span style="font-size:.7rem">${c.conflict_type.split('(')[0]}</span></td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
 }
 
 function renderThreeIndexPanel(threeIndexResult, container) {
@@ -3219,12 +3232,7 @@ document.getElementById('compareCase').addEventListener('change', function() {
     return;
   }
 
-  // Update radar overlay
   const dimArr = [dimObj.d1, dimObj.d2, dimObj.d3, dimObj.d4, dimObj.d5, dimObj.d6, dimObj.d7];
-  state.charts.radar.data.datasets[1].data   = dimArr;
-  state.charts.radar.data.datasets[1].label  = (isHistorical ? '[Historical] ' : '[Saved] ') + compLabel;
-  state.charts.radar.data.datasets[1].hidden = false;
-  state.charts.radar.update();
 
   // Compute comparison costs on-the-fly
   // For historical cases, use documented displacement rate for v2 model accuracy.
@@ -3258,6 +3266,11 @@ document.getElementById('compareCase').addEventListener('change', function() {
   if (lbl) lbl.textContent = compLabel;
   renderRadarUcdpBlock(compHistCase);
   renderCostComparePanel();
+  // Radar overlay applied last — after DOM manipulation to prevent resize-triggered re-renders
+  state.charts.radar.data.datasets[1].data   = dimArr;
+  state.charts.radar.data.datasets[1].label  = (isHistorical ? '[Historical] ' : '[Saved] ') + compLabel;
+  state.charts.radar.data.datasets[1].hidden = false;
+  state.charts.radar.update();
 });
 
 function renderRadarUcdpBlock(compHistCase) {
@@ -3266,13 +3279,76 @@ function renderRadarUcdpBlock(compHistCase) {
 
   if (!compHistCase) { el.innerHTML = ''; return; }
 
+  // Cost comparison table
+  const cc       = computeHistCaseCosts(compHistCase);
+  const histPop  = compHistCase.population_at_risk;
+  const histEvac = cc.res.totalCost;
+  const histCPE  = histPop > 0 ? histEvac / histPop : 0;
+  const histDays = compHistCase.duration_days;
+  const histDead = cc.mDead;
+
+  const curEvac    = state._lastResources?.totalCost;
+  const curPop     = state.population;
+  const curCPE     = curPop > 0 && curEvac ? curEvac / curPop : null;
+  const curDays    = state.days;
+  const deadArr    = state._lastStayData?.dead;
+  const deadIdx    = deadArr ? Math.min(curDays, deadArr.length) - 1 : -1;
+  const curDead    = deadIdx >= 0 ? deadArr[deadIdx] : null;
+
+  const D = v => v != null && v > 0 ? '$' + fmt(Math.round(v)) : '—';
+  const N = v => v != null          ? fmtFull(Math.round(v))   : '—';
+
+  const costTableHtml = `
+    <div style="margin-top:.5rem;border:1px solid #dce7f3;border-radius:5px;overflow:hidden">
+      <div style="background:#e8f0fa;padding:.3rem .6rem;font-size:.67rem;font-weight:700;color:#1e40af;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #dce7f3">
+        Cost Comparison
+      </div>
+      <table style="width:100%;font-size:.7rem;border-collapse:collapse">
+        <thead>
+          <tr style="background:#f0f4f8;color:#374151">
+            <th style="padding:.25rem .5rem;text-align:left;font-weight:600;width:38%"></th>
+            <th style="padding:.25rem .5rem;text-align:right;font-weight:600">Current Scenario</th>
+            <th style="padding:.25rem .5rem;text-align:right;font-weight:600">${compHistCase.name} (${compHistCase.year})</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-top:1px solid #e8edf4">
+            <td style="padding:.22rem .5rem;color:#64748b">Population</td>
+            <td style="padding:.22rem .5rem;text-align:right">${N(curPop)}</td>
+            <td style="padding:.22rem .5rem;text-align:right">${N(histPop)}</td>
+          </tr>
+          <tr style="border-top:1px solid #e8edf4;background:#fafbfd">
+            <td style="padding:.22rem .5rem;color:#64748b">Evac. cost (model)</td>
+            <td style="padding:.22rem .5rem;text-align:right">${D(curEvac)}</td>
+            <td style="padding:.22rem .5rem;text-align:right">${D(histEvac)} <span style="font-size:.62rem;color:#94a3b8">ERCF est.</span></td>
+          </tr>
+          <tr style="border-top:1px solid #e8edf4">
+            <td style="padding:.22rem .5rem;color:#64748b">Cost / evacuee</td>
+            <td style="padding:.22rem .5rem;text-align:right">${curCPE != null ? '$' + fmt(Math.round(curCPE)) : '—'}</td>
+            <td style="padding:.22rem .5rem;text-align:right">${D(histCPE)}</td>
+          </tr>
+          <tr style="border-top:1px solid #e8edf4;background:#fafbfd">
+            <td style="padding:.22rem .5rem;color:#64748b">Duration</td>
+            <td style="padding:.22rem .5rem;text-align:right">${curDays} days</td>
+            <td style="padding:.22rem .5rem;text-align:right">${histDays} days</td>
+          </tr>
+          <tr style="border-top:1px solid #e8edf4">
+            <td style="padding:.22rem .5rem;color:#64748b">Deaths (model est.)</td>
+            <td style="padding:.22rem .5rem;text-align:right">${N(curDead)}</td>
+            <td style="padding:.22rem .5rem;text-align:right">${N(histDead)}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>`;
+
   const uv = compHistCase.documented_figures?.ucdp_validation;
 
   if (!uv || !uv.ucdp_ged_version) {
     el.innerHTML = `
       <div style="padding:.3rem .5rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:4px;font-size:.68rem;color:#6b7280">
         UCDP data not available for this case.
-      </div>`;
+      </div>
+      ${costTableHtml}`;
     return;
   }
 
@@ -3293,7 +3369,7 @@ function renderRadarUcdpBlock(compHistCase) {
   el.innerHTML = `
     <div style="border:1px solid #e0e8f0;border-radius:5px;overflow:hidden">
       <div style="background:#f0f8ff;padding:.3rem .6rem;font-size:.67rem;font-weight:700;color:#003F87;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e0e8f0">
-        🔬 UCDP GED ${uv.ucdp_ged_version} — ${compHistCase.name} (${compHistCase.year})
+        \U0001f52c UCDP GED ${uv.ucdp_ged_version} — ${compHistCase.name} (${compHistCase.year})
       </div>
       <div style="padding:.35rem .6rem;font-size:.71rem;display:flex;gap:.7rem;flex-wrap:wrap;align-items:center">
         <span><strong>Civilian deaths (floor):</strong> ${(uv.ucdp_civilian_deaths||0).toLocaleString()}</span>
@@ -3305,7 +3381,8 @@ function renderRadarUcdpBlock(compHistCase) {
       <div style="padding:.2rem .6rem .25rem;font-size:.62rem;color:#9ca3af;border-top:1px solid #f0f4f8">
         Source: Davies et al. (2025), JPR 62(4); Sundberg &amp; Melander (2013), JPR 50(4). CC BY 4.0.
       </div>
-    </div>`;
+    </div>
+    ${costTableHtml}`;
 }
 
 // ═══════════════════════════════════════════════════════════

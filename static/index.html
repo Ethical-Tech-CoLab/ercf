@@ -785,8 +785,8 @@ a:hover { color: #0086be !important; }
 
       <!-- Risk card + radar -->
       <div class="row g-3 mb-3">
-        <div class="col-md-5">
-          <div class="risk-card h-100" id="riskCard" style="background:#6c757d;color:#fff">
+        <div class="col-md-5" style="align-self:flex-start">
+          <div class="risk-card" id="riskCard" style="background:#6c757d;color:#fff">
             <div class="risk-level-badge mb-1" id="riskLevelBadge">LEVEL 0</div>
             <button class="dim-help-btn" onclick="toggleDimHelp(this,'levelHelp')" title="Show level criteria"
                     style="color:rgba(255,255,255,.8);border-color:rgba(255,255,255,.45);margin-bottom:.4rem">?</button>
@@ -2133,7 +2133,7 @@ a:hover { color: #0086be !important; }
         <p style="color:#6b7c93;font-size:.75rem">The final LEVEL (0–4) is derived from a weighted composite of all seven dimensions. Level thresholds: 0 ≤1.5 · 1 ≤2.5 · 2 ≤3.5 · 3 ≤4.2 · 4 &gt;4.2.</p>
 
         <!-- 3. Mortality Model -->
-        <h6 style="color:#003F87;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #dde3ec;padding-bottom:.3rem;margin-bottom:.7rem;margin-top:1.2rem">3 · Mortality Model (v4)</h6>
+        <h6 style="color:#003F87;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #dde3ec;padding-bottom:.3rem;margin-bottom:.7rem;margin-top:1.2rem">3 · Mortality Model (v7)</h6>
         <p>The mortality model estimates cumulative civilian deaths and injuries over a given duration. It uses a base mortality rate per risk level, modulated by conflict pattern (exposure factor), population size, and time.</p>
         <ul style="padding-left:1.2rem;margin-bottom:.5rem">
           <li><strong>Base rates by level (v7):</strong> L0: 0.0078%/day · L1: 0.0096%/day · L2: 0.0363%/day · L3: 0.0181%/day · L4: 0.0100%/day (optimised via differential_evolution, 16 calibration cases)</li>
@@ -2154,42 +2154,42 @@ a:hover { color: #0086be !important; }
             <tbody>
               <tr style="border-bottom:1px solid #edf0f5">
                 <td style="padding:.25rem .4rem"><strong>R² (log-log regression)</strong></td>
-                <td style="padding:.25rem .4rem">0.855, p&lt;0.00001 (slope not recomputed — v7 calibration)</td>
+                <td style="padding:.25rem .4rem">R²=0.855, r=0.925, p=3.01e-07</td>
                 <td style="padding:.25rem .4rem"><span style="color:#0a6e50;font-weight:600">PASS</span></td>
               </tr>
               <tr style="border-bottom:1px solid #edf0f5">
                 <td style="padding:.25rem .4rem"><strong>Shapiro-Wilk (normality of residuals)</strong></td>
-                <td style="padding:.25rem .4rem">W=0.963, p=0.607</td>
+                <td style="padding:.25rem .4rem">W=0.974, p=0.902</td>
                 <td style="padding:.25rem .4rem"><span style="color:#0a6e50;font-weight:600">PASS</span></td>
               </tr>
               <tr style="border-bottom:1px solid #edf0f5">
                 <td style="padding:.25rem .4rem"><strong>Breusch-Pagan (heteroscedasticity)</strong></td>
-                <td style="padding:.25rem .4rem">LM=0.685, p=0.408</td>
+                <td style="padding:.25rem .4rem">LM=0.316, p=0.574</td>
                 <td style="padding:.25rem .4rem"><span style="color:#0a6e50;font-weight:600">PASS</span></td>
               </tr>
               <tr style="border-bottom:1px solid #edf0f5">
                 <td style="padding:.25rem .4rem"><strong>Cook's Distance (influential observations)</strong></td>
-                <td style="padding:.25rem .4rem">0/20 above threshold (4/n=0.200). Highest: Aleppo D=0.149</td>
-                <td style="padding:.25rem .4rem"><span style="color:#0a6e50;font-weight:600">PASS</span></td>
+                <td style="padding:.25rem .4rem">1/16 above threshold (4/n=0.250). Aleppo D=0.613 — influential observation (infra_denial + highest recorded deaths in L3 subset)</td>
+                <td style="padding:.25rem .4rem"><span style="color:#d97706;font-weight:600">NOTE</span></td>
               </tr>
               <tr style="border-bottom:1px solid #edf0f5">
                 <td style="padding:.25rem .4rem"><strong>LOOCV R² (out-of-sample generalisation)</strong></td>
-                <td style="padding:.25rem .4rem">R²=0.807 (gap=0.048 vs in-sample). LOOCV within-2× not recomputed for v7.</td>
+                <td style="padding:.25rem .4rem">R²=0.807 (gap=0.048 vs in-sample R²=0.855)</td>
                 <td style="padding:.25rem .4rem"><span style="color:#0a6e50;font-weight:600">PASS</span></td>
               </tr>
               <tr style="border-bottom:1px solid #edf0f5">
                 <td style="padding:.25rem .4rem"><strong>Spearman ρ (non-parametric robustness)</strong></td>
-                <td style="padding:.25rem .4rem">ρ=0.873, ρ²=0.763, p&lt;0.00001. Consistent with Pearson R²</td>
+                <td style="padding:.25rem .4rem">ρ=0.845, ρ²=0.714, p=3.83e-05. Consistent with Pearson R²</td>
                 <td style="padding:.25rem .4rem"><span style="color:#0a6e50;font-weight:600">PASS</span></td>
               </tr>
               <tr style="border-bottom:1px solid #edf0f5">
                 <td style="padding:.25rem .4rem"><strong>Durbin-Watson (autocorrelation)</strong></td>
-                <td style="padding:.25rem .4rem">DW=1.493 (threshold: 1.5). Reflects structural clustering by exposure type, not model misspecification</td>
+                <td style="padding:.25rem .4rem">DW=1.413 (threshold: 1.5). Reflects structural clustering by exposure type, not model misspecification</td>
                 <td style="padding:.25rem .4rem"><span style="color:#d97706;font-weight:600">DOCUMENTED</span></td>
               </tr>
               <tr style="border-bottom:1px solid #edf0f5">
                 <td style="padding:.25rem .4rem"><strong>Multicollinearity (VIF)</strong></td>
-                <td style="padding:.25rem .4rem">All VIF &lt;4 (log_pop=1.97, log_days=2.86, level=2.33, D1=3.34, D4=3.52). No pair |r|&gt;0.8</td>
+                <td style="padding:.25rem .4rem">max VIF=3.90 (D1). Max pairwise |r|=0.758 (D1×D4), below 0.8 threshold</td>
                 <td style="padding:.25rem .4rem"><span style="color:#0a6e50;font-weight:600">PASS</span></td>
               </tr>
               <tr>
@@ -2200,7 +2200,7 @@ a:hover { color: #0086be !important; }
             </tbody>
           </table>
           <div style="margin-top:.4rem;font-size:.68rem;color:#6b7280">
-            The LOOCV gap of 0.048 confirms acceptable overfitting for n=16 (below 0.05 threshold). The DW borderline result reflects the model's discrete exposure categories (urban_siege, enclave, regional), not autocorrelation in the classical sense. R²=0.855 is the v7 calibration result; Shapiro-Wilk, Breusch-Pagan, Cook's D, Spearman, and VIF tests not recomputed for v7 — full re-validation pending.
+            The LOOCV gap of 0.048 confirms acceptable overfitting for n=16 (below 0.05 threshold). The DW borderline result reflects the model's discrete exposure categories (urban_siege, enclave, regional), not autocorrelation in the classical sense. Aleppo's Cook's D (0.613) reflects the infra_denial multiplier combined with the highest recorded death toll in the L3 subset — retained in calibration set as a documented extreme case. Full statistical re-validation completed for v7 (N=16, June 2026). <code>calibration/validate_v7.py</code>
           </div>
         </div>
 
