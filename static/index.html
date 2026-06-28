@@ -1696,22 +1696,6 @@ a:hover { color: #0086be !important; }
           Some institutional links (UN, WFP, and similar agencies) may return a "403 Forbidden" error depending on your network or region, even though the citation and figure are correct and verified. If a link doesn't open, try copying the URL into a new browser tab, or search the document title directly.
         </div>
 
-        <!-- METHODOLOGY -->
-        <div class="ref-section-title"><i class="fas fa-flask me-1"></i>Mortality Model Methodology</div>
-        <div class="ref-source">
-          <span class="ref-tag ref-tag-risk">Method</span>
-          <div>
-            <strong>ERCF Mortality Model v7.</strong> Empirically-derived base rates from 16 calibration cases (31 total, 15 out-of-scope). Dimensional modulation via D3×D4 confinement score (×0.5–×8) and D1-population auto-exposure factor (log¹·⁴ falloff). Siege protection cap applied to urban conflicts ≤500k population (D3≤2 AND D1≥4: max_protection=0.30). Infrastructure-denial multiplier (α=0.4251) applied to 4 documented cases (Mariupol, Aleppo, Vukovar, Huambo) where starvation or hospital destruction was documented as deliberate method of warfare.
-            Calibration: 7/16 within 2× (44%). R²=0.855, p&lt;0.00001. L3: Strong (R²=0.958). L4: Moderate (R²=0.624). Full calibration data in the Historical Cases tab → case detail panel.
-            <br><em>Citation: ERCF Mortality Model v7 (2026). PhD Research Tool — IHL and Civilian Protection, NYU.</em>
-          </div>
-        </div>
-        <div class="ref-source">
-          <span class="ref-tag ref-tag-risk">Citation</span>
-          <div>
-            <strong>ERCF Mortality Model v7:</strong> empirically-derived base rates from 16 calibration cases (31 total, 15 out-of-scope). Dimensional modulation via D3×D4 confinement score and D1-population exposure factor. Infrastructure-denial multiplier (α=0.4251) for 4 documented cases (Mariupol, Aleppo, Vukovar, Huambo). 7/16 within 2× (44%), R²=0.855. Full calibration data available in the Historical Cases tab.
-          </div>
-        </div>
 
         <!-- RISK CLASSIFICATION -->
         <div class="ref-section-title"><i class="fas fa-layer-group me-1"></i>Risk Classification</div>
@@ -1868,98 +1852,7 @@ a:hover { color: #0086be !important; }
           </div>
         </div>
 
-        <!-- EVACUATION COST BENCHMARKS -->
-        <div class="ref-section-title"><i class="fas fa-scale-balanced me-1" style="color:#64748b"></i>Evacuation Cost Benchmarks — Real Operations</div>
-        <div class="ref-note-box">
-          <p class="mb-2">ERCF estimates model the immediate field evacuation operation (ground transport, personnel, supplies, 3-day buffer). Real humanitarian evacuation operations include additional components — international airlift, reception country costs, consular processing, multi-week hosting — that substantially increase the total cost per person. The table below contextualises ERCF outputs against documented real operations.</p>
-          <div style="overflow-x:auto;margin:.5rem 0 .75rem 0">
-            <table style="font-size:.72rem;width:100%;border-collapse:collapse;min-width:640px">
-              <thead>
-                <tr style="background:#f1f5f9;color:#475569;font-size:.67rem;text-transform:uppercase;letter-spacing:.03em">
-                  <th style="padding:.3rem .5rem;text-align:left;border-bottom:2px solid #e2e8f0">Operation</th>
-                  <th style="padding:.3rem .5rem;text-align:right;border-bottom:2px solid #e2e8f0">Year</th>
-                  <th style="padding:.3rem .5rem;text-align:left;border-bottom:2px solid #e2e8f0">Org</th>
-                  <th style="padding:.3rem .5rem;text-align:right;border-bottom:2px solid #e2e8f0">Evacuees</th>
-                  <th style="padding:.3rem .5rem;text-align:right;border-bottom:2px solid #e2e8f0">Total cost</th>
-                  <th style="padding:.3rem .5rem;text-align:right;border-bottom:2px solid #e2e8f0">Cost/person</th>
-                  <th style="padding:.3rem .5rem;text-align:left;border-bottom:2px solid #e2e8f0">Mode</th>
-                  <th style="padding:.3rem .5rem;text-align:left;border-bottom:2px solid #e2e8f0">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr style="border-bottom:1px solid #e2e8f0">
-                  <td style="padding:.3rem .5rem"><strong>Kosovo → Europe (HEP)</strong><br><span style="font-size:.65rem;color:#64748b">IOM/UNHCR HEP, ReliefWeb</span></td>
-                  <td style="padding:.3rem .5rem;text-align:right">1999</td>
-                  <td style="padding:.3rem .5rem">IOM/UNHCR</td>
-                  <td style="padding:.3rem .5rem;text-align:right">60,549</td>
-                  <td style="padding:.3rem .5rem;text-align:right">$34M</td>
-                  <td style="padding:.3rem .5rem;text-align:right"><strong>$562</strong></td>
-                  <td style="padding:.3rem .5rem">Air (international, 20 countries)</td>
-                  <td style="padding:.3rem .5rem"><span style="color:#0a6e50">Validated</span> — published IOM figures</td>
-                </tr>
-                <tr style="border-bottom:1px solid #e2e8f0">
-                  <td style="padding:.3rem .5rem"><strong>Libya → countries of origin</strong><br><span style="font-size:.65rem;color:#64748b">IOM 7-Month Report 2011</span></td>
-                  <td style="padding:.3rem .5rem;text-align:right">2011</td>
-                  <td style="padding:.3rem .5rem">IOM</td>
-                  <td style="padding:.3rem .5rem;text-align:right">~50,000</td>
-                  <td style="padding:.3rem .5rem;text-align:right">~$49.2M (appeal)</td>
-                  <td style="padding:.3rem .5rem;text-align:right"><strong>~$984</strong></td>
-                  <td style="padding:.3rem .5rem">Air + maritime</td>
-                  <td style="padding:.3rem .5rem"><span style="color:#d97706">Estimated</span> — appeal budget, not audited final cost</td>
-                </tr>
-                <tr>
-                  <td style="padding:.3rem .5rem"><strong>Lebanon → Canada</strong><br><span style="font-size:.65rem;color:#64748b">Canadian Senate Committee Report, May 2007</span></td>
-                  <td style="padding:.3rem .5rem;text-align:right">2006</td>
-                  <td style="padding:.3rem .5rem">DFAIT/DND</td>
-                  <td style="padding:.3rem .5rem;text-align:right">~15,000</td>
-                  <td style="padding:.3rem .5rem;text-align:right">CAD $75–94M<br><span style="font-size:.65rem;color:#64748b">(~USD $65–82M)</span></td>
-                  <td style="padding:.3rem .5rem;text-align:right"><strong>~USD $4,500–5,700</strong></td>
-                  <td style="padding:.3rem .5rem">Naval + military air</td>
-                  <td style="padding:.3rem .5rem"><span style="color:#d97706">Estimated</span> — includes military asset costs</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <p style="font-size:.67rem;color:#64748b;font-style:italic;margin-bottom:0">
-            ERCF L2 scenario (10,000 persons, 50km, ground vehicle): ~$134/person. The 4–37× gap vs real operations reflects scope differences: ERCF covers field evacuation only; benchmarks include international transport, reception, and multi-week hosting. Military evacuation operations (Lebanon 2006) are substantially more expensive due to naval/air asset costs not applicable to humanitarian ground operations.
-          </p>
-        </div>
 
-        <!-- METHODOLOGY NOTES — PARAMETER SOURCES -->
-        <div class="ref-section-title"><i class="fas fa-circle-info me-1" style="color:#64748b"></i>Methodology Notes — Parameter Sources</div>
-        <div class="ref-note-box">
-          <p class="mb-2">The following parameters are estimated from available literature. Where primary institutional sources are not publicly available, best-available proxies are documented.</p>
-          <div class="ref-source" style="border-color:#e2e8f0">
-            <span class="ref-tag" style="background:#f1f5f9;color:#475569">Est.</span>
-            <div><strong>Access cost multipliers L2–L4.</strong> NRC/Protect Humanitarian Space (Feb 2024) confirms that active-conflict crises (Libya, Iraq, Syria) were the costliest humanitarian operations in 2021, but provides no numerical per-level multiplier. No published institutional source (OCHA, WFP, UNDSS) found with explicit L2/L3/L4 overhead percentages. (ref: protecthumanitarianspace.com, "Cost of Operations in H2R Areas", Feb 2024) <em>Primary institutional data (OCHA AMRF / WFP Logistics Cluster operational figures disaggregated by conflict intensity) not publicly available. Value represents best-available estimate for planning purposes.</em></div>
-          </div>
-          <div class="ref-source" style="border-color:#e2e8f0">
-            <span class="ref-tag" style="background:#f1f5f9;color:#475569">Est.</span>
-            <div><strong>Field medical treatment cost — $800/injury.</strong> Peer-reviewed range: $211–$1,013 (MSF Nigeria 2009, inflation-adjusted to 2024 USD). $800 adopted as conservative upper-mid estimate. (ref: Chu et al. 2010, Conflict &amp; Health; MSF Nigeria field reports) <em>ICRC per-patient surgical cost data not publicly available. Value represents best-available estimate for planning purposes.</em></div>
-          </div>
-          <div class="ref-source" style="border-color:#e2e8f0">
-            <span class="ref-tag" style="background:#f1f5f9;color:#475569">Est.</span>
-            <div><strong>Security personnel $300/day.</strong> Humanitarian PSC mid-market range $200–$1,100+/day depending on context, nationality, and risk level. Somalia 2017 security cooperation costs: $400M/year total across agencies (NRC/Protect Humanitarian Space, Feb 2024). (ref: ODI HPG Policy Brief 33; Gaza 2025 operational reporting) <em>Primary institutional data (UNDSS operational rate cards) not publicly available. Value represents best-available estimate for planning purposes.</em></div>
-          </div>
-          <div class="ref-source" style="border-color:#e2e8f0">
-            <span class="ref-tag" style="background:#f1f5f9;color:#475569">Est.</span>
-            <div><strong>Ground extraction cost (30% of air rate).</strong> Internal heuristic reflecting reduced fuel, crew, and logistics costs vs air extraction. Anchored to UNHAS rate ($2.08/passenger-km, WFP EB 2025). (ref: WFP EB "Update on UNHAS", January 2025) <em>Primary institutional data (UNHCR/IOM ground evacuation cost per person) not publicly available. Value represents best-available estimate for planning purposes.</em></div>
-          </div>
-          <div class="ref-source" style="border-color:#e2e8f0">
-            <span class="ref-tag" style="background:#f1f5f9;color:#475569">Est.</span>
-            <div><strong>Convoy sizing vs in-situ supply split.</strong> Evacuation resources are planned for total population in need (Sphere/IASC methodology). Supplies for population remaining in zone are modelled as a parallel stream (NRC "Considerations for Planning Mass Evacuations of Civilians in Conflict Settings", 2017). Fixed mobilization costs vs variable execution costs are not formally distinguished — no published institutional model (UNHCR/IOM/WFP/ICRC) specifies this ratio for conflict evacuation contexts. (ref: BVL Humanitarian Logistics Study 2020; MDPI Casualty Evacuation Model doi:10.3390/su17241126, 2025)</div>
-          </div>
-          <div class="ref-source" style="border-bottom:none;border-color:#e2e8f0">
-            <span class="ref-tag" style="background:#f1f5f9;color:#475569">Est.</span>
-            <div>
-              <strong>Mortality model calibration — known limitations.</strong>
-              ERCF Mortality Model v7 is calibrated against 16 of 31 historical cases (15 out-of-scope). 7/16 within 2× (44%). R²=0.855, p&lt;0.00001. LOOCV R²=0.807. Infrastructure-denial multiplier (α=0.4251) applied to Mariupol, Aleppo, Vukovar, Huambo. Gaza large-enclave operations (Cast Lead, Protective Edge) remain structurally undercounted — L4 base rate optimised for siege attrition, not precision air campaigns on populations &gt;500k. Full calibration data: See Model Limitations panel above the Days slider, or Historical Cases tab → case detail.
-            </div>
-          </div>
-        </div>
-        <div style="font-size:.68rem;color:#94a3b8;margin-top:.4rem;padding:.35rem .6rem;border-top:1px solid #f1f5f9">
-          <strong style="color:#64748b">Dimension weights:</strong> No published IHL or humanitarian operations framework specifies explicit numerical weights for the 7 ERCF dimensions. Weights are modelled estimates derived from calibration against historical cases. Validation against an expert panel or empirical conflict data corpus is required before operational application.
-        </div>
 
         <!-- Prototype note -->
         <div class="ref-proto-note">
@@ -2250,6 +2143,116 @@ a:hover { color: #0086be !important; }
           <strong style="color:#92400e">Geographic Calibration Limitation:</strong> The calibration dataset is predominantly drawn from Middle East and Eastern Europe conflicts (where primary source documentation meeting ERCF criteria is most available). Sub-Saharan Africa is represented by 2 cases (CAR, DRC/Goma, Angola/Huambo), Latin America by 0 cases, and South/Central Asia by 0 cases outside Iraq/Afghanistan. This reflects a real documentation gap — verified civilian death counts with bounded populations and durations ≤90 days are rare in these regions — not a research omission. When applying ERCF to Sub-Saharan Africa or Latin America contexts, treat cost and mortality estimates with additional caution and seek local field data to supplement model outputs.
         </div>
 
+        <!-- 10. Mortality Model Method & Citation -->
+        <h6 style="color:#003F87;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #dde3ec;padding-bottom:.3rem;margin-bottom:.7rem;margin-top:1.2rem">10 · Mortality Model — Method &amp; Citation</h6>
+        <div style="font-size:.78rem">
+        <div class="ref-source">
+          <span class="ref-tag ref-tag-risk">Method</span>
+          <div>
+            <strong>ERCF Mortality Model v7.</strong> Empirically-derived base rates from 16 calibration cases (31 total, 15 out-of-scope). Dimensional modulation via D3×D4 confinement score (×0.5–×8) and D1-population auto-exposure factor (log¹·⁴ falloff). Siege protection cap applied to urban conflicts ≤500k population (D3≤2 AND D1≥4: max_protection=0.30). Infrastructure-denial multiplier (α=0.4251) applied to 4 documented cases (Mariupol, Aleppo, Vukovar, Huambo) where starvation or hospital destruction was documented as deliberate method of warfare.
+            Calibration: 7/16 within 2× (44%). R²=0.855, p&lt;0.00001. L3: Strong (R²=0.958). L4: Moderate (R²=0.624). Full calibration data in the Historical Cases tab → case detail panel.
+            <br><em>Citation: ERCF Mortality Model v7 (2026). PhD Research Tool — IHL and Civilian Protection, NYU.</em>
+          </div>
+        </div>
+        <div class="ref-source">
+          <span class="ref-tag ref-tag-risk">Citation</span>
+          <div>
+            <strong>ERCF Mortality Model v7:</strong> empirically-derived base rates from 16 calibration cases (31 total, 15 out-of-scope). Dimensional modulation via D3×D4 confinement score and D1-population exposure factor. Infrastructure-denial multiplier (α=0.4251) for 4 documented cases (Mariupol, Aleppo, Vukovar, Huambo). 7/16 within 2× (44%), R²=0.855. Full calibration data available in the Historical Cases tab.
+          </div>
+        </div>
+
+        </div>
+        <!-- 11. Evacuation Cost Benchmarks -->
+        <h6 style="color:#003F87;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #dde3ec;padding-bottom:.3rem;margin-bottom:.7rem;margin-top:1.2rem">11 · Evacuation Cost Benchmarks — Real Operations</h6>
+        <div class="ref-note-box">
+          <p class="mb-2">ERCF estimates model the immediate field evacuation operation (ground transport, personnel, supplies, 3-day buffer). Real humanitarian evacuation operations include additional components — international airlift, reception country costs, consular processing, multi-week hosting — that substantially increase the total cost per person. The table below contextualises ERCF outputs against documented real operations.</p>
+          <div style="overflow-x:auto;margin:.5rem 0 .75rem 0">
+            <table style="font-size:.72rem;width:100%;border-collapse:collapse;min-width:640px">
+              <thead>
+                <tr style="background:#f1f5f9;color:#475569;font-size:.67rem;text-transform:uppercase;letter-spacing:.03em">
+                  <th style="padding:.3rem .5rem;text-align:left;border-bottom:2px solid #e2e8f0">Operation</th>
+                  <th style="padding:.3rem .5rem;text-align:right;border-bottom:2px solid #e2e8f0">Year</th>
+                  <th style="padding:.3rem .5rem;text-align:left;border-bottom:2px solid #e2e8f0">Org</th>
+                  <th style="padding:.3rem .5rem;text-align:right;border-bottom:2px solid #e2e8f0">Evacuees</th>
+                  <th style="padding:.3rem .5rem;text-align:right;border-bottom:2px solid #e2e8f0">Total cost</th>
+                  <th style="padding:.3rem .5rem;text-align:right;border-bottom:2px solid #e2e8f0">Cost/person</th>
+                  <th style="padding:.3rem .5rem;text-align:left;border-bottom:2px solid #e2e8f0">Mode</th>
+                  <th style="padding:.3rem .5rem;text-align:left;border-bottom:2px solid #e2e8f0">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom:1px solid #e2e8f0">
+                  <td style="padding:.3rem .5rem"><strong>Kosovo → Europe (HEP)</strong><br><span style="font-size:.65rem;color:#64748b">IOM/UNHCR HEP, ReliefWeb</span></td>
+                  <td style="padding:.3rem .5rem;text-align:right">1999</td>
+                  <td style="padding:.3rem .5rem">IOM/UNHCR</td>
+                  <td style="padding:.3rem .5rem;text-align:right">60,549</td>
+                  <td style="padding:.3rem .5rem;text-align:right">$34M</td>
+                  <td style="padding:.3rem .5rem;text-align:right"><strong>$562</strong></td>
+                  <td style="padding:.3rem .5rem">Air (international, 20 countries)</td>
+                  <td style="padding:.3rem .5rem"><span style="color:#0a6e50">Validated</span> — published IOM figures</td>
+                </tr>
+                <tr style="border-bottom:1px solid #e2e8f0">
+                  <td style="padding:.3rem .5rem"><strong>Libya → countries of origin</strong><br><span style="font-size:.65rem;color:#64748b">IOM 7-Month Report 2011</span></td>
+                  <td style="padding:.3rem .5rem;text-align:right">2011</td>
+                  <td style="padding:.3rem .5rem">IOM</td>
+                  <td style="padding:.3rem .5rem;text-align:right">~50,000</td>
+                  <td style="padding:.3rem .5rem;text-align:right">~$49.2M (appeal)</td>
+                  <td style="padding:.3rem .5rem;text-align:right"><strong>~$984</strong></td>
+                  <td style="padding:.3rem .5rem">Air + maritime</td>
+                  <td style="padding:.3rem .5rem"><span style="color:#d97706">Estimated</span> — appeal budget, not audited final cost</td>
+                </tr>
+                <tr>
+                  <td style="padding:.3rem .5rem"><strong>Lebanon → Canada</strong><br><span style="font-size:.65rem;color:#64748b">Canadian Senate Committee Report, May 2007</span></td>
+                  <td style="padding:.3rem .5rem;text-align:right">2006</td>
+                  <td style="padding:.3rem .5rem">DFAIT/DND</td>
+                  <td style="padding:.3rem .5rem;text-align:right">~15,000</td>
+                  <td style="padding:.3rem .5rem;text-align:right">CAD $75–94M<br><span style="font-size:.65rem;color:#64748b">(~USD $65–82M)</span></td>
+                  <td style="padding:.3rem .5rem;text-align:right"><strong>~USD $4,500–5,700</strong></td>
+                  <td style="padding:.3rem .5rem">Naval + military air</td>
+                  <td style="padding:.3rem .5rem"><span style="color:#d97706">Estimated</span> — includes military asset costs</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size:.67rem;color:#64748b;font-style:italic;margin-bottom:0">
+            ERCF L2 scenario (10,000 persons, 50km, ground vehicle): ~$134/person. The 4–37× gap vs real operations reflects scope differences: ERCF covers field evacuation only; benchmarks include international transport, reception, and multi-week hosting. Military evacuation operations (Lebanon 2006) are substantially more expensive due to naval/air asset costs not applicable to humanitarian ground operations.
+          </p>
+        </div>
+        <!-- 12. Parameter Sources & Methodology Notes -->
+        <h6 style="color:#003F87;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #dde3ec;padding-bottom:.3rem;margin-bottom:.7rem;margin-top:1.2rem">12 · Parameter Sources &amp; Methodology Notes</h6>
+        <div class="ref-note-box">
+          <p class="mb-2">The following parameters are estimated from available literature. Where primary institutional sources are not publicly available, best-available proxies are documented.</p>
+          <div class="ref-source" style="border-color:#e2e8f0">
+            <span class="ref-tag" style="background:#f1f5f9;color:#475569">Est.</span>
+            <div><strong>Access cost multipliers L2–L4.</strong> NRC/Protect Humanitarian Space (Feb 2024) confirms that active-conflict crises (Libya, Iraq, Syria) were the costliest humanitarian operations in 2021, but provides no numerical per-level multiplier. No published institutional source (OCHA, WFP, UNDSS) found with explicit L2/L3/L4 overhead percentages. (ref: protecthumanitarianspace.com, "Cost of Operations in H2R Areas", Feb 2024) <em>Primary institutional data (OCHA AMRF / WFP Logistics Cluster operational figures disaggregated by conflict intensity) not publicly available. Value represents best-available estimate for planning purposes.</em></div>
+          </div>
+          <div class="ref-source" style="border-color:#e2e8f0">
+            <span class="ref-tag" style="background:#f1f5f9;color:#475569">Est.</span>
+            <div><strong>Field medical treatment cost — $800/injury.</strong> Peer-reviewed range: $211–$1,013 (MSF Nigeria 2009, inflation-adjusted to 2024 USD). $800 adopted as conservative upper-mid estimate. (ref: Chu et al. 2010, Conflict &amp; Health; MSF Nigeria field reports) <em>ICRC per-patient surgical cost data not publicly available. Value represents best-available estimate for planning purposes.</em></div>
+          </div>
+          <div class="ref-source" style="border-color:#e2e8f0">
+            <span class="ref-tag" style="background:#f1f5f9;color:#475569">Est.</span>
+            <div><strong>Security personnel $300/day.</strong> Humanitarian PSC mid-market range $200–$1,100+/day depending on context, nationality, and risk level. Somalia 2017 security cooperation costs: $400M/year total across agencies (NRC/Protect Humanitarian Space, Feb 2024). (ref: ODI HPG Policy Brief 33; Gaza 2025 operational reporting) <em>Primary institutional data (UNDSS operational rate cards) not publicly available. Value represents best-available estimate for planning purposes.</em></div>
+          </div>
+          <div class="ref-source" style="border-color:#e2e8f0">
+            <span class="ref-tag" style="background:#f1f5f9;color:#475569">Est.</span>
+            <div><strong>Ground extraction cost (30% of air rate).</strong> Internal heuristic reflecting reduced fuel, crew, and logistics costs vs air extraction. Anchored to UNHAS rate ($2.08/passenger-km, WFP EB 2025). (ref: WFP EB "Update on UNHAS", January 2025) <em>Primary institutional data (UNHCR/IOM ground evacuation cost per person) not publicly available. Value represents best-available estimate for planning purposes.</em></div>
+          </div>
+          <div class="ref-source" style="border-color:#e2e8f0">
+            <span class="ref-tag" style="background:#f1f5f9;color:#475569">Est.</span>
+            <div><strong>Convoy sizing vs in-situ supply split.</strong> Evacuation resources are planned for total population in need (Sphere/IASC methodology). Supplies for population remaining in zone are modelled as a parallel stream (NRC "Considerations for Planning Mass Evacuations of Civilians in Conflict Settings", 2017). Fixed mobilization costs vs variable execution costs are not formally distinguished — no published institutional model (UNHCR/IOM/WFP/ICRC) specifies this ratio for conflict evacuation contexts. (ref: BVL Humanitarian Logistics Study 2020; MDPI Casualty Evacuation Model doi:10.3390/su17241126, 2025)</div>
+          </div>
+          <div class="ref-source" style="border-bottom:none;border-color:#e2e8f0">
+            <span class="ref-tag" style="background:#f1f5f9;color:#475569">Est.</span>
+            <div>
+              <strong>Mortality model calibration — known limitations.</strong>
+              ERCF Mortality Model v7 is calibrated against 16 of 31 historical cases (15 out-of-scope). 7/16 within 2× (44%). R²=0.855, p&lt;0.00001. LOOCV R²=0.807. Infrastructure-denial multiplier (α=0.4251) applied to Mariupol, Aleppo, Vukovar, Huambo. Gaza large-enclave operations (Cast Lead, Protective Edge) remain structurally undercounted — L4 base rate optimised for siege attrition, not precision air campaigns on populations &gt;500k. Full calibration data: See Model Limitations panel above the Days slider, or Historical Cases tab → case detail.
+            </div>
+          </div>
+        </div>
+        <div style="font-size:.68rem;color:#94a3b8;margin-top:.4rem;padding:.35rem .6rem;border-top:1px solid #f1f5f9">
+          <strong style="color:#64748b">Dimension weights:</strong> No published IHL or humanitarian operations framework specifies explicit numerical weights for the 7 ERCF dimensions. Weights are modelled estimates derived from calibration against historical cases. Validation against an expert panel or empirical conflict data corpus is required before operational application.
+        </div>
         <!-- Footer -->
         <div style="margin-top:1.5rem;padding:.75rem 1rem;background:#f2f5f9;border-radius:6px;font-size:.72rem;color:#6b7c93">
           <strong style="color:#1a2940">Model version:</strong> ERCF v7 · Mortality Model v7 (R²=0.855, 7/16 within 2×) ·
