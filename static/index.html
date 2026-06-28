@@ -528,10 +528,20 @@ a:hover { color: #0086be !important; }
             <label class="form-label fw-semibold" style="font-size:.78rem">Description</label>
             <textarea class="form-control form-control-sm" id="scenDesc" rows="2" placeholder="Context, region, conflict type…"></textarea>
           </div>
+          <!-- City lookup — GeoNames integration -->
+          <div class="mb-2" style="position:relative">
+            <label class="form-label fw-semibold mb-1" style="font-size:.78rem">City / Area <span style="font-weight:400;color:#94a3b8">(optional — auto-fills population)</span></label>
+            <input type="text" class="form-control form-control-sm" id="inCity"
+                   placeholder="e.g. Mariupol, Aleppo, Mosul…"
+                   autocomplete="off"/>
+            <div id="cityPopSuggestions" style="display:none;position:absolute;z-index:1000;width:100%;top:100%;left:0;background:#fff;border:1px solid #dee2e6;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.15);max-height:200px;overflow-y:auto"></div>
+          </div>
+
           <div class="row g-2">
             <div class="col-6">
               <label class="form-label fw-semibold" style="font-size:.78rem">Population at Risk</label>
               <input type="number" class="form-control form-control-sm" id="inPop" value="10000" min="1"/>
+              <div id="cityPopNote" style="display:none;font-size:.62rem;color:#94a3b8;margin-top:.2rem;line-height:1.3">📊 GeoNames census data — adjust for current conflict displacement</div>
             </div>
             <div class="col-6">
               <div class="mb-1">
@@ -628,7 +638,7 @@ a:hover { color: #0086be !important; }
               Conflict Pattern
               <i class="fas fa-circle-question ms-1 rc-info"
                  data-bs-toggle="tooltip" data-bs-placement="right"
-                 data-bs-title="Conflict pattern determines what fraction of the population at risk is directly exposed to lethal conditions at any given time. Urban sieges expose the entire population; regional conflicts may directly expose only 10–20%. Sources: derived from calibration against 10 historical conflict cases (ERCF Historical Case Database 1995–2024). Use Auto to derive exposure from D1 Kinetic Threat and population size."
+                 data-bs-title="Conflict pattern determines what fraction of the population at risk is directly exposed to lethal conditions at any given time. Urban sieges expose the entire population; regional conflicts may directly expose only 10–20%. Sources: derived from calibration against 31 documented cases (16 calibration set, ERCF Historical Case Database 1991–2024). Use Auto to derive exposure from D1 Kinetic Threat and population size."
                  style="cursor:help;font-size:.68rem;color:#94a3b8;vertical-align:middle"></i>
               <div style="font-size:.65rem;color:#888;font-weight:400">Population exposure to direct fire · mortality modifier</div>
             </label>
@@ -1281,7 +1291,7 @@ a:hover { color: #0086be !important; }
 
           <!-- Infrastructure-denial multiplier note (shown automatically when D6 ≥ 4.0) -->
           <div id="infraDenialNote" style="display:none;font-size:.65rem;color:#7c2d12;margin-top:.3rem;padding:.3rem .5rem;background:#fff7ed;border-radius:4px;border-left:2px solid #ea580c">
-            ⚠ Infrastructure denial multiplier applied (α=1.421) — D6 ≥ 4.0 + D1 ≥ 4.5 + D4 ≥ 4.0: systematic destruction of civilian survival infrastructure as a method of warfare (ref: Mariupol, Vukovar, Huambo).
+            ⚠ Infrastructure denial multiplier applied (α=0.4251) — D1 ≥ 4.5 + D4 ≥ 4.0: systematic destruction of civilian survival infrastructure as a method of warfare (ref: Mariupol, Aleppo, Vukovar, Huambo).
           </div>
 
           <!-- Statistical validity note -->
@@ -1712,7 +1722,7 @@ a:hover { color: #0086be !important; }
           <span class="ref-tag ref-tag-risk">Risk</span>
           <div>
             <strong>Sphere Association.</strong> <em>The Sphere Handbook</em>, 4th edition. Geneva, 2018.
-            — 15 L water/person/day · 2,100 kcal/person/day · 3.5 m² shelter/person
+            — 20 L water/person/day (UNHCR full standard) · 2,100 kcal/person/day · 3.5 m² shelter/person
             <a href="https://spherestandards.org/handbook/" target="_blank" rel="noopener" class="ref-link"><i class="fas fa-external-link-alt"></i></a>
           </div>
         </div>
@@ -2125,7 +2135,7 @@ a:hover { color: #0086be !important; }
           <li><strong>Base rates by level (v7):</strong> L0: 0.0078%/day · L1: 0.0096%/day · L2: 0.0363%/day · L3: 0.0181%/day · L4: 0.0100%/day (optimised via differential_evolution, 16 calibration cases)</li>
           <li><strong>Injury ratio:</strong> 4:1 injuries per death (ICRC field data, standard planning assumption)</li>
           <li><strong>Calibration (v7):</strong> Tested against 16 of 31 conflict cases (15 out-of-scope). 7/16 within 2× (44%). R²=0.855, LOOCV R²=0.807, p&lt;0.00001. L3: Strong (R²=0.958, 56% within 2×). L4: Moderate (R²=0.624, 29% within 2×). Srebrenica, Kosovo, CAR, Raqqa, Sudan, Sarajevo, and 9 others excluded — out-of-scope (genocide, open-corridor displacement, regional dispersed, duration &gt;90 days, structural model limitations, or insufficient data). Eastern Ghouta (2018) and Pillar of Defense (2012) included as documented challenge/boundary cases.</li>
-          <li><strong>Infrastructure-denial multiplier (v6):</strong> Applied to 3 documented cases (Mariupol, Vukovar, Huambo) where starvation or hospital destruction was documented as deliberate method of warfare. α=1.421, activates only when D1≥4.5 AND D4≥4.0 AND infra_denial_flag=True. Sources: GRC 'The Hope Left Us' (2024); UN CoI Syria (2017); ICTY Vukovar proceedings.</li>
+          <li><strong>Infrastructure-denial multiplier (v7):</strong> Applied to 4 documented cases (Mariupol, Aleppo, Vukovar, Huambo) where starvation or hospital destruction was documented as deliberate method of warfare. α=0.4251 (optimised jointly with base rates via differential_evolution, 16 cases), activates only when D1≥4.5 AND D4≥4.0 AND infra_denial_flag=True. Sources: GRC 'The Hope Left Us' (2024); UN CoI Syria (2017); ICTY Vukovar proceedings; HRW/Amnesty Angola (1994/1996).</li>
         </ul>
         <div style="background:#f8fafc;border:1px solid #dde3ec;border-radius:5px;padding:.6rem .9rem;margin-top:.6rem;font-size:.74rem">
           <strong style="color:#003F87;font-size:.76rem">Complete Statistical Validation — ERCF Mortality v7 (N=16)</strong>
@@ -2195,7 +2205,7 @@ a:hover { color: #0086be !important; }
         <table style="width:100%;border-collapse:collapse;font-size:.78rem;margin-bottom:.8rem">
           <thead><tr style="background:#f2f5f9"><th style="padding:.3rem .5rem;text-align:left;color:#6b7c93;font-size:.7rem;text-transform:uppercase">Parameter</th><th style="padding:.3rem .5rem;text-align:left">Value</th><th style="padding:.3rem .5rem;text-align:left">Source</th><th style="padding:.3rem .5rem;text-align:left">Quality</th></tr></thead>
           <tbody>
-            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">Water</td><td>15 L/person/day</td><td>Sphere Handbook 2018</td><td><span style="color:#0a6e50">Validated</span></td></tr>
+            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">Water</td><td>20 L/person/day (UNHCR full standard; Sphere 2018 minimum: 7.5–15 L)</td><td>UNHCR WASH Manual; Sphere Handbook 2018</td><td><span style="color:#0a6e50">Validated</span></td></tr>
             <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">Food</td><td>0.45 kg/person/day (~2,100 kcal, Sphere 2018)</td><td>Sphere Handbook 2018 (dry-weight conversion estimated)</td><td><span style="color:#d97706">Estimated</span></td></tr>
             <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">Tent ratio</td><td>1 tent per 5 people × D5 multiplier (0.5–2.0)</td><td>Sphere 2018 (ratio); D5 multiplier estimated</td><td><span style="color:#d97706">Estimated</span></td></tr>
             <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">Fuel cost</td><td>$1.20/L base</td><td>ACAPS Yemen Analysis Hub, Sep 2022</td><td><span style="color:#d97706">Estimated</span></td></tr>
@@ -2220,7 +2230,7 @@ a:hover { color: #0086be !important; }
           <li><strong>Base supply cost:</strong> $3.50/person/day (UNHCR Baseline Operational Cost, existing ERCF anchor)</li>
           <li><strong>Access overhead:</strong> scaled by D4 (logistics penalty +10–60%), D3 (access +10%), D7 (coordination +5%), and terrain multiplier</li>
           <li><strong>Emergency extraction probability:</strong> modelled as 1 − exp(−k × days), calibrated against Mariupol, Aleppo, Mosul, DRC, and CAR cases. D1 and D3 modulate the probability.</li>
-          <li><strong>Field medical cost:</strong> $1,200/injury base (WHO Emergency Health cluster), scaled by D5 destination medical capacity (×1.0 at D5=5 to ×2.0 at D5=1).</li>
+          <li><strong>Field medical cost:</strong> $800/injury base (peer-reviewed range $211–$1,013; MSF Nigeria 2009, inflation-adjusted). Scaled by D5 destination medical capacity (×1.0 at D5=5 to ×2.0 at D5=1). Source: Chagomerana et al. PLOS Global Public Health 2024; Gosselin et al. World Journal of Surgery 2010.</li>
           <li><strong>Financial estimate (separate):</strong> Risk-scaled survival estimate $1–$12/person/day by level — simpler model used for the time-series chart only, not for the full assistance cost.</li>
         </ul>
 

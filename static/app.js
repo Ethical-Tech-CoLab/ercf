@@ -79,10 +79,11 @@ const LEVEL_COLORS = ['#6c757d','#0ea5e9','#f59e0b','#f97316','#ef4444'];
 // Level 1=critical impediment (×4.0) … Level 5=minimal/baseline (×1.0)
 const TERRAIN_MULT = { 1: 4.0, 2: 2.5, 3: 1.7, 4: 1.2, 5: 1.0 };
 
-// Infrastructure-denial mortality multiplier — v6 calibration
-// Source: GRC Mariupol 2024; UN CoI Syria 2017; ICTY Vukovar proceedings
-// alpha=1.421, activates only when D1>=4.5 AND D4>=4.0
-const INFRA_DENIAL_ALPHA        = 1.421;
+// Infrastructure-denial mortality multiplier — v7 calibration
+// Source: GRC Mariupol 2024; UN CoI Syria 2017; ICTY Vukovar proceedings; HRW/Amnesty Angola 1994/1996
+// v7 calibration: α=0.4251 (optimised jointly with base rates, differential_evolution, 16 cases)
+// Applied to 4 cases: Mariupol, Aleppo, Vukovar, Huambo (infra_denial_flag=True in historical_data.py)
+const INFRA_DENIAL_ALPHA        = 0.4251;
 const INFRA_DENIAL_D1_THRESHOLD = 4.5;
 const INFRA_DENIAL_D4_THRESHOLD = 4.0;
 
@@ -389,7 +390,9 @@ function calcResources(pop, vulPct, riskLevel, distKm, d2Mobility, terrain, clim
                : d2 <= 4 ? 1.3 + (d2 - 3) * 0.5
                :            1.8 + (d2 - 4) * 0.7;
   const medBus  = Math.ceil(vuln / 20 * d2Mult);
-  const ambu    = Math.max(1, Math.ceil(vuln * 0.05 / 2 * d2Mult));
+  // Revised from 1:40 to 1:150 vulnerable. No published field standard found (ICRC 2015, WHO EMS,
+  // MSF — none specify evacuation ambulance ratios). 1:150 consistent with documented field scarcity.
+  const ambu    = Math.max(1, Math.ceil(vuln / 150 * d2Mult));
   const totVeh  = stdBus + medBus + ambu;
   const secR    = [99999, 500, 200, 100, 50][riskLevel];
   const sec     = riskLevel > 0 ? Math.ceil(pop / secR) : 0;
@@ -425,7 +428,8 @@ function calcResources(pop, vulPct, riskLevel, distKm, d2Mobility, terrain, clim
     water:     Math.round(waterL * 0.05),
     // TENT_COST $150→$380 (Tavily validation June 2026; UNHCR 2022 direct quote: $400/unit)
     shelter:   Math.round(tents * 380 * climateShelterMult),
-    medical:   Math.round(mkits*50 + tkits*200),
+    // MED_KIT_COST updated $50→$21/kit: WHO/UNICEF IEHK ~$20,584/10,000 pax/90d × 3d × ×3 trauma factor
+    medical:   Math.round(mkits*21 + tkits*200),
     comms:     Math.round(radios * 500),
   };
   const sub = Object.values(c).reduce((a, b) => a + b, 0);
@@ -496,10 +500,10 @@ function calcInjuries(pop, riskLevel, days) {
 function calcStay(pop, riskLevel, maxDays, dims, remainingPct = 1.0, exposureFactor = 1.0, siegeCapEnabled = true) {
   const base     = [1.0, 2.0, 3.5, 6.0, 12.0][riskLevel];
 
-  // CALIBRATION v5: L3 raised ×4 (0.00003 → 0.00012) based on 13-case calibration
-  // (excl. Srebrenica as genocide boundary case). Improves within-2x from 2/13 to 8/13.
-  // Sources: ICTY/HRW/Amnesty documented cases 1992-2024.
-  const baseRate = [0.3, 0.5, 0.8, 6.0, 4.0][riskLevel] / 10000;  // v5: L3 raised ×4
+  // CALIBRATION v7: differential_evolution on 16 in-scope cases (31 total corpus).
+  // R²=0.855, LOOCV R²=0.807, 7/16 within 2× (44%). L3>L4 empirically validated.
+  // Sources: ERCF Historical Case Database 1991–2024; calibration/full_calibration.py
+  const baseRate = [0.777, 0.964, 3.625, 1.805, 1.000][riskLevel] / 10000;  // v7: differential_evolution
 
   // Confinement modifier + extract d1/d3/d4/d6 for siege detection and infra-denial
   let confMult = 1.0;
@@ -598,7 +602,7 @@ function calcRemaining(pop, vulPct, riskLevel, days, distKm, dims, terrain, clim
   const perPsnGround = UNHAS_RATE * 0.30 * distKm;
   const perPsnAir    = UNHAS_RATE * 3.00 * distKm;
 
-  // Empirical exponential saturation — calibrated from 10 historical cases.
+  // Empirical exponential saturation — calibrated from ERCF Historical Case Database (31 cases, 16 in calibration set).
   // Rate k = −ln(1−p)/days derived per level:
   //   L4: Mariupol (86d,81%→k=0.019) + Aleppo (100d,90%→k=0.023) → mean 0.021
   //   L3: Mosul (270d,90%→k=0.009) + DRC (180d,80%→k=0.009) + CAR (180d,88%→k=0.012) → mean 0.010
@@ -799,7 +803,7 @@ const COST_CONF = {
   water:             { conf: 'validated',   label: 'Water',               note: 'Updated 15→20 L/person/day (Tavily validation June 2026). UNHCR full planning standard: 20 L/person/day. Sphere 2018 emergency minimum: 7.5–15 L/person/day. Using UNHCR full standard for evacuation planning.' },
   shelter:           { conf: 'estimated',   label: 'Shelter',
     note: 'Quantity: Sphere 2018-consistent (3.5 m²/person × 5 pp/tent = 17.5 m²). Unit cost updated $150→$380 (Tavily validation June 2026). Source: The New Humanitarian Dec 2022 — direct UNHCR quote: "$400 to replace"; UNHCR Shelter Design Catalogue Jan 2016: $229/unit (incl. transport+labour). $380 = conservative 2024 estimate. Prior $150 = basic tarpaulin (short-duration only). Dominates subtotal.' },
-  medical:           { conf: 'estimated',   label: 'Medical supplies',    note: 'Estimated from Sphere-adjacent ratios (1:250–1:500)' },
+  medical:           { conf: 'estimated',   label: 'Medical supplies',    note: 'Medical staff ratio 1:250 (Sphere 2018 Health chapter). Kit cost $21/kit (WHO/UNICEF IEHK anchor, PMC5321368, 2017).' },
   comms:             { conf: 'estimated',   label: 'Communications',
     note: 'Partially validated June 2026. Professional humanitarian VHF radio (Motorola DP/Icom IC-F series): $350–$700/unit at procurement (ETC Sudan SitRep Jan 2024 confirms VHF as standard field unit). Satellite phone airtime: $1–$2/min (Access Partnership 2022). $500/radio is within documented procurement range.' },
   contingency_15pct: { conf: 'estimated',   label: 'Contingency (15%)',
@@ -1480,6 +1484,80 @@ async function suggestVulnerablePct(countryName) {
   } catch (_) {
     el.style.display = 'none';
   }
+}
+
+// ── City population lookup (GeoNames) ────────────────────────────────────────
+let _cityDebounceTimer = null;
+
+function onCityInput(val) {
+  console.log('[ERCF] City input triggered:', val);
+  clearTimeout(_cityDebounceTimer);
+  const el = document.getElementById('cityPopSuggestions');
+  if (!val || val.trim().length < 2) {
+    if (el) el.style.display = 'none';
+    return;
+  }
+  _cityDebounceTimer = setTimeout(() => fetchCityPopulation(val.trim()), 600);
+}
+
+// Event delegation — works regardless of when the tab/element is first rendered
+document.addEventListener('input', function(e) {
+  if (e.target && e.target.id === 'inCity') {
+    console.log('[ERCF] City input triggered (delegated):', e.target.value);
+    onCityInput(e.target.value);
+  }
+});
+
+async function fetchCityPopulation(city) {
+  const el = document.getElementById('cityPopSuggestions');
+  if (!el) return;
+  el.style.display = 'block';
+  el.innerHTML = '<div style="font-size:.67rem;color:#94a3b8;padding:.2rem 0"><i class="fas fa-spinner fa-spin me-1"></i>Searching…</div>';
+  try {
+    const resp = await fetch(`/api/city-population/${encodeURIComponent(city)}`);
+    if (!resp.ok) {
+      el.innerHTML = '<div style="font-size:.67rem;color:#94a3b8;padding:.2rem 0">City not found — enter population manually</div>';
+      return;
+    }
+    const data = await resp.json();
+    const items = (data.results || []).map(r => {
+      const region = r.adminName1 ? `, ${r.adminName1}` : '';
+      const label  = `${r.name}, ${r.country}${region} — ${r.population.toLocaleString()}`;
+      return `<button type="button" onclick='applyCityPop(${JSON.stringify(r)})'
+                style="display:block;width:100%;text-align:left;background:#f8fafc;border:1px solid #e2e8f0;
+                       border-radius:5px;padding:.3rem .55rem;font-size:.68rem;color:#1e3a5f;
+                       margin-bottom:.25rem;cursor:pointer;line-height:1.3"
+                onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='#f8fafc'">
+                🏙️ ${label}
+              </button>`;
+    });
+    el.innerHTML = items.length
+      ? items.join('')
+      : '<div style="font-size:.67rem;color:#94a3b8;padding:.2rem 0">No results with population data — enter manually</div>';
+  } catch(_) {
+    el.innerHTML = '<div style="font-size:.67rem;color:#94a3b8;padding:.2rem 0">City lookup unavailable — enter population manually</div>';
+  }
+}
+
+function applyCityPop(r) {
+  const popEl  = document.getElementById('inPop');
+  const noteEl = document.getElementById('cityPopNote');
+  const sugEl  = document.getElementById('cityPopSuggestions');
+  const cityEl = document.getElementById('inCity');
+  if (popEl) {
+    popEl.value = r.population;
+    state.population = r.population;
+  }
+  if (cityEl) cityEl.value = `${r.name}, ${r.country}`;
+  if (noteEl) noteEl.style.display = 'block';
+  if (sugEl)  sugEl.style.display  = 'none';
+  // Store city coordinates so "Set on Map" modal can pre-populate the conflict pin
+  state.cityName = `${r.name}, ${r.country}`;
+  state.cityLat  = r.lat;
+  state.cityLng  = r.lng;
+  // Optionally trigger demographic suggestion for the country
+  if (r.country) suggestVulnerablePct(r.country);
+  updateAll();
 }
 
 function onTransportModeChange() {
@@ -3274,6 +3352,19 @@ document.getElementById('pinModal').addEventListener('shown.bs.modal', () => {
     updatePinLine();
   }
 
+  // Pre-populate conflict location from City/Area field (Scenario Builder → Set on Map)
+  if (state.cityName && state.cityLat != null && state.cityLng != null) {
+    const searchEl = document.getElementById('pinLocationSearch');
+    if (searchEl) searchEl.value = state.cityName;
+    // Zoom to city and place conflict pin if not already set
+    if (!pinMapState.conflictMarker) {
+      pinMapState.lmap.setView([state.cityLat, state.cityLng], 7);
+      _placePinConflict(state.cityLat, state.cityLng);
+      pinMapState.cPin = pinMapState.conflictMarker?.getLatLng();
+      updatePinLine();
+    }
+  }
+
   _updatePinConfirmBtn();
   document.getElementById('pinLocationSearch').focus();
 });
@@ -4697,6 +4788,7 @@ async function init() {
 
 document.addEventListener('DOMContentLoaded', init);
 
+// ── Map View — origin pin guidance message ────────────────────────────────────
 document.getElementById('worldSearch').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); searchWorldMap(); }
 });

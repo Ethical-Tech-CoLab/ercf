@@ -234,6 +234,67 @@ async def historical_one(cid: int):
     raise HTTPException(404, "Not found")
 
 
+# ─── GeoNames city population lookup ─────────────────────────────────────────
+
+GEONAMES_USERNAME = os.getenv("GEONAMES_USERNAME", "demo")
+
+@app.get("/api/city-population/{city_name}")
+async def city_population(city_name: str):
+    import urllib.request, urllib.parse, json as _json
+    url = (
+        f"http://api.geonames.org/searchJSON"
+        f"?q={urllib.parse.quote(city_name)}"
+        f"&maxRows=20&featureClass=P&orderby=population"
+        f"&username={GEONAMES_USERNAME}"
+    )
+    try:
+        req = urllib.request.Request(url, headers={"Accept": "application/json"})
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            data = _json.loads(resp.read().decode())
+    except Exception as e:
+        raise HTTPException(503, f"GeoNames unavailable: {e}")
+
+    q_lower = city_name.lower().strip()
+    all_with_pop = [g for g in data.get("geonames", []) if (g.get("population") or 0) > 0]
+
+    # Prioritise exact name matches, then partial matches, then fall back to highest population
+    def _score(g):
+        name = (g.get("name") or "").lower()
+        topo = (g.get("toponymName") or "").lower()
+        if name == q_lower or topo == q_lower:
+            return 0       # exact match
+        if name.startswith(q_lower) or topo.startswith(q_lower):
+            return 1       # prefix match
+        if q_lower in name or q_lower in topo:
+            return 2       # substring match
+        return 3           # no name match — probably a nearby place
+
+    ranked = sorted(all_with_pop, key=lambda g: (_score(g), -g.get("population", 0)))
+
+    results = []
+    seen_names = set()
+    for g in ranked:
+        key = (g.get("name", "").lower(), g.get("countryCode", ""))
+        if key in seen_names:
+            continue
+        seen_names.add(key)
+        results.append({
+            "name":        g.get("name", ""),
+            "country":     g.get("countryName", ""),
+            "countryCode": g.get("countryCode", ""),
+            "adminName1":  g.get("adminName1", ""),
+            "population":  g.get("population", 0),
+            "lat":         float(g.get("lat", 0)),
+            "lng":         float(g.get("lng", 0)),
+        })
+        if len(results) == 3:
+            break
+
+    if not results:
+        raise HTTPException(404, f"No populated city found for '{city_name}'")
+    return {"results": results}
+
+
 # ─── Demographics ─────────────────────────────────────────────────────────────
 
 @app.get("/api/demographics/{country_name}")
