@@ -827,14 +827,18 @@ a:hover { color: #0086be !important; }
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.4rem;margin-bottom:.55rem" id="decisionStats">
           <div style="background:#fef2f2;border-radius:6px;padding:.35rem .5rem">
-            <div style="font-size:.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em">Evacuate now</div>
+            <div id="decisionEvacLabel" style="font-size:.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em">Evacuate now</div>
             <div id="decisionEvacCost" style="font-size:1rem;font-weight:800;color:#dc2626">—</div>
-            <div style="font-size:.6rem;color:#94a3b8">one-time cost</div>
+            <div style="font-size:.6rem;color:#94a3b8">one-time evac cost</div>
+            <div id="decisionEvacDailyWrap">
+              <div id="decisionEvacDaily" style="font-size:.72rem;font-weight:700;color:#dc2626;margin-top:.2rem">—</div>
+              <div style="font-size:.6rem;color:#94a3b8">ongoing assist/day</div>
+            </div>
           </div>
           <div style="background:#eff6ff;border-radius:6px;padding:.35rem .5rem">
-            <div style="font-size:.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em">Cost of remaining</div>
-            <div id="decisionDailyCost" style="font-size:1rem;font-weight:800;color:#2563eb">—</div>
-            <div style="font-size:.6rem;color:#94a3b8">per day (growing)</div>
+            <div style="font-size:.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em">No evacuation</div>
+            <div id="decisionNoEvacCost" style="font-size:1rem;font-weight:800;color:#2563eb">—</div>
+            <div style="font-size:.6rem;color:#94a3b8">assist all in zone/day</div>
           </div>
           <div style="background:#f0fdf4;border-radius:6px;padding:.35rem .5rem">
             <div style="font-size:.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em">Break-even</div>
@@ -842,11 +846,11 @@ a:hover { color: #0086be !important; }
             <div id="decisionBreakEvenSub" style="font-size:.6rem;color:#94a3b8">define scenario above</div>
           </div>
         </div>
-        <div style="position:relative;height:110px">
+        <div id="decisionChartWrap" style="position:relative;height:110px">
           <canvas id="decisionChart"></canvas>
         </div>
-        <p style="font-size:.61rem;color:#94a3b8;margin:.45rem 0 0 0;line-height:1.4;font-style:italic">
-          This analysis compares one-time evacuation cost against cumulative in-zone assistance cost. It does not account for escalating risk over time, changing D-scores, or the cost of delayed evacuation under deteriorating conditions. Financial cost estimates are substantially more reliable than mortality projections.
+        <p id="decisionNote" style="font-size:.61rem;color:#94a3b8;margin:.45rem 0 0 0;line-height:1.4;font-style:italic">
+          Option A: one-time evacuation cost + daily assistance for population remaining in zone. Option B: daily assistance for full population with no evacuation. Break-even: the day at which not evacuating becomes more expensive than having evacuated. Assumes static conflict conditions and costs.
         </p>
       </div>
 

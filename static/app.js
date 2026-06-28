@@ -1000,12 +1000,15 @@ function updateAll() {
     : 0;
   updateRemainingCostCard(remaining, resources.totalCost, evacuatedCost);
 
-  // Decision analysis: compare one-time evacuation cost vs daily in-zone assistance cost
-  // dailyFin from calcStay = BASE_DAILY_COST[level] × remainingPop (risk-scaled survival only)
-  // This matches the "Financial (USD)" stat card — the survival-cost component, not full delivery cost
+  // Decision analysis — Option A (evacuate now + assist remaining) vs Option B (assist all in zone)
   const BASE_DAILY = [1.0, 2.0, 3.5, 6.0, 12.0];
-  const dailyAssist = (BASE_DAILY[risk.level] ?? 3.5) * (state.remainingPop || 0);
-  updateDecisionAnalysis(resources.totalCost, dailyAssist);
+  const _dailyCostA = (state.days > 0 && remaining.total > 0)
+    ? remaining.total / state.days
+    : (BASE_DAILY[risk.level] ?? 3.5) * (state.remainingPop || 0);
+  const _dailyCostB = state.remainingPop > 0
+    ? _dailyCostA * ((state.population || 0) / state.remainingPop)
+    : (BASE_DAILY[risk.level] ?? 3.5) * (state.population || 0);
+  updateDecisionAnalysis(evacuatedCost, _dailyCostA, _dailyCostB);
 
   const _tMode = document.getElementById('transportMode')?.value ?? 'ground';
   renderTransportWarnings(_tMode, state.dims, state.population);
@@ -1728,40 +1731,67 @@ function renderAltModeResult(data, container) {
 }
 
 // ── Decision Analysis: Act Now vs Wait ────────────────────────────────────────
-function updateDecisionAnalysis(evacCost, dailyAssistCost) {
-  const elEvac      = document.getElementById('decisionEvacCost');
-  const elDaily     = document.getElementById('decisionDailyCost');
-  const elBreakEven = document.getElementById('decisionBreakEven');
-  const elBESub     = document.getElementById('decisionBreakEvenSub');
-  if (!elEvac) return;
+function updateDecisionAnalysis(evacCost, dailyCostA, dailyCostB) {
+  const elEvacCost      = document.getElementById('decisionEvacCost');
+  const elEvacLabel     = document.getElementById('decisionEvacLabel');
+  const elEvacDaily     = document.getElementById('decisionEvacDaily');
+  const elEvacDailyWrap = document.getElementById('decisionEvacDailyWrap');
+  const elNoEvac        = document.getElementById('decisionNoEvacCost');
+  const elBreakEven     = document.getElementById('decisionBreakEven');
+  const elBESub         = document.getElementById('decisionBreakEvenSub');
+  const elNote          = document.getElementById('decisionNote');
+  if (!elEvacCost) return;
 
-  if (!evacCost || !dailyAssistCost || dailyAssistCost <= 0) {
-    elEvac.textContent      = '—';
-    elDaily.textContent     = '—';
+  const fullEvac = state.remainingPop === 0 && evacCost > 0;
+
+  if (elEvacLabel)     elEvacLabel.textContent              = fullEvac ? 'Evacuate all now' : 'Evacuate now';
+  if (elEvacDailyWrap) elEvacDailyWrap.style.display        = fullEvac ? 'none' : '';
+  if (elNote) elNote.textContent = fullEvac
+    ? 'Full evacuation scenario: compares one-time cost of evacuating entire population against cumulative daily assistance cost if no evacuation occurs.'
+    : 'Option A: one-time evacuation cost + daily assistance for population remaining in zone. Option B: daily assistance for full population with no evacuation. Break-even: the day at which not evacuating becomes more expensive than having evacuated. Assumes static conflict conditions and costs.';
+
+  if (!dailyCostB || dailyCostB <= 0) {
+    elEvacCost.textContent  = '—';
+    if (elEvacDaily) elEvacDaily.textContent = '—';
+    elNoEvac.textContent    = '—';
     elBreakEven.textContent = '—';
     elBESub.textContent     = 'define scenario above';
-    _renderDecisionChart(null, null, null);
+    _renderDecisionChart(null, null, null, null);
     return;
   }
 
-  const breakEvenDay = Math.ceil(evacCost / dailyAssistCost);
-  elEvac.textContent  = '$' + fmt(Math.round(evacCost));
-  elDaily.textContent = '$' + fmt(Math.round(dailyAssistCost)) + '/day';
+  elEvacCost.textContent = '$' + fmt(Math.round(evacCost));
+  if (elEvacDaily) elEvacDaily.textContent = '+ $' + fmt(Math.round(dailyCostA)) + '/day';
+  elNoEvac.textContent   = '$' + fmt(Math.round(dailyCostB)) + '/day';
 
+  const diff = dailyCostB - dailyCostA;
+  if (diff <= 0) {
+    elBreakEven.textContent = 'No break-even';
+    elBESub.textContent     = 'Evacuation is always more expensive in this scenario';
+    elBreakEven.style.color = '#d97706';
+    _renderDecisionChart(evacCost, dailyCostA, dailyCostB, null);
+    return;
+  }
+
+  const breakEvenDay = Math.ceil(evacCost / diff);
   if (breakEvenDay > 90) {
     elBreakEven.textContent = '>90 days';
-    elBESub.textContent     = 'Beyond planning window — evacuation still recommended on risk grounds';
+    elBESub.textContent     = fullEvac
+      ? 'Beyond 90 days — evacuating everyone was still cheaper long-term'
+      : 'Beyond planning window — evacuation recommended on risk grounds';
     elBreakEven.style.color = '#d97706';
   } else {
     elBreakEven.textContent = 'Day ' + breakEvenDay;
-    elBESub.textContent     = 'after day ' + breakEvenDay + ', evacuation is lower-cost';
+    elBESub.textContent     = fullEvac
+      ? 'after this point, evacuating everyone was cheaper'
+      : 'after day ' + breakEvenDay + ', evacuation was the lower-cost decision';
     elBreakEven.style.color = '#16a34a';
   }
 
-  _renderDecisionChart(evacCost, dailyAssistCost, breakEvenDay);
+  _renderDecisionChart(evacCost, dailyCostA, dailyCostB, breakEvenDay);
 }
 
-function _renderDecisionChart(evacCost, dailyAssistCost, breakEvenDay) {
+function _renderDecisionChart(evacCost, dailyCostA, dailyCostB, breakEvenDay) {
   const canvas = document.getElementById('decisionChart');
   if (!canvas) return;
 
@@ -1770,15 +1800,16 @@ function _renderDecisionChart(evacCost, dailyAssistCost, breakEvenDay) {
     state.charts._decision = null;
   }
 
-  if (!evacCost || !dailyAssistCost) return;
+  if (!dailyCostB) return;
 
-  const DAYS = 90;
-  const labels  = Array.from({length: DAYS}, (_, i) => i + 1);
-  const cumCost = labels.map(d => Math.round(dailyAssistCost * d));
-  const evacLine = labels.map(() => Math.round(evacCost));
+  const DAYS  = 90;
+  const labels = Array.from({length: DAYS}, (_, i) => i + 1);
+  // Option A: evacCost (one-time) + dailyCostA × day
+  const lineA  = labels.map(d => Math.round((evacCost || 0) + dailyCostA * d));
+  // Option B: dailyCostB × day (no upfront cost)
+  const lineB  = labels.map(d => Math.round(dailyCostB * d));
 
-  // Annotation point for break-even (clamped to 90)
-  const beDay = Math.min(breakEvenDay, DAYS);
+  const beDay = breakEvenDay != null ? Math.min(breakEvenDay, DAYS) : null;
 
   state.charts._decision = new Chart(canvas.getContext('2d'), {
     type: 'line',
@@ -1786,18 +1817,17 @@ function _renderDecisionChart(evacCost, dailyAssistCost, breakEvenDay) {
       labels,
       datasets: [
         {
-          label: 'Evacuation cost (one-time)',
-          data: evacLine,
+          label: 'Option A — Evacuate now + assist remaining',
+          data: lineA,
           borderColor: '#dc2626',
           backgroundColor: 'rgba(220,38,38,.06)',
           borderWidth: 2,
-          borderDash: [5, 3],
           pointRadius: 0,
           fill: false,
         },
         {
-          label: 'Cumulative in-zone cost',
-          data: cumCost,
+          label: 'Option B — No evacuation, assist all in zone',
+          data: lineB,
           borderColor: '#2563eb',
           backgroundColor: 'rgba(37,99,235,.08)',
           borderWidth: 2,
@@ -1840,10 +1870,9 @@ function _renderDecisionChart(evacCost, dailyAssistCost, breakEvenDay) {
       },
     },
     plugins: [{
-      // Vertical break-even marker
       id: 'beMarker',
       afterDraw(chart) {
-        if (breakEvenDay > DAYS) return;
+        if (beDay == null) return;
         const { ctx, scales: { x, y } } = chart;
         const xPx = x.getPixelForValue(beDay - 1);
         const top  = y.top;
