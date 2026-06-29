@@ -144,7 +144,7 @@ The v7 parameters were derived by running Variant B against 16 in-scope cases:
 
 ## Academic Context
 
-Developed by Yago Rocha in collaboration with the Microsoft Ethical Tech CoLab. Presented to Teresa Cantero (NYU) as part of research on IHL civilian protection and evacuation decision-support frameworks.
+Developed by Yago Rocha in collaboration with the Microsoft Ethical Tech CoLab. Presented to Teresa Cantero, PhD Researcher, as part of research on IHL civilian protection and evacuation decision-support frameworks.
 
 **This tool does not constitute operational advice.** All estimates require validation against country-specific intelligence and field assessment before any operational application.
 
