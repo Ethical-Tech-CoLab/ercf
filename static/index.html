@@ -494,6 +494,11 @@ a:hover { color: #0086be !important; }
               style="font-size:.7rem;border-color:rgba(255,255,255,.35);opacity:.85">
         <i class="fas fa-book-open me-1"></i>Sources
       </button>
+      <button class="btn btn-sm btn-outline-light"
+              data-bs-toggle="modal" data-bs-target="#aboutModal"
+              style="font-size:.7rem;border-color:rgba(255,255,255,.35);opacity:.85">
+        <i class="fas fa-file-alt me-1"></i>About
+      </button>
       <span class="badge bg-light text-dark" id="globalRiskBadge">LEVEL — / SCORE —</span>
     </div>
   </div>
@@ -1869,6 +1874,69 @@ a:hover { color: #0086be !important; }
   </div>
 </div><!-- /referencesModal -->
 
+<!-- ══════════════════ ABOUT MODAL ══════════════════ -->
+<div class="modal fade" id="aboutModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-scrollable" style="max-width:800px">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(135deg,#1a237e,#283593);color:#fff;border-radius:6px 6px 0 0">
+        <h5 class="modal-title" style="font-size:.95rem;font-weight:800;letter-spacing:.03em">
+          <i class="fas fa-file-alt me-2"></i>ERCF — Evacuation Risk and Cost Framework
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="font-size:.82rem;line-height:1.65;padding:1.2rem 1.4rem">
+        <div id="aboutModalContent" style="color:#1a2940">
+          <div style="text-align:center;padding:2rem;color:#94a3b8;font-size:.8rem">
+            <i class="fas fa-spinner fa-spin me-2"></i>Loading…
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:.6rem 1.2rem">
+        <span style="font-size:.68rem;color:#94a3b8;flex:1">ERCF v7.2 · June 2026</span>
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div><!-- /aboutModal -->
+
+<style>
+#aboutModalContent h1 { font-size:1.15rem; font-weight:800; color:#003F87; margin-top:1.2rem; margin-bottom:.4rem; }
+#aboutModalContent h2 { font-size:.95rem; font-weight:700; color:#003F87; border-bottom:1px solid #dde3ec; padding-bottom:.25rem; margin-top:1rem; margin-bottom:.4rem; }
+#aboutModalContent h3 { font-size:.85rem; font-weight:700; color:#1a2940; margin-top:.8rem; margin-bottom:.3rem; }
+#aboutModalContent p  { margin-bottom:.5rem; }
+#aboutModalContent ul, #aboutModalContent ol { padding-left:1.2rem; margin-bottom:.5rem; }
+#aboutModalContent li { margin-bottom:.2rem; }
+#aboutModalContent table { width:100%; border-collapse:collapse; font-size:.75rem; margin-bottom:.75rem; }
+#aboutModalContent th { background:#f0f4f8; padding:.25rem .5rem; text-align:left; font-weight:600; border-bottom:2px solid #dde3ec; }
+#aboutModalContent td { padding:.22rem .5rem; border-bottom:1px solid #edf0f5; }
+#aboutModalContent code { background:#f1f5f9; border-radius:3px; padding:.05rem .3rem; font-size:.78rem; color:#1e40af; }
+#aboutModalContent pre { background:#f1f5f9; border-radius:5px; padding:.6rem .85rem; overflow-x:auto; font-size:.75rem; margin-bottom:.6rem; }
+#aboutModalContent pre code { background:none; padding:0; }
+#aboutModalContent blockquote { border-left:3px solid #009EDB; padding:.3rem .7rem; background:#f0f8ff; margin:.4rem 0; border-radius:0 4px 4px 0; }
+#aboutModalContent strong { color:#1a2940; }
+#aboutModalContent hr { border:none; border-top:1px solid #dde3ec; margin:.8rem 0; }
+</style>
+
+<script>
+(function() {
+  const modal = document.getElementById('aboutModal');
+  if (!modal) return;
+  let loaded = false;
+  modal.addEventListener('show.bs.modal', function() {
+    if (loaded) return;
+    fetch('/README.md')
+      .then(r => r.ok ? r.text() : Promise.reject(r.status))
+      .then(md => {
+        document.getElementById('aboutModalContent').innerHTML = marked.parse(md);
+        loaded = true;
+      })
+      .catch(err => {
+        document.getElementById('aboutModalContent').innerHTML =
+          '<p style="color:#dc2626">Failed to load README.md (' + err + ').</p>';
+      });
+  });
+})();
+</script>
 
 <!-- Toast -->
 <div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999">
@@ -1978,6 +2046,7 @@ a:hover { color: #0086be !important; }
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <script src="/static/app.js"></script>
 
 <!-- Methodology Modal -->

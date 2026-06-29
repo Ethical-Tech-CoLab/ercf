@@ -117,6 +117,10 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 async def root():
     return FileResponse("static/index.html")
 
+@app.get("/README.md")
+async def serve_readme():
+    return FileResponse("README.md", media_type="text/plain; charset=utf-8")
+
 
 # ─── Scenario CRUD ──────────────────────────────────────────────────────────
 
