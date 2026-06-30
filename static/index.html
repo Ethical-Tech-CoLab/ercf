@@ -505,12 +505,13 @@ a:hover { color: #0086be !important; }
 </div>
 
 <!-- Ethical disclaimer banner -->
-<div id="ethicalDisclaimer" style="background:#eff6ff;border-bottom:1px solid #bfdbfe;padding:.45rem 1.2rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem;font-size:.72rem;color:#1e3a5f">
-  <span>⚖️ This tool estimates the financial cost of humanitarian evacuation operations — to support planning, resource mobilisation, and organisational preparedness. It does not place a monetary value on human life. All cost figures represent operational logistics estimates only.</span>
-  <button type="button" onclick="dismissDisclaimer()" style="background:none;border:none;cursor:pointer;color:#1e3a5f;opacity:.6;font-size:.85rem;padding:.1rem .3rem;flex-shrink:0" aria-label="Dismiss">✕</button>
+<div id="ethicalDisclaimer" style="background:#fffbeb;border:1px solid #f59e0b;border-left:4px solid #f59e0b;border-radius:6px;padding:.6rem 1rem;margin:.5rem 1rem;position:relative;font-size:.78rem;color:#92400e;text-align:center">
+  <span>⚖️ This tool estimates evacuation logistics costs to support planning and resource mobilisation — it does not place a monetary value on human life.</span>
+  <button type="button" onclick="dismissDisclaimer()" style="position:absolute;right:.6rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#92400e;font-size:.85rem;padding:.1rem .3rem" aria-label="Dismiss">✕</button>
 </div>
 <script>
 (function() {
+  localStorage.removeItem('ercf_disclaimer_dismissed');
   if (localStorage.getItem('ercf_disclaimer_dismissed') === '1') {
     document.getElementById('ethicalDisclaimer').style.display = 'none';
   }

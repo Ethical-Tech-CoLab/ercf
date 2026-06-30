@@ -1555,9 +1555,13 @@ function applyCityPop(r) {
   if (noteEl) noteEl.style.display = 'block';
   if (sugEl)  sugEl.style.display  = 'none';
   // Store city coordinates so "Set on Map" modal can pre-populate the conflict pin
-  state.cityName = `${r.name}, ${r.country}`;
-  state.cityLat  = r.lat;
-  state.cityLng  = r.lng;
+  state.cityName        = `${r.name}, ${r.country}`;
+  state.cityLat         = r.lat;
+  state.cityLng         = r.lng;
+  state._pendingCityPin = { lat: r.lat, lng: r.lng, name: state.cityName };
+  // Abre o modal automaticamente
+  const pinModal = document.getElementById('pinModal');
+  if (pinModal) new bootstrap.Modal(pinModal).show();
   // Optionally trigger demographic suggestion for the country
   if (r.country) suggestVulnerablePct(r.country);
   updateAll();
@@ -3425,13 +3429,26 @@ document.getElementById('pinModal').addEventListener('shown.bs.modal', () => {
   } else {
     pinMapState.lmap.invalidateSize();
   }
-  // Restore existing pins
-  if (state.conflictCoords && !pinMapState.conflictMarker) {
-    _placePinConflict(state.conflictCoords.lat, state.conflictCoords.lng);
-  }
-  if (state.safeZoneCoords && !pinMapState.safeZoneMarker) {
-    _placePinSafeZone(state.safeZoneCoords.lat, state.safeZoneCoords.lng,
-                      state.safeZoneCoords.name, null);
+  // City pre-population from City/Area autocomplete — one-shot flag, takes priority
+  if (state._pendingCityPin) {
+    const { lat, lng, name } = state._pendingCityPin;
+    state._pendingCityPin = null;
+    const searchEl = document.getElementById('pinLocationSearch');
+    if (searchEl) searchEl.value = name;
+    pinMapState.lmap.setView([lat, lng], 7);
+    _placePinConflict(lat, lng);
+    _runAiSuggestion(lat, lng);
+    pinMapState.cPin = pinMapState.conflictMarker?.getLatLng();
+    updatePinLine();
+  } else {
+    // Restore existing pins
+    if (state.conflictCoords && !pinMapState.conflictMarker) {
+      _placePinConflict(state.conflictCoords.lat, state.conflictCoords.lng);
+    }
+    if (state.safeZoneCoords && !pinMapState.safeZoneMarker) {
+      _placePinSafeZone(state.safeZoneCoords.lat, state.safeZoneCoords.lng,
+                        state.safeZoneCoords.name, null);
+    }
   }
 
   // If arriving from buildScenarioFromCountry, pre-place the conflict pin
@@ -3965,6 +3982,7 @@ async function fetchClimateContext() {
 function confirmPinDistance() {
   if (!pinMapState.conflictMarker) return;
   if (!pinMapState.safeZoneMarker && !state._aiSuggestedSafeZone) return;
+
 
   const c = pinMapState.conflictMarker.getLatLng();
   state.conflictCoords = { lat: +c.lat.toFixed(5), lng: +c.lng.toFixed(5) };
