@@ -1423,10 +1423,12 @@ function getTransportWarnings(mode, dims, population) {
   if (mode === 'ground') {
     if (d4 >= 4.0) warnings.push({
       priority: 1,
+      suggestAir: true,
       text: 'Ground transport may be severely compromised — D4 indicates critical logistics constraints (destroyed roads, checkpoints, fuel shortage). Consider air evacuation or verify route viability.',
     });
     if (d1 >= 4.5) warnings.push({
       priority: 2,
+      suggestAir: true,
       text: 'High kinetic threat — ground convoys face significant exposure risk at D1≥4.5. Air evacuation or armoured ground transport may be required.',
     });
   }
@@ -1458,11 +1460,26 @@ function renderTransportWarnings(mode, dims, population) {
     return;
   }
   el.style.display = 'block';
-  el.innerHTML = warnings.map(w =>
+  const warningsHtml = warnings.map(w =>
     `<div style="background:#fefce8;border:1px solid #fde68a;border-radius:5px;padding:.3rem .5rem;font-size:.68rem;color:#78350f;margin-top:.25rem;line-height:1.4">
       <span style="font-weight:700">⚠</span> ${w.text}
     </div>`
   ).join('');
+  const airLinkHtml = warnings.some(w => w.suggestAir)
+    ? `<button type="button" onclick="scrollToAirEstimate()" style="margin-top:.3rem;font-size:.66rem;padding:.15rem .5rem;background:transparent;color:#1d4ed8;border:1px dashed #93c5fd;border-radius:4px;cursor:pointer">📊 View air evacuation cost estimate ↓</button>`
+    : '';
+  el.innerHTML = warningsHtml + airLinkHtml;
+}
+
+function scrollToAirEstimate() {
+  const altPanel = document.getElementById('altModeResourcePanel');
+  if (!altPanel) return;
+  // Reveal the air-cost reference panel without switching the Transport Mode dropdown
+  if (document.getElementById('transportMode')?.value === 'ground') {
+    altPanel.style.display = 'block';
+    fetchAltModeResult('air_fixed');
+  }
+  altPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 // ── Demographic vulnerability suggestion ──────────────────────────────────────
