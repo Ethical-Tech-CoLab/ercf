@@ -309,6 +309,114 @@ async def get_demographic_data(country_name: str):
     return data
 
 
+# ─── Commodity prices (World Bank Pink Sheet) ─────────────────────────────────
+
+EIA_API_KEY = os.getenv("EIA_API_KEY", "")
+
+# FAO FFPI fallback constant (Jan 2025, base 2014-2016=100)
+FAO_FFPI_FALLBACK       = 127.5
+FAO_FFPI_FALLBACK_DATE  = "2025-01"
+BRENT_BASELINE_BBL      = 80.0   # ERCF baseline crude proxy
+FAO_FFPI_BASELINE       = 127.5  # Jan 2025 baseline for adjustment
+
+@app.get("/api/commodity-prices/{country_iso3}")
+async def commodity_prices(country_iso3: str):
+    import urllib.request, json as _json, concurrent.futures as _cf
+
+    ERCF_BASELINE = {"fuel_l_usd": 1.20, "food_kg_usd": 3.0}
+
+    def _fetch_eia():
+        """Fetch most recent Brent crude spot price from EIA."""
+        if not EIA_API_KEY:
+            return None, ""
+        url = (
+            "https://api.eia.gov/v2/petroleum/pri/spt/data/"
+            f"?api_key={EIA_API_KEY}"
+            "&frequency=monthly&data[0]=value"
+            "&sort[0][column]=period&sort[0][direction]=desc"
+            "&offset=0&length=1&facets[series][]=RBRTE"
+        )
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "ERCF/1.0"})
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                payload = _json.loads(resp.read().decode())
+            rows = payload.get("response", {}).get("data", [])
+            if rows and rows[0].get("value") is not None:
+                return round(float(rows[0]["value"]), 2), rows[0].get("period", "")
+        except Exception:
+            pass
+        return None, ""
+
+    def _fetch_fao():
+        """Fetch FAO FFPI from official public CSV (fao.org/worldfoodsituation).
+        CSV URL discovered Jun 2026 — no API key required.
+        Format: Date(YYYY-MM), Food Price Index, Meat, Dairy, Cereals, Oils, Sugar
+        To update the fallback constant manually: check latest value at
+        https://www.fao.org/worldfoodsituation/foodpricesindex/en/ and update
+        FAO_FFPI_FALLBACK / FAO_FFPI_FALLBACK_DATE at the top of this file.
+        """
+        import io as _io, csv as _csv
+        url = (
+            "https://www.fao.org/media/docs/worldfoodsituationlibraries"
+            "/default-document-library/food_price_indices_data.csv"
+            "?sfvrsn=523ebd2a_80&download=true"
+        )
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "ERCF/1.0"})
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                text = resp.read().decode("utf-8", errors="replace")
+            lines = text.strip().splitlines()
+            # First 3 rows are header; row 3 is column names
+            reader = _csv.reader(lines[3:])
+            latest_date, latest_val = "", None
+            for row in reader:
+                if not row or not row[0].strip():
+                    continue
+                date_str = row[0].strip()
+                val_str  = row[1].strip() if len(row) > 1 else ""
+                try:
+                    val = float(val_str)
+                    if date_str > latest_date:
+                        latest_date, latest_val = date_str, val
+                except (ValueError, IndexError):
+                    continue
+            if latest_val is not None:
+                return round(latest_val, 1), latest_date
+        except Exception:
+            pass
+        return None, ""
+
+    # Run both fetches in parallel
+    with _cf.ThreadPoolExecutor(max_workers=2) as pool:
+        eia_future = pool.submit(_fetch_eia)
+        fao_future = pool.submit(_fetch_fao)
+        brent_price, fuel_date = eia_future.result()
+        fao_ffpi,    fao_date  = fao_future.result()
+
+    # FAO fallback to hardcoded constant when API unavailable
+    fao_source_note = "FAO FAOSTAT"
+    if fao_ffpi is None:
+        fao_ffpi   = FAO_FFPI_FALLBACK
+        fao_date   = FAO_FFPI_FALLBACK_DATE
+        fao_source_note = "FAO FFPI (hardcoded Jan 2025 fallback)"
+
+    fuel_adjustment = round(brent_price / BRENT_BASELINE_BBL, 3) if brent_price else None
+    food_adjustment = round(fao_ffpi   / FAO_FFPI_BASELINE,   3) if fao_ffpi   else None
+
+    return {
+        "country_iso3":      country_iso3.upper(),
+        "fuel_brent_usd_bbl": brent_price,
+        "fuel_date":          fuel_date or "unknown",
+        "fao_ffpi":           fao_ffpi,
+        "fao_date":           fao_date  or "unknown",
+        "ercf_baseline":      ERCF_BASELINE,
+        "fuel_adjustment":    fuel_adjustment,
+        "food_adjustment":    food_adjustment,
+        "source":             f"EIA Brent (fuel) + {fao_source_note} (food)",
+        "note":               "International benchmark prices — humanitarian operations typically source supplies outside conflict zones",
+    }
+
+
 # ─── UCDP GED data ───────────────────────────────────────────────────────────
 
 @app.get("/api/ucdp")

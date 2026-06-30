@@ -638,6 +638,17 @@ function dismissDisclaimer() {
               <div id="climateDetail" style="color:#075985"></div>
               <div id="climateProxyNotice" style="display:none;margin-top:.3rem;padding-top:.3rem;border-top:1px solid #bae6fd;font-size:.68rem;font-weight:600;color:#b45309"></div>
             </div>
+            <div id="commodityCard" style="display:none;margin-top:.4rem;font-size:.72rem;background:#fefce8;border:1px solid #fde047;border-radius:6px;padding:.45rem .65rem;line-height:1.6">
+              <div style="font-weight:600;color:#78350f;margin-bottom:.2rem">📊 International Market Context (EIA + FAO, <span id="commodityDate">—</span>)</div>
+              <div style="color:#92400e">Brent crude: <span id="commodityBrent">—</span></div>
+              <div style="color:#92400e">Food index (FAO FFPI): <span id="commodityFFPI">—</span></div>
+              <div id="commodityBtns" style="margin-top:.35rem;display:flex;gap:.4rem">
+                <button type="button" onclick="applyMarketPrices()" class="btn btn-xs" style="font-size:.65rem;padding:.15rem .45rem;background:#78350f;color:#fff;border:none;border-radius:3px">Apply price adjustment</button>
+                <button type="button" onclick="keepErfcDefaults()" class="btn btn-xs" style="font-size:.65rem;padding:.15rem .45rem;background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;border-radius:3px">Keep ERCF defaults</button>
+              </div>
+              <div id="commodityApplied" style="display:none;font-size:.66rem;color:#16a34a;margin-top:.2rem">✓ Price adjustment applied</div>
+              <div style="font-size:.63rem;color:#a16207;margin-top:.3rem;font-style:italic">International benchmark prices — humanitarian operations typically source supplies outside conflict zones. Actual costs vary based on procurement contracts, donations, and access conditions. Source: U.S. Energy Information Administration (EIA); FAO Food Price Index.</div>
+            </div>
           </div>
           <div class="mt-2">
             <label class="form-label fw-semibold mb-1" style="font-size:.78rem">
@@ -1726,6 +1737,7 @@ function dismissDisclaimer() {
           <span class="ref-tag ref-tag-hist">Data</span>
           <div>
             <strong>UCDP GED v26.1.</strong> Uppsala Conflict Data Program — Georeferenced Event Dataset. Davies et al. (2025), <em>Journal of Peace Research</em> 62(4); Sundberg &amp; Melander (2013), <em>JPR</em> 50(4). CC BY 4.0. Used for historical case validation of mortality estimates.
+            <span style="display:inline-block;font-size:.62rem;background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0;border-radius:3px;padding:.05rem .35rem;margin-left:.35rem;white-space:nowrap">Annual · v26.1 (2025 data)</span>
             <a href="https://ucdp.uu.se/downloads" target="_blank" rel="noopener" class="ref-link"><i class="fas fa-external-link-alt"></i></a>
           </div>
         </div>
@@ -1741,6 +1753,7 @@ function dismissDisclaimer() {
           <span class="ref-tag ref-tag-risk">Risk</span>
           <div>
             <strong>ACAPS / INFORM Severity Index.</strong> Global crisis severity classification system used for country-level risk scoring.
+            <span style="display:inline-block;font-size:.62rem;background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0;border-radius:3px;padding:.05rem .35rem;margin-left:.35rem;white-space:nowrap">Monthly updates</span>
             <a href="https://www.acaps.org/en/thematics/all-topics/inform-severity-index" target="_blank" rel="noopener" class="ref-link"><i class="fas fa-external-link-alt"></i></a>
           </div>
         </div>
@@ -1748,7 +1761,23 @@ function dismissDisclaimer() {
           <span class="ref-tag ref-tag-risk">Risk</span>
           <div>
             <strong>ACAPS API.</strong> Real-time access to INFORM Severity, humanitarian access, and risk radar data.
+            <span style="display:inline-block;font-size:.62rem;background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0;border-radius:3px;padding:.05rem .35rem;margin-left:.35rem;white-space:nowrap">Monthly updates</span>
             <a href="https://www.acaps.org/en/tools/acaps-api" target="_blank" rel="noopener" class="ref-link"><i class="fas fa-external-link-alt"></i></a>
+          </div>
+        </div>
+        <div class="ref-source">
+          <span class="ref-tag ref-tag-hist">Data</span>
+          <div>
+            <strong>GeoNames.</strong> City population and geolocation data. Used for City/Area autocomplete (18-country scope).
+            <span style="display:inline-block;font-size:.62rem;background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0;border-radius:3px;padding:.05rem .35rem;margin-left:.35rem;white-space:nowrap">Continuous (crowdsourced)</span>
+            <a href="https://www.geonames.org/" target="_blank" rel="noopener" class="ref-link"><i class="fas fa-external-link-alt"></i></a>
+          </div>
+        </div>
+        <div class="ref-source">
+          <span class="ref-tag ref-tag-hist">Data</span>
+          <div>
+            <strong>ERCF Historical Case Corpus.</strong> 31 documented conflict cases (1991–2024). 16 used for mortality model calibration; 15 out-of-scope; 2 challenge cases.
+            <span style="display:inline-block;font-size:.62rem;background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0;border-radius:3px;padding:.05rem .35rem;margin-left:.35rem;white-space:nowrap">Manual · last updated Jun 2026</span>
           </div>
         </div>
 
@@ -2228,6 +2257,9 @@ function dismissDisclaimer() {
         <p>The model is calibrated against 16 of 31 historical cases (1991–2024). 15 excluded as out-of-scope (mass atrocities, duration &gt;90 days, open-corridor displacement, regional dispersed conflict, structural model limitations, or insufficient data). Calibration accuracy: 7/16 within 2× (44%). R²=0.855, LOOCV R²=0.807, p&lt;0.00001. Infrastructure-denial multiplier (v7, α=0.4251) applied to 4 calibration cases with documented deliberate infrastructure targeting: Mariupol (2022), Aleppo (2016), Vukovar (1991), Huambo (1993). Srebrenica, Eastern Ghouta (2018), and Pillar of Defense (2012) documented as boundary/challenge cases — retained in corpus but excluded from calibration set.</p>
         <div style="background:#fff8f0;border-left:3px solid #d97706;border-radius:4px;padding:.5rem .8rem;margin-top:.6rem;font-size:.75rem">
           <strong style="color:#92400e">Geographic Calibration Limitation:</strong> The calibration dataset is predominantly drawn from Middle East and Eastern Europe conflicts (where primary source documentation meeting ERCF criteria is most available). Sub-Saharan Africa is represented by 2 cases (CAR, DRC/Goma, Angola/Huambo), Latin America by 0 cases, and South/Central Asia by 0 cases outside Iraq/Afghanistan. This reflects a real documentation gap — verified civilian death counts with bounded populations and durations ≤90 days are rare in these regions — not a research omission. When applying ERCF to Sub-Saharan Africa or Latin America contexts, treat cost and mortality estimates with additional caution and seek local field data to supplement model outputs.
+        </div>
+        <div style="margin-top:.5rem;font-size:.68rem;color:#64748b;font-style:italic">
+          Corpus last updated: June 2026 (31 cases, 1991–2024). New cases added manually as documented conflicts meeting ERCF criteria become available.
         </div>
 
         <!-- 10. Mortality Model Method & Citation -->

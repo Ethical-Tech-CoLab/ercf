@@ -257,6 +257,7 @@ const state = {
   _aiSuggestedSafeZone: null,      // {name, lat, lng, dist, score} — best AI candidate in modal
   startDate:            null,      // ISO date string 'YYYY-MM-DD' for climate lookup
   climateMult:          null,      // {fuel_transport: float, shelter: float} from ERA5 or null
+  priceAdjFactor:       1.0,       // World Bank market adjustment on food + fuel (1.0 = ERCF baseline)
   personnelRateMode:    'ngo',     // 'ngo' | 'un' — toggles personnel cost multiplier
   unitSystem:           'km',      // 'km' | 'mi' — display only; all internal calcs remain in km
 };
@@ -422,9 +423,9 @@ function calcResources(pop, vulPct, riskLevel, distKm, d2Mobility, terrain, clim
   const c = {
     // MED_BUS_COST $250→$400; AMBULANCE_COST $400→$700 (Tavily validation June 2026)
     transport: Math.round((stdBus*200 + medBus*400 + ambu*700 + totVeh*50) * terrainMult * climateFuelMult * d4LogisticsMult),
-    fuel:      Math.round(fuelL * 1.2 * terrainMult * climateFuelMult * d4LogisticsMult),   // $1.20/L — ACAPS Yemen Sep 2022; D4 logistics
+    fuel:      Math.round(fuelL * 1.2 * terrainMult * climateFuelMult * d4LogisticsMult * (state.priceAdjFactor ?? 1.0)),   // $1.20/L base; market-adjusted via World Bank
     personnel: Math.round((sec*300 + medS*200 + para*150) * personnelRateMult),
-    food:      Math.round(foodKg * 3),
+    food:      Math.round(foodKg * 3 * (state.priceAdjFactor ?? 1.0)),
     water:     Math.round(waterL * 0.05),
     // TENT_COST $150→$380 (Tavily validation June 2026; UNHCR 2022 direct quote: $400/unit)
     shelter:   Math.round(tents * 380 * climateShelterMult),
@@ -1564,7 +1565,66 @@ function applyCityPop(r) {
   if (pinModal) new bootstrap.Modal(pinModal).show();
   // Optionally trigger demographic suggestion for the country
   if (r.country) suggestVulnerablePct(r.country);
+  if (r.countryCode) fetchCommodityPrices(r.countryCode);
   updateAll();
+}
+
+async function fetchCommodityPrices(iso3) {
+  const card = document.getElementById('commodityCard');
+  if (!card) return;
+  card.dataset.fuelAdj = '1';
+  card.dataset.foodAdj = '1';
+  card.style.display = 'block';
+  document.getElementById('commodityDate').textContent  = '…';
+  document.getElementById('commodityBrent').textContent = '…';
+  document.getElementById('commodityFFPI').textContent  = '…';
+  document.getElementById('commodityBtns').style.display    = 'none';
+  document.getElementById('commodityApplied').style.display = 'none';
+
+  try {
+    const data = await fetch(`/api/commodity-prices/${encodeURIComponent(iso3)}`).then(r => r.json());
+
+    const fuelAdj = data.fuel_adjustment ?? 1;
+    const foodAdj = data.food_adjustment ?? 1;
+    const fuelPct = ((fuelAdj - 1) * 100).toFixed(0);
+    const foodPct = ((foodAdj - 1) * 100).toFixed(0);
+    const fuelColor = fuelAdj > 1.05 ? '#dc2626' : fuelAdj < 0.95 ? '#16a34a' : '#64748b';
+    const foodColor = foodAdj > 1.05 ? '#dc2626' : foodAdj < 0.95 ? '#16a34a' : '#64748b';
+    const sign = v => v >= 0 ? '+' : '';
+
+    document.getElementById('commodityDate').textContent  = data.fuel_date || data.fao_date || '—';
+    document.getElementById('commodityBrent').innerHTML   = data.fuel_brent_usd_bbl != null
+      ? `$${data.fuel_brent_usd_bbl}/bbl <span style="color:${fuelColor};font-size:.68rem">(${sign(fuelPct)}${fuelPct}% vs $80/bbl baseline)</span>`
+      : '—';
+    document.getElementById('commodityFFPI').innerHTML    = data.fao_ffpi != null
+      ? `${data.fao_ffpi} <span style="color:${foodColor};font-size:.68rem">(${sign(foodPct)}${foodPct}% vs 127.5 baseline)</span>`
+      : '—';
+
+    card.dataset.fuelAdj = fuelAdj;
+    card.dataset.foodAdj = foodAdj;
+    const hasAdjustment = Math.abs(fuelAdj - 1) > 0.01 || Math.abs(foodAdj - 1) > 0.01;
+    document.getElementById('commodityBtns').style.display = hasAdjustment ? 'flex' : 'none';
+  } catch(e) {
+    document.getElementById('commodityBrent').textContent = 'unavailable';
+    document.getElementById('commodityFFPI').textContent  = 'unavailable';
+  }
+}
+
+function applyMarketPrices() {
+  const card = document.getElementById('commodityCard');
+  const fuelAdj = parseFloat(card?.dataset.fuelAdj ?? '1');
+  const foodAdj = parseFloat(card?.dataset.foodAdj ?? '1');
+  // Blend: average of fuel and food adjustment as single priceAdjFactor
+  const blended = (isFinite(fuelAdj) ? fuelAdj : 1) * 0.5 + (isFinite(foodAdj) ? foodAdj : 1) * 0.5;
+  state.priceAdjFactor = Math.round(blended * 1000) / 1000;
+  document.getElementById('commodityApplied').style.display = 'block';
+  document.getElementById('commodityBtns').style.display    = 'none';
+  updateAll();
+}
+
+function keepErfcDefaults() {
+  document.getElementById('commodityCard').style.display = 'none';
+  state.priceAdjFactor = 1.0;
 }
 
 function onTransportModeChange() {
@@ -4299,7 +4359,7 @@ async function initWorldMap() {
   }).setView([20, 15], 2);
 
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
-    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a> · ACAPS/INFORM data',
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a> · ACAPS/INFORM Severity Index (updated monthly, last pull: Jun 2026) · UCDP GED v26.1 (annual, data through 2025)',
     subdomains: 'abcd', maxZoom: 10, noWrap: true,
   }).addTo(worldMapState.lmap);
 
