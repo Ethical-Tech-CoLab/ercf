@@ -504,6 +504,23 @@ a:hover { color: #0086be !important; }
   </div>
 </div>
 
+<!-- Ethical disclaimer banner -->
+<div id="ethicalDisclaimer" style="background:#eff6ff;border-bottom:1px solid #bfdbfe;padding:.45rem 1.2rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem;font-size:.72rem;color:#1e3a5f">
+  <span>⚖️ This tool estimates the financial cost of humanitarian evacuation operations — to support planning, resource mobilisation, and organisational preparedness. It does not place a monetary value on human life. All cost figures represent operational logistics estimates only.</span>
+  <button type="button" onclick="dismissDisclaimer()" style="background:none;border:none;cursor:pointer;color:#1e3a5f;opacity:.6;font-size:.85rem;padding:.1rem .3rem;flex-shrink:0" aria-label="Dismiss">✕</button>
+</div>
+<script>
+(function() {
+  if (localStorage.getItem('ercf_disclaimer_dismissed') === '1') {
+    document.getElementById('ethicalDisclaimer').style.display = 'none';
+  }
+})();
+function dismissDisclaimer() {
+  document.getElementById('ethicalDisclaimer').style.display = 'none';
+  localStorage.setItem('ercf_disclaimer_dismissed', '1');
+}
+</script>
+
 <!-- Tabs -->
 <ul class="nav nav-tabs" id="mainTabs">
   <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#paneBuilder"><i class="fas fa-sliders me-1"></i>Scenario Builder</a></li>

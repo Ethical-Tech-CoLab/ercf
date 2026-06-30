@@ -6,6 +6,8 @@ A decision-support tool for estimating the human and financial cost of civilian 
 
 **Philosophy:** The ERCF presents data to support decisions — it does not prescribe actions. Labels are descriptive, not imperative.
 
+> ⚖️ **Ethical Notice:** This tool estimates the operational cost of humanitarian evacuation logistics — to support planning and resource mobilisation. It does not place a monetary value on human life. All cost figures represent logistics estimates only.
+
 ## Live Demo
 
 Hosted locally — see Installation below.
