@@ -639,15 +639,19 @@ function dismissDisclaimer() {
               <div id="climateProxyNotice" style="display:none;margin-top:.3rem;padding-top:.3rem;border-top:1px solid #bae6fd;font-size:.68rem;font-weight:600;color:#b45309"></div>
             </div>
             <div id="commodityCard" style="display:none;margin-top:.4rem;font-size:.72rem;background:#fefce8;border:1px solid #fde047;border-radius:6px;padding:.45rem .65rem;line-height:1.6">
-              <div style="font-weight:600;color:#78350f;margin-bottom:.2rem">📊 International Market Context (EIA + FAO, <span id="commodityDate">—</span>)</div>
+              <div style="font-weight:600;color:#78350f;margin-bottom:.2rem">📊 International Market Context (EIA + FRED, <span id="commodityDate">—</span>)</div>
               <div style="color:#92400e">Brent crude: <span id="commodityBrent">—</span></div>
-              <div style="color:#92400e">Food index (FAO FFPI): <span id="commodityFFPI">—</span></div>
-              <div id="commodityBtns" style="margin-top:.35rem;display:flex;gap:.4rem">
-                <button type="button" onclick="applyMarketPrices()" class="btn btn-xs" style="font-size:.65rem;padding:.15rem .45rem;background:#78350f;color:#fff;border:none;border-radius:3px">Apply price adjustment</button>
-                <button type="button" onclick="keepErfcDefaults()" class="btn btn-xs" style="font-size:.65rem;padding:.15rem .45rem;background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;border-radius:3px">Keep ERCF defaults</button>
+              <div style="color:#92400e">Wheat: <span id="commodityWheat">—</span></div>
+              <div style="color:#92400e">Corn: <span id="commodityCorn">—</span></div>
+              <div style="color:#92400e">Rice: <span id="commodityRice">—</span></div>
+              <div style="color:#92400e">Soybean oil: <span id="commodityOil">—</span></div>
+              <div style="color:#78350f;font-weight:600;margin-top:.15rem">Food basket adjustment: <span id="commodityFoodAdj">—</span></div>
+              <div id="commodityBtns" style="margin-top:.35rem;display:flex;gap:.4rem;align-items:center">
+                <button type="button" id="commodityApplyBtn" onclick="applyMarketPrices()" class="btn btn-xs" style="font-size:.65rem;padding:.15rem .45rem;border:none;border-radius:3px">Apply price adjustment</button>
+                <button type="button" id="commodityRevertBtn" onclick="revertMarketPrices()" class="btn btn-xs" style="font-size:.65rem;padding:.15rem .45rem;border:none;border-radius:3px">↩ Revert to ERCF defaults</button>
+                <button type="button" onclick="dismissCommodityCard()" class="btn btn-xs" style="font-size:.65rem;padding:.15rem .45rem;background:transparent;color:#94a3b8;border:none">Dismiss</button>
               </div>
-              <div id="commodityApplied" style="display:none;font-size:.66rem;color:#16a34a;margin-top:.2rem">✓ Price adjustment applied</div>
-              <div style="font-size:.63rem;color:#a16207;margin-top:.3rem;font-style:italic">International benchmark prices — humanitarian operations typically source supplies outside conflict zones. Actual costs vary based on procurement contracts, donations, and access conditions. Source: U.S. Energy Information Administration (EIA); FAO Food Price Index.</div>
+              <div style="font-size:.63rem;color:#a16207;margin-top:.3rem;font-style:italic">International benchmark prices — humanitarian operations typically source supplies outside conflict zones. Actual costs vary based on procurement contracts, donations, and access conditions. Source: U.S. Energy Information Administration (EIA); FRED/St. Louis Fed (IMF Primary Commodity Price System).</div>
             </div>
           </div>
           <div class="mt-2">
@@ -1031,6 +1035,8 @@ function dismissDisclaimer() {
             <label class="form-label fw-semibold small mb-1">Transport Mode</label>
             <select id="transportMode" class="form-select form-select-sm" style="max-width:280px" onchange="onTransportModeChange()">
               <option value="ground">🚌 Ground vehicle (default)</option>
+              <option value="air_fixed">✈️ Air — fixed-wing</option>
+              <option value="air_heli">🚁 Air — helicopter</option>
               <option value="walking">🚶 Walking (on foot)</option>
             </select>
             <div id="transportWarnings" style="display:none;margin-top:.4rem"></div>

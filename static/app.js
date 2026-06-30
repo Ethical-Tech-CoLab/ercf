@@ -257,7 +257,9 @@ const state = {
   _aiSuggestedSafeZone: null,      // {name, lat, lng, dist, score} — best AI candidate in modal
   startDate:            null,      // ISO date string 'YYYY-MM-DD' for climate lookup
   climateMult:          null,      // {fuel_transport: float, shelter: float} from ERA5 or null
-  priceAdjFactor:       1.0,       // World Bank market adjustment on food + fuel (1.0 = ERCF baseline)
+  fuelAdjFactor:        1.0,       // FRED/EIA fuel market adjustment (1.0 = ERCF baseline)
+  foodAdjFactor:        1.0,       // FRED food-basket market adjustment — also applied to water (1.0 = ERCF baseline)
+  hasRunway:            null,      // true/false/null — runway availability for air_fixed feasibility; no UI control yet, always unanswered
   personnelRateMode:    'ngo',     // 'ngo' | 'un' — toggles personnel cost multiplier
   unitSystem:           'km',      // 'km' | 'mi' — display only; all internal calcs remain in km
 };
@@ -423,10 +425,12 @@ function calcResources(pop, vulPct, riskLevel, distKm, d2Mobility, terrain, clim
   const c = {
     // MED_BUS_COST $250→$400; AMBULANCE_COST $400→$700 (Tavily validation June 2026)
     transport: Math.round((stdBus*200 + medBus*400 + ambu*700 + totVeh*50) * terrainMult * climateFuelMult * d4LogisticsMult),
-    fuel:      Math.round(fuelL * 1.2 * terrainMult * climateFuelMult * d4LogisticsMult * (state.priceAdjFactor ?? 1.0)),   // $1.20/L base; market-adjusted via World Bank
+    fuel:      Math.round(fuelL * 1.2 * terrainMult * climateFuelMult * d4LogisticsMult * (state.fuelAdjFactor ?? 1.0)),   // $1.20/L base; market-adjusted via EIA Brent
     personnel: Math.round((sec*300 + medS*200 + para*150) * personnelRateMult),
-    food:      Math.round(foodKg * 3 * (state.priceAdjFactor ?? 1.0)),
-    water:     Math.round(waterL * 0.05),
+    food:      Math.round(foodKg * 3 * (state.foodAdjFactor ?? 1.0)),   // $3/kg base; market-adjusted via FRED food basket
+    // $0.05/L baseline kept; field range $0.002-0.023/L found across NRC Yemen 2025, ICRC
+    // Aleppo 2013-14, Ethiopia HRP 2024, Oxfam Kenya (no international index exists, not adopted)
+    water:     Math.round(waterL * 0.05 * (state.foodAdjFactor ?? 1.0)),   // water priced via food/supply-chain market adjustment
     // TENT_COST $150→$380 (Tavily validation June 2026; UNHCR 2022 direct quote: $400/unit)
     shelter:   Math.round(tents * 380 * climateShelterMult),
     // MED_KIT_COST updated $50→$21/kit: WHO/UNICEF IEHK ~$20,584/10,000 pax/90d × 3d × ×3 trauma factor
@@ -1027,9 +1031,9 @@ function updateAll() {
     worldMapState.geojsonLayer.setStyle(choroStyle);
   }
 
-  // Re-fetch walking result reactively when parameters change
-  if (document.getElementById('transportMode')?.value === 'walking') {
-    fetchAltModeResult('walking');
+  // Re-fetch alt-mode result reactively when parameters change
+  if (_tMode === 'walking' || _tMode === 'air_fixed' || _tMode === 'air_heli') {
+    fetchAltModeResult(_tMode);
   }
 }
 
@@ -1154,8 +1158,9 @@ function updateResourceDisplay(r) {
       headlineTotal.textContent = '$' + fmt(r.totalCost);
       const modeLabel = (() => {
         const m = document.getElementById('transportMode')?.value;
-        if (m === 'walking') return 'Walking';
-        if (m === 'air')     return 'Air';
+        if (m === 'walking')   return 'Walking';
+        if (m === 'air_fixed') return 'Air (fixed-wing)';
+        if (m === 'air_heli')  return 'Air (helicopter)';
         return 'Ground';
       })();
       const cppStr = cppPerEvacuee !== null ? '$' + fmt(cppPerEvacuee) + '/evacuee · ' : '';
@@ -1435,7 +1440,7 @@ function getTransportWarnings(mode, dims, population) {
       text: 'Mobility constraints (D2≥3.5) indicate significant proportion of wounded/bedridden — walking evacuation not suitable for this vulnerability profile.',
     });
   }
-  if (mode === 'air' && d3 <= 2.0) warnings.push({
+  if ((mode === 'air_fixed' || mode === 'air_heli') && d3 <= 2.0) warnings.push({
     priority: 1,
     text: 'Air evacuation requires airspace authorization — D3 indicates limited or absent party consent. Verify airspace clearance before planning air operations.',
   });
@@ -1575,56 +1580,93 @@ async function fetchCommodityPrices(iso3) {
   card.dataset.fuelAdj = '1';
   card.dataset.foodAdj = '1';
   card.style.display = 'block';
-  document.getElementById('commodityDate').textContent  = '…';
-  document.getElementById('commodityBrent').textContent = '…';
-  document.getElementById('commodityFFPI').textContent  = '…';
-  document.getElementById('commodityBtns').style.display    = 'none';
-  document.getElementById('commodityApplied').style.display = 'none';
+  document.getElementById('commodityDate').textContent   = '…';
+  document.getElementById('commodityBrent').textContent  = '…';
+  document.getElementById('commodityWheat').textContent  = '…';
+  document.getElementById('commodityCorn').textContent   = '…';
+  document.getElementById('commodityRice').textContent   = '…';
+  document.getElementById('commodityOil').textContent    = '…';
+  document.getElementById('commodityFoodAdj').textContent = '…';
+
+  const sign = v => v >= 0 ? '+' : '';
+  const colorFor = adj => adj > 1.05 ? '#dc2626' : adj < 0.95 ? '#16a34a' : '#64748b';
+  const pctVs = (value, baseline) => ((value / baseline - 1) * 100).toFixed(0);
+  // Renders "$value/mt (+X% vs $baseline/mt baseline)", or '—' if value is missing
+  const renderCommodity = (value, baseline) => {
+    if (value == null) return '—';
+    const pct = pctVs(value, baseline);
+    return `$${value}/mt <span style="color:${colorFor(value / baseline)};font-size:.68rem">(${sign(pct)}${pct}% vs $${baseline}/mt baseline)</span>`;
+  };
 
   try {
     const data = await fetch(`/api/commodity-prices/${encodeURIComponent(iso3)}`).then(r => r.json());
+    const baseline = data.ercf_baseline || {};
 
     const fuelAdj = data.fuel_adjustment ?? 1;
     const foodAdj = data.food_adjustment ?? 1;
     const fuelPct = ((fuelAdj - 1) * 100).toFixed(0);
     const foodPct = ((foodAdj - 1) * 100).toFixed(0);
-    const fuelColor = fuelAdj > 1.05 ? '#dc2626' : fuelAdj < 0.95 ? '#16a34a' : '#64748b';
-    const foodColor = foodAdj > 1.05 ? '#dc2626' : foodAdj < 0.95 ? '#16a34a' : '#64748b';
-    const sign = v => v >= 0 ? '+' : '';
+    const fuelColor = colorFor(fuelAdj);
+    const foodColor = colorFor(foodAdj);
 
-    document.getElementById('commodityDate').textContent  = data.fuel_date || data.fao_date || '—';
+    document.getElementById('commodityDate').textContent  = data.fuel_date || data.food_date || '—';
     document.getElementById('commodityBrent').innerHTML   = data.fuel_brent_usd_bbl != null
       ? `$${data.fuel_brent_usd_bbl}/bbl <span style="color:${fuelColor};font-size:.68rem">(${sign(fuelPct)}${fuelPct}% vs $80/bbl baseline)</span>`
       : '—';
-    document.getElementById('commodityFFPI').innerHTML    = data.fao_ffpi != null
-      ? `${data.fao_ffpi} <span style="color:${foodColor};font-size:.68rem">(${sign(foodPct)}${foodPct}% vs 127.5 baseline)</span>`
+    document.getElementById('commodityWheat').innerHTML = renderCommodity(data.wheat_usd_mt, baseline.wheat_usd_mt ?? 250);
+    document.getElementById('commodityCorn').innerHTML  = renderCommodity(data.corn_usd_mt, baseline.corn_usd_mt ?? 200);
+    document.getElementById('commodityRice').innerHTML  = renderCommodity(data.rice_usd_mt, baseline.rice_usd_mt ?? 500);
+    document.getElementById('commodityOil').innerHTML   = renderCommodity(data.soybean_oil_usd_mt, baseline.soybean_oil_usd_mt ?? 900);
+    document.getElementById('commodityFoodAdj').innerHTML = data.food_adjustment != null
+      ? `<span style="color:${foodColor}">${sign(foodPct)}${foodPct}%</span> vs ERCF baseline (wheat 40% · corn 30% · rice 20% · soybean oil 10%)`
       : '—';
 
     card.dataset.fuelAdj = fuelAdj;
     card.dataset.foodAdj = foodAdj;
-    const hasAdjustment = Math.abs(fuelAdj - 1) > 0.01 || Math.abs(foodAdj - 1) > 0.01;
-    document.getElementById('commodityBtns').style.display = hasAdjustment ? 'flex' : 'none';
   } catch(e) {
     document.getElementById('commodityBrent').textContent = 'unavailable';
-    document.getElementById('commodityFFPI').textContent  = 'unavailable';
+    document.getElementById('commodityFoodAdj').textContent = 'unavailable';
   }
+  syncCommodityButtons();
 }
 
 function applyMarketPrices() {
   const card = document.getElementById('commodityCard');
   const fuelAdj = parseFloat(card?.dataset.fuelAdj ?? '1');
   const foodAdj = parseFloat(card?.dataset.foodAdj ?? '1');
-  // Blend: average of fuel and food adjustment as single priceAdjFactor
-  const blended = (isFinite(fuelAdj) ? fuelAdj : 1) * 0.5 + (isFinite(foodAdj) ? foodAdj : 1) * 0.5;
-  state.priceAdjFactor = Math.round(blended * 1000) / 1000;
-  document.getElementById('commodityApplied').style.display = 'block';
-  document.getElementById('commodityBtns').style.display    = 'none';
+  state.fuelAdjFactor = isFinite(fuelAdj) ? Math.round(fuelAdj * 1000) / 1000 : 1.0;
+  state.foodAdjFactor = isFinite(foodAdj) ? Math.round(foodAdj * 1000) / 1000 : 1.0;
+  syncCommodityButtons();
   updateAll();
 }
 
-function keepErfcDefaults() {
+function dismissCommodityCard() {
   document.getElementById('commodityCard').style.display = 'none';
-  state.priceAdjFactor = 1.0;
+}
+
+function revertMarketPrices() {
+  state.fuelAdjFactor = 1.0;
+  state.foodAdjFactor = 1.0;
+  updateAll();
+  syncCommodityButtons();
+}
+
+function syncCommodityButtons() {
+  const applyBtn  = document.getElementById('commodityApplyBtn');
+  const revertBtn = document.getElementById('commodityRevertBtn');
+  if (!applyBtn || !revertBtn) return;
+  const isApplied = (state.fuelAdjFactor ?? 1.0) !== 1.0 || (state.foodAdjFactor ?? 1.0) !== 1.0;
+
+  applyBtn.disabled        = isApplied;
+  applyBtn.textContent     = isApplied ? '✓ Applied' : 'Apply price adjustment';
+  applyBtn.style.background = isApplied ? '#e5e7eb' : '#78350f';
+  applyBtn.style.color      = isApplied ? '#9ca3af' : '#fff';
+  applyBtn.style.cursor     = isApplied ? 'default'  : 'pointer';
+
+  revertBtn.disabled        = !isApplied;
+  revertBtn.style.background = isApplied ? '#475569' : '#e5e7eb';
+  revertBtn.style.color      = isApplied ? '#fff'     : '#9ca3af';
+  revertBtn.style.cursor     = isApplied ? 'pointer'  : 'default';
 }
 
 function onTransportModeChange() {
@@ -1647,15 +1689,26 @@ async function fetchAltModeResult(mode) {
   const altPanel = document.getElementById('altModeResourcePanel');
   altPanel.innerHTML = '<div class="text-muted small"><i class="fas fa-spinner fa-spin me-1"></i>Calculating...</div>';
 
-  try {
-    const resp = await fetch('/api/walking-evacuation', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+  const isAir = mode === 'air_fixed' || mode === 'air_heli';
+  const endpoint = isAir ? '/api/air-evacuation' : '/api/walking-evacuation';
+  const requestBody = isAir
+    ? {
+        population:  state.population,
+        distance_km: state.distanceKm,
+        mode:        mode === 'air_fixed' ? 'fixed_wing' : 'helicopter',
+        has_runway:  state.hasRunway ?? null,
+      }
+    : {
         population: state.population,
         distance_km: state.distanceKm,
         vulnerable_pct: state.vulnerablePct ?? 0,
-      }),
+      };
+
+  try {
+    const resp = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody),
     });
     if (!resp.ok) {
       const err = await resp.json().catch(() => ({}));

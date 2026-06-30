@@ -751,6 +751,13 @@ def calculate_resources(
       personnel  = security×$300 + med_staff×$200 + paramedics×$150
       food       = food_kg × $3/kg
       water      = water_l × $0.05/L (Sphere-adjacent, unvalidated for field contexts)
+        FIELD EVIDENCE (Tavily, Jun 2026, not yet adopted — baseline kept at $0.05/L pending
+        further validation): real-world water trucking costs found range $2-23/m3, all below
+        this baseline — NRC Yemen (Taiz, Jul 2025, direct market quote): $5/m3; ICRC/UNICEF
+        Aleppo (2013-14, derived from $1M/month for 16M L/day): $2/m3; Ethiopia HRP 2024
+        (derived): ~$17.6/m3; Oxfam Kenya/Wajir drought response (derived): ~$22.6/m3. No
+        international index (no FRED/EIA equivalent) exists for water trucking — all figures
+        are one-off project/field reports, not a re-queryable benchmark.
       shelter    = tents × $380      (DOMINANT LINE: updated Tavily Jun 2026 — UNHCR 2022: $400/unit)
       medical    = med_kits×$21 + trauma_kits×$200
         med_kits cost revised $50→$21/kit (100-person kit): based on WHO/UNICEF IEHK
@@ -848,7 +855,7 @@ def calculate_resources(
         "fuel":        round(fuel_l * 1.2 * terrain_mult * climate_fuel_mult * d4_logistics_mult),   # $1.20/L — ACAPS Yemen Sep 2022; terrain ×1.0–4.0; D4 logistics
         "personnel":   round(security*300 + med_staff*200 + paramedics*150),
         "food":        round(food_kg * 3),
-        "water":       round(water_l * 0.05),
+        "water":       round(water_l * 0.05),   # $0.05/L baseline kept; field range $0.002-0.023/L found (see docstring), not adopted
         # TENT_COST updated $150 → $380 (Tavily validation June 2026)
         # Source: The New Humanitarian Dec 2022 — direct UNHCR quote: "$400 to replace"
         # UNHCR Emergency Shelter Design Catalogue Jan 2016: $229/unit (incl. transport 15% + labour 30%)

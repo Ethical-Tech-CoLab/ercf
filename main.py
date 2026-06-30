@@ -309,9 +309,10 @@ async def get_demographic_data(country_name: str):
     return data
 
 
-# ─── Commodity prices (World Bank Pink Sheet) ─────────────────────────────────
+# ─── Commodity prices (EIA fuel + FRED food basket) ───────────────────────────
 
-EIA_API_KEY = os.getenv("EIA_API_KEY", "")
+EIA_API_KEY  = os.getenv("EIA_API_KEY", "")
+FRED_API_KEY = os.getenv("FRED_API_KEY", "")
 
 # FAO FFPI fallback constant (Jan 2025, base 2014-2016=100)
 FAO_FFPI_FALLBACK       = 127.5
@@ -319,11 +320,39 @@ FAO_FFPI_FALLBACK_DATE  = "2025-01"
 BRENT_BASELINE_BBL      = 80.0   # ERCF baseline crude proxy
 FAO_FFPI_BASELINE       = 127.5  # Jan 2025 baseline for adjustment
 
+# FRED (IMF Primary Commodity Price System mirror) series IDs, baselines, and
+# weights used to build the food_adjustment factor.
+FRED_SERIES = {
+    "wheat":       "PWHEAMTUSDM",
+    "corn":        "PMAIZMTUSDM",
+    "rice":        "PRICENPQUSDM",
+    "soybean_oil": "PSOILUSDM",
+}
+FRED_BASELINE = {
+    "wheat":       250,
+    "corn":        200,
+    "rice":        500,
+    "soybean_oil": 900,
+}
+FRED_WEIGHTS = {
+    "wheat":       0.4,
+    "corn":        0.3,
+    "rice":        0.2,
+    "soybean_oil": 0.1,
+}
+
 @app.get("/api/commodity-prices/{country_iso3}")
 async def commodity_prices(country_iso3: str):
     import urllib.request, json as _json, concurrent.futures as _cf
 
-    ERCF_BASELINE = {"fuel_l_usd": 1.20, "food_kg_usd": 3.0}
+    ERCF_BASELINE = {
+        "fuel_l_usd": 1.20,
+        "food_kg_usd": 3.0,
+        "wheat_usd_mt":       FRED_BASELINE["wheat"],
+        "corn_usd_mt":        FRED_BASELINE["corn"],
+        "rice_usd_mt":        FRED_BASELINE["rice"],
+        "soybean_oil_usd_mt": FRED_BASELINE["soybean_oil"],
+    }
 
     def _fetch_eia():
         """Fetch most recent Brent crude spot price from EIA."""
@@ -386,34 +415,78 @@ async def commodity_prices(country_iso3: str):
             pass
         return None, ""
 
-    # Run both fetches in parallel
-    with _cf.ThreadPoolExecutor(max_workers=2) as pool:
-        eia_future = pool.submit(_fetch_eia)
-        fao_future = pool.submit(_fetch_fao)
+    def _fetch_fred(series_id):
+        """Fetch the latest monthly observation for a FRED series (IMF PCPS mirror)."""
+        if not FRED_API_KEY:
+            return None, ""
+        url = (
+            "https://api.stlouisfed.org/fred/series/observations"
+            f"?series_id={series_id}&api_key={FRED_API_KEY}"
+            "&sort_order=desc&limit=1&file_type=json"
+        )
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "ERCF/1.0"})
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                payload = _json.loads(resp.read().decode())
+            obs = payload.get("observations", [])
+            if obs:
+                val_str  = obs[0].get("value", ".")
+                date_str = obs[0].get("date", "")
+                if val_str not in (".", "", None):
+                    return round(float(val_str), 2), date_str[:7]
+        except Exception:
+            pass
+        return None, ""
+
+    # Run EIA, FAO, and all FRED commodity fetches in parallel
+    with _cf.ThreadPoolExecutor(max_workers=2 + len(FRED_SERIES)) as pool:
+        eia_future  = pool.submit(_fetch_eia)
+        fao_future  = pool.submit(_fetch_fao)
+        fred_futures = {k: pool.submit(_fetch_fred, sid) for k, sid in FRED_SERIES.items()}
+
         brent_price, fuel_date = eia_future.result()
         fao_ffpi,    fao_date  = fao_future.result()
+        fred_prices, fred_dates = {}, {}
+        for k, fut in fred_futures.items():
+            fred_prices[k], fred_dates[k] = fut.result()
 
     # FAO fallback to hardcoded constant when API unavailable
-    fao_source_note = "FAO FAOSTAT"
     if fao_ffpi is None:
-        fao_ffpi   = FAO_FFPI_FALLBACK
-        fao_date   = FAO_FFPI_FALLBACK_DATE
-        fao_source_note = "FAO FFPI (hardcoded Jan 2025 fallback)"
+        fao_ffpi = FAO_FFPI_FALLBACK
+        fao_date = FAO_FFPI_FALLBACK_DATE
 
     fuel_adjustment = round(brent_price / BRENT_BASELINE_BBL, 3) if brent_price else None
-    food_adjustment = round(fao_ffpi   / FAO_FFPI_BASELINE,   3) if fao_ffpi   else None
+
+    # food_adjustment: weighted average of (price / baseline) ratios across
+    # whichever FRED commodities returned data, re-normalised to the
+    # available weights so a single failed series doesn't null the whole factor.
+    ratios = {
+        k: fred_prices[k] / FRED_BASELINE[k]
+        for k in FRED_SERIES if fred_prices[k] is not None
+    }
+    if ratios:
+        weight_sum = sum(FRED_WEIGHTS[k] for k in ratios)
+        food_adjustment = round(sum(FRED_WEIGHTS[k] * ratios[k] for k in ratios) / weight_sum, 3)
+    else:
+        food_adjustment = None
+
+    food_date = next((fred_dates[k] for k in FRED_SERIES if fred_dates[k]), "unknown")
 
     return {
-        "country_iso3":      country_iso3.upper(),
-        "fuel_brent_usd_bbl": brent_price,
-        "fuel_date":          fuel_date or "unknown",
-        "fao_ffpi":           fao_ffpi,
-        "fao_date":           fao_date  or "unknown",
-        "ercf_baseline":      ERCF_BASELINE,
-        "fuel_adjustment":    fuel_adjustment,
-        "food_adjustment":    food_adjustment,
-        "source":             f"EIA Brent (fuel) + {fao_source_note} (food)",
-        "note":               "International benchmark prices — humanitarian operations typically source supplies outside conflict zones",
+        "country_iso3":        country_iso3.upper(),
+        "fuel_brent_usd_bbl":  brent_price,
+        "fuel_date":           fuel_date or "unknown",
+        "fao_ffpi":            fao_ffpi,
+        "wheat_usd_mt":        fred_prices["wheat"],
+        "corn_usd_mt":         fred_prices["corn"],
+        "rice_usd_mt":         fred_prices["rice"],
+        "soybean_oil_usd_mt":  fred_prices["soybean_oil"],
+        "food_date":           food_date,
+        "ercf_baseline":       ERCF_BASELINE,
+        "fuel_adjustment":     fuel_adjustment,
+        "food_adjustment":     food_adjustment,
+        "source":              "EIA (fuel) + FRED/St. Louis Fed (food commodities)",
+        "note":                "International benchmark prices — humanitarian operations typically source supplies outside conflict zones.",
     }
 
 
