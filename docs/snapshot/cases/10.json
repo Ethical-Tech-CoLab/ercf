@@ -1,0 +1,1949 @@
+{
+  "id": 10,
+  "name": "Eastern DRC \u2014 Goma (M23 Advance)",
+  "resources": {
+    "summary": {
+      "population": 1500000,
+      "vulnerable": 855000,
+      "distance_km": 120,
+      "risk_level": 3,
+      "total_cost_usd": 439937274,
+      "cost_per_person_planned_usd": 293.29
+    },
+    "vehicles": {
+      "standard_buses_50pax": 12900,
+      "medical_buses_20pax": 106875,
+      "ambulances": 14250,
+      "total": 134025,
+      "drivers_needed": 134025
+    },
+    "personnel": {
+      "security": 15000,
+      "medical_staff": 6000,
+      "paramedics": 15000,
+      "drivers": 134025,
+      "total": 170025
+    },
+    "supplies": {
+      "fuel_liters": 11258100,
+      "food_kg_3days": 2025000,
+      "water_liters_3days": 90000000,
+      "tents": 450000,
+      "basic_med_kits": 15000,
+      "trauma_kits": 30000,
+      "radios": 26810
+    },
+    "costs_usd": {
+      "transport": 142304344,
+      "fuel": 31004807,
+      "personnel": 7950000,
+      "food": 6075000,
+      "water": 4500000,
+      "shelter": 171000000,
+      "medical": 6315000,
+      "comms": 13405000,
+      "contingency_15pct": 57383123
+    },
+    "sphere_standard": "15L water/person/day \u00b7 2100 kcal/person/day \u00b7 3.5m\u00b2 shelter/person (SPHERE 2018)",
+    "climate_applied": {
+      "fuel_transport_mult": 1.0,
+      "shelter_mult": 1.0
+    }
+  },
+  "staying_costs": {
+    "parameters": {
+      "population": 1500000,
+      "risk_level": 3,
+      "days": 180,
+      "base_daily_cost_per_person_usd": 6.0,
+      "remaining_pct": 0.19999999999999996,
+      "is_siege": false,
+      "max_protection": 0.6,
+      "confinement_score": 2.7,
+      "confinement_multiplier": 2.0,
+      "protection_factor": 0.48,
+      "exposure_factor": 0.12,
+      "conflict_type": "regional",
+      "effective_mort_rate_per10k": 0.2253,
+      "infra_denial_applied": false,
+      "infra_denial_mult": 1.0,
+      "model": "v6_empirical_siege_steeplog_saturation"
+    },
+    "totals": {
+      "financial_usd": 1620000000.0,
+      "injuries": 24328.512,
+      "deaths": 6082.128
+    },
+    "daily": [
+      {
+        "day": 1,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 9000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 135.158,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 33.79
+      },
+      {
+        "day": 2,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 18000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 270.317,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 67.579
+      },
+      {
+        "day": 3,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 27000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 405.475,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 101.369
+      },
+      {
+        "day": 4,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 36000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 540.634,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 135.158
+      },
+      {
+        "day": 5,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 45000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 675.792,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 168.948
+      },
+      {
+        "day": 6,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 54000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 810.95,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 202.738
+      },
+      {
+        "day": 7,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 63000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 946.109,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 236.527
+      },
+      {
+        "day": 8,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 72000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 1081.267,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 270.317
+      },
+      {
+        "day": 9,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 81000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 1216.426,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 304.106
+      },
+      {
+        "day": 10,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 90000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 1351.584,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 337.896
+      },
+      {
+        "day": 11,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 99000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 1486.742,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 371.686
+      },
+      {
+        "day": 12,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 108000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 1621.901,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 405.475
+      },
+      {
+        "day": 13,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 117000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 1757.059,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 439.265
+      },
+      {
+        "day": 14,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 126000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 1892.218,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 473.054
+      },
+      {
+        "day": 15,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 135000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 2027.376,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 506.844
+      },
+      {
+        "day": 16,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 144000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 2162.534,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 540.634
+      },
+      {
+        "day": 17,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 153000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 2297.693,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 574.423
+      },
+      {
+        "day": 18,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 162000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 2432.851,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 608.213
+      },
+      {
+        "day": 19,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 171000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 2568.01,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 642.002
+      },
+      {
+        "day": 20,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 180000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 2703.168,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 675.792
+      },
+      {
+        "day": 21,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 189000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 2838.326,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 709.582
+      },
+      {
+        "day": 22,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 198000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 2973.485,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 743.371
+      },
+      {
+        "day": 23,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 207000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 3108.643,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 777.161
+      },
+      {
+        "day": 24,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 216000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 3243.802,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 810.95
+      },
+      {
+        "day": 25,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 225000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 3378.96,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 844.74
+      },
+      {
+        "day": 26,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 234000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 3514.118,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 878.53
+      },
+      {
+        "day": 27,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 243000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 3649.277,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 912.319
+      },
+      {
+        "day": 28,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 252000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 3784.435,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 946.109
+      },
+      {
+        "day": 29,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 261000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 3919.594,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 979.898
+      },
+      {
+        "day": 30,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 270000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 4054.752,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1013.688
+      },
+      {
+        "day": 31,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 279000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 4189.91,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1047.478
+      },
+      {
+        "day": 32,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 288000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 4325.069,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1081.267
+      },
+      {
+        "day": 33,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 297000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 4460.227,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1115.057
+      },
+      {
+        "day": 34,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 306000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 4595.386,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1148.846
+      },
+      {
+        "day": 35,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 315000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 4730.544,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1182.636
+      },
+      {
+        "day": 36,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 324000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 4865.702,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1216.426
+      },
+      {
+        "day": 37,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 333000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 5000.861,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1250.215
+      },
+      {
+        "day": 38,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 342000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 5136.019,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1284.005
+      },
+      {
+        "day": 39,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 351000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 5271.178,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1317.794
+      },
+      {
+        "day": 40,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 360000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 5406.336,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1351.584
+      },
+      {
+        "day": 41,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 369000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 5541.494,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1385.374
+      },
+      {
+        "day": 42,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 378000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 5676.653,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1419.163
+      },
+      {
+        "day": 43,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 387000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 5811.811,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1452.953
+      },
+      {
+        "day": 44,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 396000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 5946.97,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1486.742
+      },
+      {
+        "day": 45,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 405000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 6082.128,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1520.532
+      },
+      {
+        "day": 46,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 414000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 6217.286,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1554.322
+      },
+      {
+        "day": 47,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 423000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 6352.445,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1588.111
+      },
+      {
+        "day": 48,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 432000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 6487.603,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1621.901
+      },
+      {
+        "day": 49,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 441000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 6622.762,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1655.69
+      },
+      {
+        "day": 50,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 450000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 6757.92,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1689.48
+      },
+      {
+        "day": 51,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 459000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 6893.078,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1723.27
+      },
+      {
+        "day": 52,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 468000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 7028.237,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1757.059
+      },
+      {
+        "day": 53,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 477000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 7163.395,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1790.849
+      },
+      {
+        "day": 54,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 486000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 7298.554,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1824.638
+      },
+      {
+        "day": 55,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 495000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 7433.712,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1858.428
+      },
+      {
+        "day": 56,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 504000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 7568.87,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1892.218
+      },
+      {
+        "day": 57,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 513000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 7704.029,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1926.007
+      },
+      {
+        "day": 58,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 522000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 7839.187,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1959.797
+      },
+      {
+        "day": 59,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 531000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 7974.346,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 1993.586
+      },
+      {
+        "day": 60,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 540000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 8109.504,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2027.376
+      },
+      {
+        "day": 61,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 549000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 8244.662,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2061.166
+      },
+      {
+        "day": 62,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 558000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 8379.821,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2094.955
+      },
+      {
+        "day": 63,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 567000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 8514.979,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2128.745
+      },
+      {
+        "day": 64,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 576000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 8650.138,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2162.534
+      },
+      {
+        "day": 65,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 585000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 8785.296,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2196.324
+      },
+      {
+        "day": 66,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 594000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 8920.454,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2230.114
+      },
+      {
+        "day": 67,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 603000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 9055.613,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2263.903
+      },
+      {
+        "day": 68,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 612000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 9190.771,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2297.693
+      },
+      {
+        "day": 69,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 621000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 9325.93,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2331.482
+      },
+      {
+        "day": 70,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 630000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 9461.088,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2365.272
+      },
+      {
+        "day": 71,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 639000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 9596.246,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2399.062
+      },
+      {
+        "day": 72,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 648000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 9731.405,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2432.851
+      },
+      {
+        "day": 73,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 657000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 9866.563,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2466.641
+      },
+      {
+        "day": 74,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 666000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 10001.722,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2500.43
+      },
+      {
+        "day": 75,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 675000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 10136.88,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2534.22
+      },
+      {
+        "day": 76,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 684000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 10272.038,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2568.01
+      },
+      {
+        "day": 77,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 693000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 10407.197,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2601.799
+      },
+      {
+        "day": 78,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 702000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 10542.355,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2635.589
+      },
+      {
+        "day": 79,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 711000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 10677.514,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2669.378
+      },
+      {
+        "day": 80,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 720000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 10812.672,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2703.168
+      },
+      {
+        "day": 81,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 729000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 10947.83,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2736.958
+      },
+      {
+        "day": 82,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 738000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 11082.989,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2770.747
+      },
+      {
+        "day": 83,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 747000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 11218.147,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2804.537
+      },
+      {
+        "day": 84,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 756000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 11353.306,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2838.326
+      },
+      {
+        "day": 85,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 765000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 11488.464,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2872.116
+      },
+      {
+        "day": 86,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 774000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 11623.622,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2905.906
+      },
+      {
+        "day": 87,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 783000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 11758.781,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2939.695
+      },
+      {
+        "day": 88,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 792000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 11893.939,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 2973.485
+      },
+      {
+        "day": 89,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 801000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 12029.098,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 3007.274
+      },
+      {
+        "day": 90,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 810000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 12164.256,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 3041.064
+      },
+      {
+        "day": 91,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 819000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 13446.481,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 3361.62
+      },
+      {
+        "day": 92,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 828000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 13977.596,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 3494.399
+      },
+      {
+        "day": 93,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 837000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 14385.135,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 3596.284
+      },
+      {
+        "day": 94,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 846000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 14728.706,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 3682.177
+      },
+      {
+        "day": 95,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 855000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 15031.399,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 3757.85
+      },
+      {
+        "day": 96,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 864000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 15305.053,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 3826.263
+      },
+      {
+        "day": 97,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 873000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 15556.705,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 3889.176
+      },
+      {
+        "day": 98,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 882000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 15790.936,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 3947.734
+      },
+      {
+        "day": 99,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 891000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 16010.932,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4002.733
+      },
+      {
+        "day": 100,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 900000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 16219.008,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4054.752
+      },
+      {
+        "day": 101,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 909000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 16416.916,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4104.229
+      },
+      {
+        "day": 102,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 918000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 16606.014,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4151.504
+      },
+      {
+        "day": 103,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 927000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 16787.385,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4196.846
+      },
+      {
+        "day": 104,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 936000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 16961.903,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4240.476
+      },
+      {
+        "day": 105,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 945000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 17130.293,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4282.573
+      },
+      {
+        "day": 106,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 954000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 17293.157,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4323.289
+      },
+      {
+        "day": 107,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 963000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 17451.006,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4362.751
+      },
+      {
+        "day": 108,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 972000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 17604.277,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4401.069
+      },
+      {
+        "day": 109,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 981000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 17753.346,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4438.336
+      },
+      {
+        "day": 110,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 990000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 17898.541,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4474.635
+      },
+      {
+        "day": 111,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 999000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 18040.15,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4510.037
+      },
+      {
+        "day": 112,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1008000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 18178.425,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4544.606
+      },
+      {
+        "day": 113,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1017000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 18313.592,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4578.398
+      },
+      {
+        "day": 114,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1026000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 18445.851,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4611.463
+      },
+      {
+        "day": 115,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1035000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 18575.382,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4643.845
+      },
+      {
+        "day": 116,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1044000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 18702.347,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4675.587
+      },
+      {
+        "day": 117,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1053000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 18826.893,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4706.723
+      },
+      {
+        "day": 118,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1062000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 18949.154,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4737.288
+      },
+      {
+        "day": 119,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1071000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 19069.25,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4767.312
+      },
+      {
+        "day": 120,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1080000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 19187.292,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4796.823
+      },
+      {
+        "day": 121,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1089000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 19303.384,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4825.846
+      },
+      {
+        "day": 122,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1098000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 19417.617,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4854.404
+      },
+      {
+        "day": 123,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1107000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 19530.079,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4882.52
+      },
+      {
+        "day": 124,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1116000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 19640.849,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4910.212
+      },
+      {
+        "day": 125,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1125000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 19750.002,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4937.501
+      },
+      {
+        "day": 126,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1134000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 19857.607,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4964.402
+      },
+      {
+        "day": 127,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1143000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 19963.727,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 4990.932
+      },
+      {
+        "day": 128,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1152000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 20068.423,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5017.106
+      },
+      {
+        "day": 129,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1161000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 20171.75,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5042.937
+      },
+      {
+        "day": 130,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1170000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 20273.76,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5068.44
+      },
+      {
+        "day": 131,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1179000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 20374.503,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5093.626
+      },
+      {
+        "day": 132,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1188000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 20474.025,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5118.506
+      },
+      {
+        "day": 133,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1197000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 20572.369,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5143.092
+      },
+      {
+        "day": 134,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1206000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 20669.576,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5167.394
+      },
+      {
+        "day": 135,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1215000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 20765.684,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5191.421
+      },
+      {
+        "day": 136,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1224000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 20860.73,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5215.183
+      },
+      {
+        "day": 137,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1233000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 20954.749,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5238.687
+      },
+      {
+        "day": 138,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1242000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 21047.773,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5261.943
+      },
+      {
+        "day": 139,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1251000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 21139.832,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5284.958
+      },
+      {
+        "day": 140,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1260000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 21230.957,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5307.739
+      },
+      {
+        "day": 141,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1269000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 21321.175,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5330.294
+      },
+      {
+        "day": 142,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1278000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 21410.513,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5352.628
+      },
+      {
+        "day": 143,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1287000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 21498.996,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5374.749
+      },
+      {
+        "day": 144,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1296000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 21586.648,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5396.662
+      },
+      {
+        "day": 145,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1305000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 21673.492,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5418.373
+      },
+      {
+        "day": 146,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1314000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 21759.551,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5439.888
+      },
+      {
+        "day": 147,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1323000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 21844.844,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5461.211
+      },
+      {
+        "day": 148,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1332000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 21929.392,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5482.348
+      },
+      {
+        "day": 149,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1341000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 22013.214,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5503.304
+      },
+      {
+        "day": 150,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1350000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 22096.329,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5524.082
+      },
+      {
+        "day": 151,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1359000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 22178.755,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5544.689
+      },
+      {
+        "day": 152,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1368000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 22260.507,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5565.127
+      },
+      {
+        "day": 153,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1377000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 22341.603,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5585.401
+      },
+      {
+        "day": 154,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1386000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 22422.057,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5605.514
+      },
+      {
+        "day": 155,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1395000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 22501.886,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5625.471
+      },
+      {
+        "day": 156,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1404000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 22581.102,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5645.276
+      },
+      {
+        "day": 157,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1413000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 22659.721,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5664.93
+      },
+      {
+        "day": 158,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1422000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 22737.756,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5684.439
+      },
+      {
+        "day": 159,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1431000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 22815.218,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5703.805
+      },
+      {
+        "day": 160,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1440000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 22892.121,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5723.03
+      },
+      {
+        "day": 161,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1449000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 22968.477,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5742.119
+      },
+      {
+        "day": 162,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1458000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 23044.297,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5761.074
+      },
+      {
+        "day": 163,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1467000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 23119.593,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5779.898
+      },
+      {
+        "day": 164,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1476000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 23194.374,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5798.593
+      },
+      {
+        "day": 165,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1485000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 23268.652,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5817.163
+      },
+      {
+        "day": 166,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1494000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 23342.436,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5835.609
+      },
+      {
+        "day": 167,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1503000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 23415.736,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5853.934
+      },
+      {
+        "day": 168,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1512000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 23488.562,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5872.141
+      },
+      {
+        "day": 169,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1521000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 23560.923,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5890.231
+      },
+      {
+        "day": 170,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1530000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 23632.827,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5908.207
+      },
+      {
+        "day": 171,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1539000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 23704.283,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5926.071
+      },
+      {
+        "day": 172,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1548000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 23775.299,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5943.825
+      },
+      {
+        "day": 173,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1557000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 23845.883,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5961.471
+      },
+      {
+        "day": 174,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1566000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 23916.044,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5979.011
+      },
+      {
+        "day": 175,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1575000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 23985.788,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 5996.447
+      },
+      {
+        "day": 176,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1584000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 24055.123,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 6013.781
+      },
+      {
+        "day": 177,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1593000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 24124.056,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 6031.014
+      },
+      {
+        "day": 178,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1602000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 24192.594,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 6048.149
+      },
+      {
+        "day": 179,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1611000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 24260.744,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 6065.186
+      },
+      {
+        "day": 180,
+        "daily_financial_usd": 9000000.0,
+        "cumulative_financial_usd": 1620000000.0,
+        "daily_injuries": 135.158,
+        "cumulative_injuries": 24328.512,
+        "daily_deaths": 33.79,
+        "cumulative_deaths": 6082.128
+      }
+    ],
+    "sources": {
+      "financial": "Medical care, SAR, infrastructure support, emergency food/water (scaled from UNHCR operational data)",
+      "injuries": "ICRC 4:1 injury-to-death ratio, applied to v2 effective death rate",
+      "mortality": "ERCF Mortality Model v3 \u2014 empirical base rates, D3\u00d7D4 confinement modifier, displacement protection factor, geographic exposure factor"
+    }
+  },
+  "remaining_costs": {
+    "parameters": {
+      "population": 1500000,
+      "vulnerable_pct": 57,
+      "risk_level": 3,
+      "days": 180,
+      "distance_km": 120,
+      "access_multiplier": 3.6,
+      "effective_access_mult": 5.4,
+      "terrain_mult": 1.7,
+      "climate_fuel_mult": 1.0,
+      "loss_rate": 0.3,
+      "effective_loss_rate": 0.5,
+      "base_extraction_prob": 0.8,
+      "extraction_probability": 0.9,
+      "per_person_ground_usd": 74.88,
+      "per_person_air_usd": 748.8,
+      "treat_cost_per_injury": 1180.0,
+      "unhas_rate_usd_per_km": 2.08
+    },
+    "dim_modifiers": {
+      "d4_logistics_penalty": 0.5,
+      "d3_loss_add": 0.175,
+      "d7_coord_overhead": 0.025,
+      "d1_extraction_mult": 1.825,
+      "d3_extraction_prob_add": 0.1,
+      "d6_urgency_floor": 0.6,
+      "d2_injury_mult": 1.8,
+      "d1_injury_mult": 1.3,
+      "d5_treatment_cost_mult": 1.475
+    },
+    "costs_usd": {
+      "supply_delivery": 13012650000.0,
+      "emergency_extraction": 1130896728.0,
+      "field_medical": 509760000.0,
+      "total": 14653306728.0
+    },
+    "intermediates": {
+      "raw_supply_before_loss": 8675100000.0,
+      "cumulative_injuries": 432000.0,
+      "vulnerable": 855000,
+      "non_vulnerable": 645000,
+      "base_survival_cost": 945000000.0,
+      "access_premium": 12067650000.0
+    },
+    "source_notes": {
+      "base_supply_usd_per_person_day": {
+        "value": 3.5,
+        "source": "WFP Annual Performance Report 2023 (WFP Executive Board, WFP-0000157354): $0.42/beneficiary/day global average (food/cash assistance only, all contexts \u2014 conflict and stable combined). ERCF base of $3.50 includes WASH, health, shelter, and coordination components not in WFP food-only figure. Ratio $3.50/$0.42 = 8.3\u00d7 reflects multi-sector vs food-only scope. UNHCR 2023 per-capita funding floor: $47/person/year = $0.13/day (funding received, not cost of operations). Neither figure provides a conflict-specific daily cost. URL: executiveboard.wfp.org/document_download/WFP-0000157354",
+        "confidence": "estimated"
+      },
+      "access_multipliers": {
+        "value": {
+          "L0": 1.0,
+          "L1": 1.5,
+          "L2": 2.0,
+          "L3": 3.6,
+          "L4": 4.0
+        },
+        "prior_values": {
+          "L2": 3.0,
+          "L3": 5.0,
+          "L4": 8.0
+        },
+        "revised": "June 2026 \u2014 reduced to upper bound of documented sources",
+        "source": "WFP Logistics Cluster field data, conflict-affected contexts 2020\u20132023; OCHA Access Monitoring and Reporting Framework. NEW ANCHOR (L3): WFP Logistics Annual Report 2012 \u2014 $593/MT for CAR/South Sudan/DRC vs $180/MT global overland average = \u00d73.3 ratio (terrain + conflict combined, not isolated). ERCF L3=\u00d73.6 is directionally consistent with this figure. (ref: wfp.tind.io/record/128161). NRC/Protect Humanitarian Space (Feb 2024) 'Cost of Operations in Hard-to-Reach Areas' confirms qualitatively that Libya, Iraq, Syria (active conflict) were the three most expensive crises in 2021, but provides no numerical multiplier per level. No published source found with explicit L2/L3/L4 cost multipliers for active-conflict delivery. L4=\u00d74.0 remains directionally plausible but unconfirmed \u2014 no public figure found exceeding \u00d74. (ref: protecthumanitarianspace.com, Feb 2024)",
+        "confidence": "estimated",
+        "components": {
+          "logistics_component": {
+            "range": "1.0\u00d7 to 1.23\u00d7",
+            "basis": "WFP per-MT logistics data \u2014 Sudan active conflict ($209.63/MT) vs Eastern Africa mixed average ($170.71/MT) = 1.23\u00d7 premium",
+            "status": "partially validated by WFP East Africa 2023 report"
+          },
+          "security_and_overhead_component": {
+            "range": "2\u00d7 to 7\u00d7 above logistics alone",
+            "basis": "security escorts, armed-group negotiation, staff hazard pay, forced rerouting, convoy protection \u2014 estimated, not measured",
+            "status": "unvalidated \u2014 requires UNDSS or ICRC security cost data",
+            "sources_needed": [
+              "UNDSS security cost reporting by conflict intensity",
+              "ICRC: 'Security Management of Humanitarian Operations' (restricted)",
+              "OCHA Financial Tracking Service per-operation overhead data"
+            ]
+          }
+        }
+      },
+      "wfp_east_africa_2023": {
+        "figure": "$170.71/MT average (total logistics), $131.43/MT transport only",
+        "url": "https://wfp.tind.io/record/130347/files/ELR%203284.pdf",
+        "source": "WFP Regional Bureau Eastern Africa, 'Logistics in Eastern Africa: Delivering Amidst Increased Challenges' (2023)",
+        "implies_multiplier": 1.0,
+        "note": "Mixed conflict/stable contexts across Eastern Africa; serves as approximate regional baseline for per-MT delivery cost"
+      },
+      "wfp_sudan_conflict_2023": {
+        "figure": "$209.63/MT active conflict delivery ($39.2M / 187,000 MT)",
+        "url": "https://wfp.tind.io/record/130347/files/ELR%203284.pdf",
+        "source": "WFP Eastern Africa 2023 report, Sudan section",
+        "implies_multiplier": 1.23,
+        "note": "Conflict-induced cost increase: new corridors via Chad/Egypt/South Sudan, Port Sudan access disrupted, fuel scarcity, cash access collapse. Underestimates true access cost because UNHAS and Logistics Cluster services are provided free-to-user or at partial cost recovery.",
+        "per_person_per_day_derivation": {
+          "assumption_kg_per_person_day": 0.65,
+          "breakdown": "0.5kg food + 0.1kg medicine + 0.05kg other (food-weight only; excludes water at 15kg/person/day which dominates supply weight)",
+          "mt_per_person_day": 0.00065,
+          "logistics_cost_usd": 0.1363,
+          "model_base_usd": 3.5,
+          "gap_factor": 25.7,
+          "gap_explanation": "The $3.50/person/day model base is ~24.3\u00d7 the logistics-only cost implied by the WFP Sudan per-MT figure at 0.65kg/person/day. This gap is expected and explained by: (1) water supply at 15L (15kg) per person per day raises effective weight to ~15.65kg = 0.01565 MT/person/day, implying $209.63 \u00d7 0.01565 = $3.28/person/day \u2014 much closer to the $3.50 base; (2) the $3.50 base includes non-transport costs (admin, staff, storage, distribution overheads); (3) Sudan per-MT cost underestimates true access cost due to subsidised UNHAS/Logistics Cluster services not captured in the per-MT figure.",
+          "with_water_15kg_per_person": {
+            "total_kg_per_person_day": 15.65,
+            "mt_per_person_day": 0.01565,
+            "implied_logistics_usd": 3.281,
+            "note": "At full Sphere water standard, WFP Sudan logistics cost implies $3.28/person/day \u2014 within 6% of the $3.50 model base."
+          }
+        }
+      },
+      "yemen_logistics_cluster_2015": {
+        "figure": "~$200/MT maritime equivalent (dhow transport at $140/m\u00b3)",
+        "url": "https://s3.eu-west-1.amazonaws.com/logcluster-web-prod-files/public/yemen_lle_-_final_report_170519_0.pdf",
+        "source": "WFP Yemen Logistics Cluster Lessons Learned Report, 2015",
+        "note": "Derived from $140/m\u00b3 volume rate assuming ~0.7 MT/m\u00b3 food commodity density. 2015 figure; Yemen conflict costs have increased since. Does not include in-country distribution cost from port to beneficiary."
+      },
+      "access_mult_ocha_2024": {
+        "search": "SEARCH 1 \u2014 OCHA Access Monitoring (June 2026)",
+        "source": "NRC/Protect Humanitarian Space, 'Cost of Operations in Hard-to-Reach Areas', February 2024",
+        "url": "https://www.protecthumanitarianspace.com/sites/default/files/2024-02/Cost%20of%20Operations%20in%20H2R%20Areas.pdf",
+        "figure": "Somalia 2017: security cooperation ~$400M/year out of ~$700\u2013900M total humanitarian operations \u2192 security \u2248 45\u201357% of total ops",
+        "derived_multiplier": "~2.0\u00d7 from security alone (L3 proxy); ~2.5\u00d7 combined with logistics (1.23\u00d7)",
+        "verdict": "PARTIALLY SUPPORTIVE for L3 \u22652\u00d7; 5\u00d7 not confirmed from this source",
+        "confidence": "estimated \u2014 total ops denominator is approximate"
+      },
+      "access_mult_undss_yemen": {
+        "search": "SEARCH 2 \u2014 UNDSS Security Cost (June 2026)",
+        "source": "Sana'a Center for Strategic Studies, 'To Stay and Deliver: Security' (Yemen, ~2020\u20132021)",
+        "url": "https://sanaacenter.org/reports/humanitarian-aid/15354",
+        "figure": "Armed escort (UNDSS-mandated): up to US$3,000 per convoy from Aden to Mukalla, one way, plus fuel. Escort required for all missions outside Aden.",
+        "derived_multiplier": "Armed escort alone: +$60\u2013$100/MT \u2192 1.35\u20131.58\u00d7 on top of logistics baseline (L3\u2013L4 Yemen context)",
+        "verdict": "PARTIALLY SUPPORTIVE \u2014 confirms significant security cost component at L3\u2013L4; escort-only figure; total security costs are higher",
+        "confidence": "cited figure is specific and attributed but no date on source page"
+      },
+      "access_mult_wfp_redsea": {
+        "search": "SEARCH 3 \u2014 WFP Security Surcharge (June 2026)",
+        "source": "WFP, 'Middle East crisis: WFP navigates turbulent waters to tackle hunger'",
+        "url": "https://www.wfp.org/stories/middle-east-crisis-wfp-navigates-turbulent-waters-fight-hunger",
+        "figure": "Roughly 18 percent cost increase for maritime cargo rerouted due to Red Sea conflict (Houthi attacks / Strait of Hormuz disruption, 2024\u201326)",
+        "context": "Maritime rerouting overhead \u2014 equivalent to L0\u2013L1 access disruption; NOT active-conflict ground delivery in a conflict zone",
+        "derived_multiplier": "~1.18\u00d7 for maritime route disruption",
+        "verdict": "CONFIRMS L0\u2013L1 = 1.0\u20131.5\u00d7. NEUTRAL for L2\u2013L4.",
+        "confidence": "validated \u2014 explicit WFP operational figure"
+      },
+      "access_mult_acf_2018": {
+        "search": "SEARCH 5 \u2014 Academic Literature (June 2026)",
+        "source": "Action Against Hunger (ACF), 'Supply Chain Expenditure & Preparedness Investment Opportunities', 2017/2018",
+        "url": "https://www.actioncontrelafaim.org/app/uploads/sites/2/2018/05/ACF_Report_Supply-Chain-Exp-and-Inv.-Opportunities_20171124_Final.pdf",
+        "figures": {
+          "armed_conflict_supply_chain_share": "79% of total operational costs in armed conflict (vs. 62\u201371% for medical/natural disaster emergencies)",
+          "within_emergency_ratio": "79/65 = 1.22\u00d7 higher supply chain share in armed conflict vs. other emergency types",
+          "programme_running_costs_armed_conflict": "17% (6 points above 11% average) \u2014 attributed to access limitations due to security in conflict areas"
+        },
+        "verdict": "PARTIALLY SUPPORTIVE \u2014 confirms armed conflict drives higher supply chain cost share than other emergency types; 1.22\u00d7 within-emergency-type ratio. Not a multiplier vs. non-emergency stable baseline.",
+        "confidence": "peer-reviewed organisation report; based on six ACF emergency operations"
+      },
+      "access_mult_ifrc_codn": {
+        "search": "SEARCH 4 \u2014 ICRC/IFRC Conflict vs. Stable Cost (June 2026)",
+        "source": "IFRC, 'Cost of Doing Nothing' methodology appendix, 2021",
+        "url": "https://www.ifrc.org/sites/default/files/2021-09/CoDN_methodology_appendix.pdf",
+        "figure": "Per capita cost of humanitarian response shows a 'statistically significant difference' between conflict and non-conflict contexts (conflict higher). Conflict contexts were excluded from the non-conflict baseline calculation.",
+        "derived_multiplier": "Not stated \u2014 direction confirmed, ratio not given",
+        "verdict": "NEUTRAL \u2014 most direct academic confirmation of conflict cost premium direction, but no multiplier ratio published",
+        "confidence": "peer-reviewed methodology paper; statistically significant finding"
+      },
+      "supply_loss_rates": {
+        "value": {
+          "L0-1": "5%",
+          "L2": "15%",
+          "L3": "30%",
+          "L4": "50%"
+        },
+        "source": "UNVALIDATED by conflict level. Transparency International/U4 2024 (Darden 2019): sector estimates of losses to fraud and corrupt diversion range from 2%\u201315% across ALL conflict levels combined \u2014 no breakdown by conflict intensity published. L0\u20131=5% anchored to OCHA Gaza ceasefire monitoring (~2% under active UN 2720 Mechanism monitoring Oct\u2013Dec 2025; 5% used as planning buffer including non-looting losses). L2=15%, L3=30%, L4=50% are internal planning estimates with no published equivalents found in WFP, OCHA, ICRC, or academic literature. WFP audit reports for Sudan 2023\u20132024 (most likely source for conflict loss rates) are internal documents not publicly accessible. (ref: knowledgehub.transparencycdn.org/.../Corruption-in-humanitarian-assistance-in-conflict-settings_2024_Final.pdf)",
+        "confidence": "estimated"
+      },
+      "extraction_ground_usd_per_person": {
+        "value": 800,
+        "source": "Internal heuristic \u2014 no published source. Reflects reduced fuel, logistics, and personnel costs vs air extraction (computed as 30% of UNHAS air rate \u00d7 distance). Requires validation against UNHCR/IOM field data.",
+        "confidence": "estimated"
+      },
+      "extraction_medical_evac_usd_per_person": {
+        "value": 2500,
+        "source": "ICRC field operation cost estimates, scaled from published per-capita figures",
+        "confidence": "estimated"
+      },
+      "extraction_helicopter_premium_multiplier": {
+        "value": 2.5,
+        "source": "ICRC field operation estimates (Level 4 / frontline contexts only)",
+        "confidence": "unvalidated"
+      },
+      "infield_injury_rates_per_1k_per_day": {
+        "value": {
+          "L0": 0.0,
+          "L1": 0.1,
+          "L2": 0.5,
+          "L3": 2.0,
+          "L4": 8.0
+        },
+        "source": "WHO/ICRC conflict epidemiology literature",
+        "confidence": "estimated"
+      },
+      "field_treatment_cost_usd_per_injury": {
+        "value": 800,
+        "source": "Peer-reviewed range: $211\u2013$1,013 (MSF Nigeria 2009, inflation-adjusted). $800 adopted as conservative upper-mid estimate. ICRC surgical cost data not publicly available per-patient.",
+        "confidence": "estimated",
+        "validated_range_usd": "$211\u2013$650 per surgical case (peer-reviewed, 2009\u20132022)",
+        "inflation_adjusted_upper_bound_2026": "~$1,000 (MSF Haiti 2009 figure at 3%/yr)",
+        "peer_reviewed_sources": {
+          "south_sudan_conflict_hospital_2022": {
+            "figure": "$211 per surgical case (full provider cost, top-down allocation)",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11534226",
+            "source": "Chagomerana et al., 'Cost effectiveness and ROI analysis for surgical care in a conflict-affected region of Sudan', PLOS Global Public Health, 2024 (data: 2022)",
+            "note": "Conflict-affected South Sudan mission hospital. Explicitly acknowledged as 'extremely low-cost structure' \u2014 annual budget < daily budget of comparable US hospital. Lower bound.",
+            "coverage": "All surgery including war trauma. Peer-reviewed, conflict zone."
+          },
+          "msf_nigeria_trauma_center_derived": {
+            "figure": "~$500/case derived from $172/DALY (Teme Hospital, Nigeria)",
+            "url": "https://scienceportal.msf.org/assets/comparative-cost-effectiveness-analysis-two-msf-surgical-trauma-centers",
+            "source": "Gosselin RA et al., 'Comparative cost-effectiveness analysis of two MSF surgical trauma centers', World Journal of Surgery, 2010 (data: ~2008\u20132009)",
+            "note": "Armed conflict context. Per-case figure DERIVED from DALY ratio using Sudan study as cross-reference \u2014 not directly published. Inflation-adjusted to 2026 (~3%/yr \u00d7 15 years): ~$779/case.",
+            "coverage": "Armed conflict trauma surgery specifically."
+          },
+          "msf_haiti_trauma_center_derived": {
+            "figure": "~$650/case derived from $223/DALY (La Trinit\u00e9 Hospital, Haiti)",
+            "url": "same as msf_nigeria above",
+            "note": "Disaster context (not active conflict). Inflation-adjusted 2026: ~$1,013/case.",
+            "coverage": "Disaster trauma surgery."
+          },
+          "ethiopia_trauma_hospital_2021": {
+            "figure": "$190 USD median patient-side cost (out-of-pocket)",
+            "url": "https://jogs.one/jogs_1221",
+            "source": "Journal of Global Surgery, 2021",
+            "note": "PATIENT-SIDE cost, not provider cost. Non-conflict LMIC hospital. Floor \u2014 sets minimum expectation for LMIC trauma care cost.",
+            "coverage": "General trauma (non-conflict). Patient-side OOP only."
+          }
+        },
+        "recommendation": "REDUCE to $500 (upper bound of directly documented peer-reviewed range without inflation extrapolation). The $1,200 value is above all documented peer-reviewed figures. It becomes defensible only if (a) inflating 2009 MSF data to 2026 (~$1,013) AND (b) assuming the $1,200 includes access overhead on top of clinical costs. However, RC_ACCESS_MULT already handles access overhead for the supply component \u2014 applying $1,200 to injuries may double-count if it implicitly includes access costs. $500 is more conservative and directly supported. Alternatively, use $1,000 if inflating MSF Haiti 2009 data to 2026 (3%/yr). Do not exceed $1,200 \u2014 this sits above the documented inflation-adjusted ceiling for the best-documented MSF conflict facilities."
+      }
+    }
+  }
+}
