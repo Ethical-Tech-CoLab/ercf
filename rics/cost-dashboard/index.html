@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RICS Cost Dashboard — brainstorm tool</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+<style>
+:root {
+  --navy: #1a237e;
+  --navy2: #283593;
+}
+body { background:#f0f2f5; font-family:'Segoe UI',system-ui,sans-serif; font-size:0.88rem; }
+.app-header {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy2) 100%);
+  color:#fff; padding:1rem 1.5rem;
+  box-shadow:0 2px 10px rgba(0,0,0,.3);
+}
+.app-header h1 { font-size:1.25rem; font-weight:800; letter-spacing:.04em; margin:0; }
+.app-header p  { font-size:.75rem; opacity:.75; margin:0; }
+
+.app-footer {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy2) 100%);
+  color: rgba(255,255,255,.7); font-size:.7rem;
+  padding:.55rem 1.5rem;
+  display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.5rem;
+}
+
+.card { border:none; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.07); }
+.card-header { font-weight:700; font-size:.82rem; text-transform:uppercase; letter-spacing:.05em; background:#fff; border-bottom:1px solid #f0f0f0; border-radius:10px 10px 0 0 !important; padding:.65rem 1rem; }
+
+.stat-mini { background:#fff; border-radius:8px; padding:.9rem; box-shadow:0 2px 6px rgba(0,0,0,.06); height:100%; }
+.stat-mini .val { font-size:1.5rem; font-weight:800; color:var(--navy); line-height:1.15; }
+.stat-mini .lbl { font-size:.68rem; color:#888; text-transform:uppercase; letter-spacing:.05em; }
+.stat-mini .sub { font-size:.68rem; color:#94a3b8; margin-top:.2rem; }
+.stat-mini .flag { font-size:.65rem; color:#b45309; margin-top:.3rem; background:#fffbeb; border:1px solid #fde68a; border-radius:4px; padding:.15rem .4rem; display:inline-block; }
+
+.chart-box { position:relative; height:340px; }
+
+.control-bar { background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.07); padding:.85rem 1rem; margin-bottom:1rem; }
+.control-label { font-size:.72rem; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:.04em; margin-bottom:.25rem; display:block; }
+.unc-readout { font-weight:800; color:var(--navy); }
+.note-muted { font-size:.68rem; color:#94a3b8; font-style:italic; }
+
+.empty-state { text-align:center; padding:2rem 1rem; color:#94a3b8; font-size:.85rem; }
+
+.scope-banner {
+  background:#eef2ff; border:1px solid #c7d2fe; border-left:4px solid var(--navy);
+  border-radius:6px; padding:.5rem .9rem; margin:.75rem 1rem; font-size:.76rem; color:#312e81;
+}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <h1><i class="fas fa-coins me-2"></i>RICS Cost Dashboard</h1>
+  <p>Cost layer only — solo brainstorm tool, not the merged RICS app</p>
+</div>
+
+<div class="scope-banner">
+  <i class="fas fa-circle-info me-1"></i>
+  This dashboard shows only the cost layer (Trajectory A/B, break-even) from
+  <code>cost_engine.py</code>. It intentionally has no gatekeeper or pathway cards —
+  those are other team members' modules and aren't ready to appear as a merged
+  deliverable yet. See <code>rics/DESIGN.md</code> for the full architecture.
+</div>
+
+<div class="container-fluid" style="padding:0 1rem 1.5rem">
+
+  <!-- Cohort selector + shared inputs -->
+  <div class="control-bar">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-5">
+        <span class="control-label">Cohort</span>
+        <div class="d-flex gap-2">
+          <select class="form-select form-select-sm" id="cohortSelect"></select>
+          <button class="btn btn-sm btn-outline-secondary" id="newCohortBtn" data-bs-toggle="modal" data-bs-target="#newCohortModal">
+            <i class="fas fa-plus me-1"></i>New
+          </button>
+        </div>
+        <div class="note-muted mt-1" id="cohortEmptyNote" style="display:none">No cohorts yet — add one to populate the page.</div>
+      </div>
+      <div class="col-md-4">
+        <span class="control-label">Field/Financial Intelligence Uncertainty <span class="unc-readout" id="uncReadout">30%</span></span>
+        <input type="range" class="form-range" id="uncertaintySlider" min="0" max="100" value="30"/>
+        <div class="note-muted">Widens the break-even band (cost_engine.py, DESIGN.md §7).</div>
+      </div>
+      <div class="col-md-3">
+        <span class="control-label">Tent lifetime (years) <span class="text-danger">*</span></span>
+        <input type="number" class="form-control form-control-sm" id="tentLifetimeInput" min="0.1" step="0.5" placeholder="not yet sourced — enter an assumption"/>
+        <div class="note-muted">No registry value yet — required to compute Trajectory A.</div>
+      </div>
+    </div>
+    <div class="row g-3 mt-1">
+      <div class="col-md-2">
+        <span class="control-label">Funding shortfall %</span>
+        <input type="number" class="form-control form-control-sm" id="fundingShortfallInput" min="0" max="100" value="0"/>
+      </div>
+      <div class="col-md-2">
+        <span class="control-label">Documentation $</span>
+        <input type="number" class="form-control form-control-sm" id="tbDocInput" min="0" value="0"/>
+      </div>
+      <div class="col-md-2">
+        <span class="control-label">Skills credentialing $</span>
+        <input type="number" class="form-control form-control-sm" id="tbSkillsInput" min="0" value="0"/>
+      </div>
+      <div class="col-md-2">
+        <span class="control-label">Transport $</span>
+        <input type="number" class="form-control form-control-sm" id="tbTransportInput" min="0" value="0"/>
+      </div>
+      <div class="col-md-2">
+        <span class="control-label">Start-up capital $</span>
+        <input type="number" class="form-control form-control-sm" id="tbStartupInput" min="0" value="0"/>
+      </div>
+      <div class="col-md-2">
+        <span class="control-label">Host co-investment $</span>
+        <input type="number" class="form-control form-control-sm" id="tbOffsetInput" min="0" value="0"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4 metric cards -->
+  <div class="row g-3 mb-3">
+    <div class="col-md-3">
+      <div class="stat-mini">
+        <div class="lbl">Status quo cost</div>
+        <div class="val" id="mcTrajectoryA">—</div>
+        <div class="sub">$/person/year — Trajectory A</div>
+        <div class="flag" id="mcTrajectoryAFlag" style="display:none"></div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-mini">
+        <div class="lbl">Inclusion investment</div>
+        <div class="val" id="mcTrajectoryB">—</div>
+        <div class="sub">$/person, one-time — Trajectory B</div>
+        <div class="flag" id="mcTrajectoryBFlag" style="display:none"></div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-mini">
+        <div class="lbl">Break-even year</div>
+        <div class="val" id="mcBreakeven">—</div>
+        <div class="sub" id="mcBreakevenSub">&nbsp;</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-mini">
+        <div class="lbl">Uncertainty band width</div>
+        <div class="val" id="mcBandWidth">—</div>
+        <div class="sub">years between fastest/slowest crossover</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Break-even chart -->
+  <div class="card mb-3">
+    <div class="card-header"><i class="fas fa-chart-line me-1"></i>Break-even — status quo vs. inclusion pathway</div>
+    <div class="card-body">
+      <div class="chart-box"><canvas id="breakevenChart"></canvas></div>
+      <div class="empty-state" id="chartEmptyState" style="display:none">Select a cohort and enter a tent-lifetime assumption to compute.</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="app-footer">
+  <span>RICS Cost Dashboard · cost_engine.py + parameter_registry.py only</span>
+  <span>Not the merged app — see rics/static/ for the full RICS frontend once all modules are ready</span>
+</div>
+
+<!-- New cohort modal -->
+<div class="modal fade" id="newCohortModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">New aggregate cohort</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-2">
+          <label class="form-label" style="font-size:.78rem">Snapshot date</label>
+          <input type="date" class="form-control form-control-sm" id="ncSnapshotDate"/>
+        </div>
+        <div class="mb-2">
+          <label class="form-label" style="font-size:.78rem">Nationality</label>
+          <select class="form-select form-select-sm" id="ncNationality"></select>
+        </div>
+        <div class="mb-2">
+          <label class="form-label" style="font-size:.78rem">Vulnerability category</label>
+          <select class="form-select form-select-sm" id="ncVulnCategory"></select>
+        </div>
+        <div class="mb-2">
+          <label class="form-label" style="font-size:.78rem">Legal status</label>
+          <select class="form-select form-select-sm" id="ncLegalStatus"></select>
+        </div>
+        <div class="mb-2">
+          <label class="form-label" style="font-size:.78rem">Count <span id="ncCountFloorNote" class="text-muted"></span></label>
+          <input type="number" class="form-control form-control-sm" id="ncCount"/>
+        </div>
+        <div class="mb-2">
+          <label class="form-label" style="font-size:.78rem">Priority</label>
+          <select class="form-select form-select-sm" id="ncPriority"></select>
+        </div>
+        <div class="mb-2">
+          <label class="form-label" style="font-size:.78rem">Source</label>
+          <input type="text" class="form-control form-control-sm" id="ncSource" placeholder="e.g. UNHCR registration data, FSF field count…"/>
+        </div>
+        <div class="mb-2">
+          <label class="form-label" style="font-size:.78rem">Tag</label>
+          <select class="form-select form-select-sm" id="ncTag">
+            <option value="unvalidated">Unvalidated</option>
+            <option value="estimated">Estimated</option>
+            <option value="validated">Validated</option>
+          </select>
+        </div>
+        <div id="ncError" class="text-danger small" style="display:none"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-sm btn-primary" id="ncSubmitBtn">Create</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>

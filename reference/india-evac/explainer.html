@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Explainer — Evacuation Readiness & Uncertainty Simulator</title>
+<style>
+:root {
+  --col-bg: #f4f5f7;
+  --col-header-bg: #1a2332;
+  --col-header-text: #e8ecf0;
+  --col-card-bg: #ffffff;
+  --col-border: #d1d5db;
+  --col-text-primary: #1a2332;
+  --col-text-secondary: #6b7280;
+  --col-accent: #2563eb;
+  --col-operational: #639922;
+  --col-partial: #EF9F27;
+  --col-blocked: #E24B4A;
+  --col-unknown: #B4B2A9;
+  --font-main: 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'Consolas', 'Monaco', monospace;
+  --radius: 6px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-main); background: var(--col-bg); color: var(--col-text-primary); font-size: 14px; line-height: 1.6; }
+
+#header { background: var(--col-header-bg); color: var(--col-header-text); padding: 20px 32px; }
+#header h1 { font-size: 20px; font-weight: 600; letter-spacing: 0.3px; }
+#header .subtitle { font-size: 13px; color: #cbd5e1; margin-top: 4px; }
+#header .back-link { display: inline-block; margin-top: 12px; font-size: 12px; color: #93c5fd; text-decoration: none; border: 1px solid #374151; border-radius: var(--radius); padding: 4px 12px; }
+#header .back-link:hover { background: rgba(255,255,255,0.08); }
+
+.content { max-width: 900px; margin: 0 auto; padding: 32px 24px; display: flex; flex-direction: column; gap: 24px; }
+
+.card { background: var(--col-card-bg); border: 1px solid var(--col-border); border-radius: var(--radius); padding: 22px 26px; box-shadow: var(--shadow); }
+.card h2 { font-size: 15px; font-weight: 700; color: var(--col-text-primary); margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--col-border); display: flex; align-items: center; gap: 8px; }
+.card h2 .num { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: var(--col-accent); color: white; border-radius: 50%; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.card p { font-size: 13px; color: var(--col-text-secondary); line-height: 1.7; margin-bottom: 10px; }
+.card p:last-child { margin-bottom: 0; }
+.card p strong { color: var(--col-text-primary); }
+.card ul { padding-left: 18px; margin: 8px 0; }
+.card li { font-size: 13px; color: var(--col-text-secondary); line-height: 1.7; margin-bottom: 4px; }
+.card li strong { color: var(--col-text-primary); }
+
+.status-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; margin-top: 12px; }
+.status-item { border: 1px solid var(--col-border); border-radius: var(--radius); padding: 10px 13px; }
+.status-item .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+.status-item .label { font-size: 12px; font-weight: 600; }
+.status-item .desc { font-size: 11.5px; color: var(--col-text-secondary); margin-top: 3px; line-height: 1.5; }
+
+.controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+.ctrl-item { background: #f8fafc; border: 1px solid var(--col-border); border-radius: var(--radius); padding: 10px 13px; }
+.ctrl-item .name { font-size: 12px; font-weight: 600; color: var(--col-text-primary); margin-bottom: 3px; }
+.ctrl-item .desc { font-size: 11.5px; color: var(--col-text-secondary); line-height: 1.5; }
+
+.highlight-box { background: #eff6ff; border: 1px solid #bfdbfe; border-left: 4px solid var(--col-accent); border-radius: var(--radius); padding: 12px 16px; margin-top: 12px; font-size: 12.5px; color: #1e40af; line-height: 1.65; }
+
+.factor-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 12px; }
+.factor-table th { text-align: left; padding: 6px 10px; background: #f8fafc; border: 1px solid var(--col-border); font-weight: 600; color: var(--col-text-primary); }
+.factor-table td { padding: 6px 10px; border: 1px solid var(--col-border); color: var(--col-text-secondary); vertical-align: top; }
+.factor-table td:first-child { font-weight: 500; color: var(--col-text-primary); white-space: nowrap; }
+.gk-tag { display: inline-block; padding: 1px 6px; background: #7c3aed; color: white; border-radius: 8px; font-size: 10px; font-weight: 600; }
+
+footer { text-align: center; font-size: 11px; color: var(--col-text-secondary); padding: 20px; border-top: 1px solid var(--col-border); margin-top: 8px; }
+footer a { color: var(--col-accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <h1>Evacuation Readiness &amp; Uncertainty Simulator — Explainer</h1>
+  <div class="subtitle">PhD research instrument &nbsp;·&nbsp; civilian protection in conflict &nbsp;·&nbsp; destination readiness &amp; decision-making under uncertainty</div>
+  <a class="back-link" href="index.html">← Back to Simulator</a>
+</div>
+
+<div class="content">
+
+  <!-- What is this -->
+  <div class="card" id="card-what">
+    <h2><span class="num">?</span> What is this tool?</h2>
+    <p>The <strong>Evacuation Readiness &amp; Uncertainty Simulator</strong> is a conceptual research instrument developed as part of a PhD project on civilian protection in armed conflict. It models the problem of assigning evacuee groups to destinations under conditions of incomplete, unreliable, or absent field intelligence — a situation routinely faced by humanitarian organisations and civilian protection actors.</p>
+    <p>The tool does not use real locations or real data. All scenarios are generated synthetically from a seeded random number generator, meaning any scenario can be reproduced exactly by entering the same seed. This reproducibility is a core requirement for academic peer review.</p>
+    <div class="highlight-box">
+      This is a <strong>demonstration tool</strong>, not an operational decision-support system. Outputs are not suitable for real evacuation planning without calibration against empirical field data.
+    </div>
+  </div>
+
+  <!-- The core problem -->
+  <div class="card" id="card-1">
+    <h2><span class="num">1</span> The core problem</h2>
+    <p>When civilians need to be evacuated in a conflict zone, decision-makers must identify suitable destinations quickly. But the information available is almost always <strong>incomplete</strong>: some sites may not have been assessed, assessments may be outdated, and field reports may be unreliable. The central question this tool explores is:</p>
+    <p><em>How does uncertainty in field intelligence degrade the quality of evacuation decisions — and where would better information have the highest impact?</em></p>
+    <p>The simulator makes this abstract problem concrete by quantifying uncertainty, propagating it through a readiness model, and running Monte Carlo simulations to show how likely a given assignment is to succeed given what we know (and don't know).</p>
+  </div>
+
+  <!-- Controls -->
+  <div class="card" id="card-2">
+    <h2><span class="num">2</span> How to use it</h2>
+    <p>The header bar contains all the controls you need to generate and explore scenarios.</p>
+    <div class="controls-grid">
+      <div class="ctrl-item">
+        <div class="name">Seed</div>
+        <div class="desc">A number that determines the entire randomly-generated scenario. The same seed always produces the same scenario — change it to explore a different situation.</div>
+      </div>
+      <div class="ctrl-item">
+        <div class="name">Destinations (N)</div>
+        <div class="desc">How many potential evacuation sites to generate (2–16). More destinations increases complexity and the chance of viable alternatives.</div>
+      </div>
+      <div class="ctrl-item">
+        <div class="name">Evacuee groups (M)</div>
+        <div class="desc">How many distinct evacuee groups to simulate (1–8). Each group is drawn from a set of IHL-grounded archetypes with different vulnerability levels and needs.</div>
+      </div>
+      <div class="ctrl-item">
+        <div class="name">Field Uncertainty slider</div>
+        <div class="desc">Scales how much trust to place in field assessments. At 0% all reports are taken at face value; at 100% assessments are almost meaningless. Watch how success rates drop as uncertainty rises.</div>
+      </div>
+      <div class="ctrl-item">
+        <div class="name">📋 Copy link</div>
+        <div class="desc">Writes the current seed, N, M, and uncertainty level into the page URL as query parameters, then copies that URL to your clipboard. Paste it anywhere (email, thesis notes, a co-author's chat) and opening it reproduces this exact scenario — no need to manually re-enter the four values.</div>
+      </div>
+    </div>
+    <p style="margin-top:14px">Click <strong>Generate Scenario</strong> to create a new random scenario. Adjust the uncertainty slider at any time — it recalculates instantly without regenerating the underlying data.</p>
+  </div>
+
+  <!-- Readiness factors -->
+  <div class="card" id="card-3">
+    <h2><span class="num">3</span> Readiness factors</h2>
+    <p>Each destination is assessed across <strong>seven factors</strong>. Three are designated <strong>gatekeepers</strong> — they receive double weight and, if blocked, impose a hard cap of 20% readiness regardless of how strong other factors are. This reflects the principle that a destination that is physically dangerous, legally inaccessible, or whose host community has explicitly refused to receive evacuees cannot be made viable by good food supply or shelter.</p>
+    <table class="factor-table">
+      <thead><tr><th>Factor</th><th>Type</th><th>Why it matters</th></tr></thead>
+      <tbody>
+        <tr><td>Security <span class="gk-tag">★ GK</span></td><td>Gatekeeper</td><td>Civilians cannot be moved to a site under active threat — the most fundamental access criterion.</td></tr>
+        <tr><td>Authority consent <span class="gk-tag">★ GK</span></td><td>Gatekeeper</td><td>Legal and political access; without host authority agreement, any movement is legally precarious.</td></tr>
+        <tr><td>Willingness <span class="gk-tag">★ GK</span></td><td>Gatekeeper</td><td>Community receptiveness; forced co-habitation can itself generate protection risks. A confirmed refusal ("Unwilling") is as disqualifying as a blocked checkpoint, so it is treated as a gatekeeper rather than a standard factor.</td></tr>
+        <tr><td>Capacity</td><td>Standard</td><td>Physical accommodation space relative to group size.</td></tr>
+        <tr><td>Shelter</td><td>Standard</td><td>Quality and availability of shelter structures.</td></tr>
+        <tr><td>Food &amp; water</td><td>Standard</td><td>Sustenance supply chains and access to safe water.</td></tr>
+        <tr><td>Medical capacity</td><td>Standard</td><td>Availability of medical services; weighted additionally in the assignment score for groups with medical or mobility needs.</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:14px">
+      <p>Each factor is assessed as one of four statuses:</p>
+      <div class="status-grid">
+        <div class="status-item"><span class="dot" style="background:var(--col-operational)"></span><span class="label">Operational</span><div class="desc">Fully functional. Score scales with how confident we are in the assessment.</div></div>
+        <div class="status-item"><span class="dot" style="background:var(--col-partial)"></span><span class="label">Partial</span><div class="desc">Degraded function — present but unreliable. Half the operational score, confidence-adjusted.</div></div>
+        <div class="status-item"><span class="dot" style="background:var(--col-blocked)"></span><span class="label">Blocked</span><div class="desc">Non-functional or access denied. Score = 0. Gatekeepers trigger the readiness cap. For Willingness specifically, this status is labelled <strong>"Unwilling"</strong> in the tool — a confirmed host refusal.</div></div>
+        <div class="status-item"><span class="dot" style="background:var(--col-unknown)"></span><span class="label">Unknown</span><div class="desc">Not assessed. Treated conservatively: a known unknown scores better than an unknown unknown. Distinct from "Unwilling" — this is an intelligence gap, not a confirmed exclusion.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Uncertainty model -->
+  <div class="card" id="card-4">
+    <h2><span class="num">4</span> The uncertainty model</h2>
+    <p>Uncertainty operates at two levels in the model:</p>
+    <ul>
+      <li><strong>Base confidence</strong> — each factor carries an individual confidence value (0–100%) generated when the scenario is created. This reflects how well-assessed that particular factor is at the time of the report.</li>
+      <li><strong>Field Uncertainty</strong> — the global slider scales all confidences multiplicatively. At 50% uncertainty, every factor's confidence is halved.</li>
+    </ul>
+    <p style="margin-top:10px">The model encodes a key epistemic distinction: <em>a known unknown is less dangerous than an unknown unknown</em>. If a factor is assessed as "Unknown" and we are highly confident in that assessment (we are sure we don't know), it scores higher than the same status with low confidence (we are not even sure our ignorance is accurate). This reflects the real-world asymmetry where a field team that explicitly reports "we could not assess food supply" provides more actionable information than a report produced under conditions where the team itself was unreliable.</p>
+  </div>
+
+  <!-- Monte Carlo -->
+  <div class="card" id="card-5">
+    <h2><span class="num">5</span> Monte Carlo simulation</h2>
+    <p>For each (evacuee group, destination) pair, the tool runs <strong>500 Monte Carlo iterations</strong>. In each run, every factor's assessed status is subjected to a perturbation test: with a probability proportional to uncertainty, the status shifts one level (e.g. operational → partial). This simulates the distribution of what real conditions might look like given our imperfect knowledge.</p>
+    <p>A run counts as a <strong>success</strong> only if all three conditions are met:</p>
+    <ul>
+      <li>Readiness ≥ 40% (minimum viability threshold)</li>
+      <li>Destination capacity can physically absorb the group</li>
+      <li>No gatekeeper factor is blocked</li>
+    </ul>
+    <p style="margin-top:10px">The <strong>success rate</strong> is the proportion of runs that succeed. The <strong>standard deviation</strong> tells you how volatile the outcome is — high SD means small real-world changes could flip the result, which is itself a warning signal for decision-makers.</p>
+    <p>The <strong>uncertainty curve chart</strong> in the simulator shows how each group's success rate degrades as uncertainty rises from 0% to 100%, making it easy to identify which assignments are robust versus fragile under information degradation.</p>
+  </div>
+
+  <!-- Assignment -->
+  <div class="card" id="card-6">
+    <h2><span class="num">6</span> Assignment algorithm</h2>
+    <p>Each evacuee group is assigned to the destination with the highest <strong>composite score</strong>, combining four components:</p>
+    <ul>
+      <li><strong>Readiness (40%)</strong> — the weighted average readiness score for that destination</li>
+      <li><strong>Capacity fit (30%)</strong> — whether the site can absorb this group's size (capped at 100% to avoid over-rewarding excess capacity)</li>
+      <li><strong>Proximity (20%)</strong> — closer destinations reduce operational burden and transit risk</li>
+      <li><strong>Vulnerability match (10%)</strong> — a bonus when medical capacity is operational and the group has medical or mobility needs</li>
+    </ul>
+    <p style="margin-top:10px">The weights reflect humanitarian evacuation priority ordering: protection quality first, physical fit second, operational burden third, population-specific needs as a tiebreaker. Groups are sorted by urgency (immediate → urgent → can-wait) and assigned <strong>greedily in that order</strong>, deducting each assigned group's size from the destination's remaining capacity before the next group is placed. This models real capacity contention between groups — a group can be left <strong>UNASSIGNED</strong> if every viable destination is already full, which is flagged in red in the outcome table and alerts panel.</p>
+  </div>
+
+  <!-- Research argument -->
+  <div class="card" id="card-7">
+    <h2><span class="num">7</span> The research argument</h2>
+    <p>The simulator is designed to support a specific thesis argument: that <strong>AI-assisted field assessment</strong> would improve outcome predictability in civilian evacuation planning. The tool makes this argument legible by showing:</p>
+    <ul>
+      <li>How much success rates drop as field uncertainty rises</li>
+      <li>Which factors, if assessed, would most reduce outcome variance (the "highest information value" finding in the insight panel)</li>
+      <li>How gatekeeper uncertainty is disproportionately dangerous — resolving a gatekeeper unknown simultaneously unlocks or eliminates whole destinations</li>
+    </ul>
+    <p style="margin-top:10px">The practical implication is that limited intelligence-gathering or AI-assisted verification capacity (satellite imagery analysis, sensor fusion, field report NLP) should be directed toward high-weight unknown factors first — not spread evenly — to maximise decision quality under time and resource pressure.</p>
+    <div class="highlight-box">
+      All random values use a seeded generator — <code>Math.random()</code> is never called. Every scenario is fully reproducible by seed number, satisfying the peer-review reproducibility standard for computational research.
+    </div>
+  </div>
+
+  <!-- Data sources -->
+  <div class="card" id="card-8">
+    <h2><span class="num">8</span> Data sources &amp; references</h2>
+    <p>This tool uses <strong>no real-world datasets</strong>. Every destination, evacuee group, and factor status is generated synthetically by the seeded RNG described in §5 — there is no live feed, import, or historical case data behind any number on screen. What the standards below inform is <strong>parameter design</strong>: which factors exist, which are gatekeepers, and where thresholds like the 40% viability floor or the 3.5m²/person shelter norm come from.</p>
+    <table class="factor-table">
+      <thead><tr><th>Source</th><th>Used for</th></tr></thead>
+      <tbody>
+        <tr><td>Park &amp; Miller (1988), <em>CACM</em> 31(10)</td><td>Park-Miller LCG — the seeded random number generator underlying every synthetic value</td></tr>
+        <tr><td>ICRC (2013), <em>Violence and the use of force</em></td><td>IHL framework grounding the Security factor and civilian protection obligations generally</td></tr>
+        <tr><td>Additional Protocol I (1977), Art. 12 &amp; 58</td><td>Protection of medical units (Medical capacity factor) and precautions against attack (Security factor)</td></tr>
+        <tr><td>IASC (2007) Guidelines</td><td>Host-authority consent framework grounding the Authority consent factor</td></tr>
+        <tr><td>SPHERE Handbook (2018, 4th ed.)</td><td>Minimum humanitarian standards — 3.5m²/person shelter, 15L/person/day water — referenced in the Shelter and Food &amp; water factors</td></tr>
+        <tr><td>UNHCR (2007), <em>Handbook for Emergencies</em> (3rd ed.)</td><td>Source of the 40% minimum readiness viability threshold used in the Monte Carlo success criteria</td></tr>
+      </tbody>
+    </table>
+    <div class="highlight-box">
+      Full citation detail, including page references and how each source maps to specific parameters, is in <strong>Evacuation_Simulator_Methodology.docx</strong> §14 (References) in the project repository. This in-app list is a summary of that document, checked against it directly — if the two ever disagree, the methodology doc is authoritative.
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Evacuation Readiness &amp; Uncertainty Simulator &nbsp;·&nbsp; PhD research instrument &nbsp;·&nbsp; <a href="index.html">Open simulator →</a>
+</footer>
+
+</body>
+</html>

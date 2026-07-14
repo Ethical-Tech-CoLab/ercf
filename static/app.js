@@ -1749,6 +1749,8 @@ function renderAltModeResult(data, container) {
   let statRow = '';
   let suppliesRow = '';
   let personnelRow = '';
+  // "aircraft" is invariant (no plural -s); "helicopter" pluralizes normally
+  const aircraftLabel = n => data.mode === 'helicopter' ? (n === 1 ? 'helicopter' : 'helicopters') : 'aircraft';
 
   const p = data.personnel || {};
   const s = data.supplies || {};
@@ -1784,30 +1786,33 @@ function renderAltModeResult(data, container) {
         <div class="col-6 col-md-6"><div class="stat-mini text-center"><div class="val">${((data.supplies||{}).food_kg||0).toLocaleString()}kg</div><div class="lbl">🍚 Food</div></div></div>
       </div>`;
   } else {
-    costBlock = `<div class="val" style="font-size:1.4rem">$${data.total_cost_usd.toLocaleString()}</div>`;
+    const aircraftLine = data.aircraft_needed != null
+      ? `<div class="text-muted small">${data.flights_needed} flight(s) needed · ${data.aircraft_needed} ${aircraftLabel(data.aircraft_needed)} in parallel (1-day operation)</div>`
+      : '';
+    costBlock = `<div class="val" style="font-size:1.4rem">$${data.total_cost_usd.toLocaleString()}</div>${aircraftLine}`;
   }
 
   let notesHtml = '';
-  if (data.mode === 'helicopter' && data.fleet_planning) {
+  if (data.fleet_planning) {
     const fp = data.fleet_planning;
-    const rows = Object.values(fp).map(w =>
-      `<tr>
-        <td style="padding:.2rem .5rem;font-weight:600">${w.days} days</td>
-        <td style="padding:.2rem .5rem">${w.helicopters_needed} helicopter${w.helicopters_needed > 1 ? 's' : ''}</td>
-        <td style="padding:.2rem .5rem;color:#6b7280">${w.sorties_per_day} sorties/day</td>
+    const rows = Object.values(fp).map(w => `
+      <tr style="${w.within_tactical_window ? '' : 'color:#b45309'}">
+        <td style="padding:.2rem .5rem;font-weight:600">${w.days} day${w.days > 1 ? 's' : ''}${w.within_tactical_window ? '' : ' ⚠'}</td>
+        <td style="padding:.2rem .5rem">${w.aircraft_needed} ${aircraftLabel(w.aircraft_needed)}</td>
+        <td style="padding:.2rem .5rem;color:#6b7280">${w.flights_per_day} flight(s)/day</td>
       </tr>`
     ).join('');
     notesHtml = `
-      <div class="small fw-semibold text-muted mt-2 mb-1" style="text-transform:uppercase;letter-spacing:.05em;font-size:.68rem">Fleet planning (helicopters needed)</div>
+      <div class="small fw-semibold text-muted mt-2 mb-1" style="text-transform:uppercase;letter-spacing:.05em;font-size:.68rem">Fleet planning (${aircraftLabel(2)} needed, operating in parallel)</div>
       <table style="width:100%;font-size:.75rem;border-collapse:collapse">
         <thead><tr style="color:#9ca3af;font-size:.68rem">
           <th style="padding:.2rem .5rem;text-align:left">Window</th>
-          <th style="padding:.2rem .5rem;text-align:left">Aircraft</th>
+          <th style="padding:.2rem .5rem;text-align:left">${aircraftLabel(2).charAt(0).toUpperCase()+aircraftLabel(2).slice(1)}</th>
           <th style="padding:.2rem .5rem;text-align:left">Tempo</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
-      <div style="font-size:.68rem;color:#d97706;margin-top:.3rem">⚠️ UNHAS typically operates 1–5 aircraft per mission. Windows under 14 days may require multi-agency coordination.</div>`;
+      <div style="font-size:.68rem;color:#d97706;margin-top:.3rem">⚠️ Rows marked ⚠ exceed the normal ≤3-day tactical window. UNHAS missions typically operate 1–5 aircraft — windows requiring large fleets may need multi-agency coordination.</div>`;
   } else {
     const notesList = (data.feasibility_notes || []).map(n => `<li>${n}</li>`).join('');
     notesHtml = notesList ? `<ul class="small text-muted mt-2 mb-2 ps-3">${notesList}</ul>` : '';
@@ -2428,9 +2433,14 @@ function renderHistTable(filter) {
     } else {
       badge = `<span class="badge ${levelBadgeClass(c.risk_level)} rounded-pill" style="font-size:.7rem">L${c.risk_level}</span>`;
     }
+    // mass_atrocity is a separate epistemic flag from OOS/CHAL/level — shown
+    // alongside, never substituted for, the primary badge.
+    const atrBadge = c.mass_atrocity
+      ? ` <span class="badge rounded-pill" style="font-size:.7rem;background:#7f1d1d;color:#fff" title="Mass atrocity / deliberate civilian targeting — outside armed-conflict attrition model domain">ATR</span>`
+      : '';
     return `
     <tr onclick="selectHistCase(${c.id})"${rowStyle}>
-      <td class="ps-3">${badge}</td>
+      <td class="ps-3">${badge}${atrBadge}</td>
       <td><strong>${c.name}</strong></td>
       <td>${c.year}</td>
       <td>${fmtFull(c.population_at_risk)}</td>

@@ -120,6 +120,28 @@ GROUND_TURNAROUND_H = 0.5   # 30-min ground turnaround between sorties (loading/
 FIXEDWING_CRUISE_KMH_OPS = 500  # already defined above as FIXEDWING_CRUISE_KMH — reuse that
 
 
+def _build_fleet_planning(flights_needed: int, flights_per_day_per_aircraft: int) -> Dict:
+    """Aircraft needed OPERATING IN PARALLEL to clear all flights within each
+    tactical window. This is the operationally meaningful question — sizing a
+    fleet to a window — not "how many days does 1 aircraft take" (a single
+    airframe is a planning assumption, not a physical minimum).
+    days<=3 is treated as the normal tactical window (no warning); >3 days
+    is flagged so planners know they're trading aircraft count for time.
+    """
+    windows = [1, 3, 7, 14, 30]
+    planning = {}
+    for days in windows:
+        flights_per_day_needed = math.ceil(flights_needed / days)
+        aircraft_needed = math.ceil(flights_per_day_needed / flights_per_day_per_aircraft)
+        planning[f"{days}_days"] = {
+            "aircraft_needed": aircraft_needed,
+            "flights_per_day": flights_per_day_needed,
+            "days": days,
+            "within_tactical_window": days <= 3,
+        }
+    return planning
+
+
 def calculate_air_evacuation(
     population: int,
     distance_km: float,
@@ -175,22 +197,20 @@ def calculate_air_evacuation(
         enroute_water_l = round(population * transit_days * WATER_L_PER_PERSON_DAY, 1)
         enroute_food_kg = round(population * transit_days * FOOD_KG_PER_PERSON_DAY, 1)
 
-        # Operation duration assuming 1 aircraft (conservative, UNHAS conflict-zone standard)
+        # Fleet planning: aircraft operating in parallel for each tactical window,
+        # not "1 aircraft over N days" — see _build_fleet_planning() docstring.
         round_trip_h = 2 * (distance_km / FIXEDWING_CRUISE_KMH)
         time_per_cycle_h = round_trip_h + GROUND_TURNAROUND_H
         cycles_per_day = max(1, int(OPS_HOURS_PER_DAY / time_per_cycle_h))
-        operation_days = math.ceil(flights_needed / cycles_per_day)
+        fleet_planning = _build_fleet_planning(int(flights_needed), cycles_per_day)
+        aircraft_needed = fleet_planning["1_days"]["aircraft_needed"]
 
         op_duration_note = (
-            f"Assuming 1 aircraft operating {OPS_HOURS_PER_DAY}h/day with "
-            f"{int(GROUND_TURNAROUND_H*60)}-min ground turnaround: "
-            f"{cycles_per_day} flight(s)/day → {operation_days} day(s) total."
+            f"{int(flights_needed)} flight(s) needed — requires {aircraft_needed} aircraft "
+            f"operating in parallel for a 1-day operation ({cycles_per_day} flight(s)/day/aircraft "
+            f"each, {int(GROUND_TURNAROUND_H*60)}-min ground turnaround), or fewer aircraft spread "
+            f"over more days (see fleet planning)."
         )
-        if operation_days > 14:
-            op_duration_note += (
-                f" WARNING: {operation_days}-day operation with 1 aircraft may exceed "
-                f"tactical window — consider multiple aircraft in parallel."
-            )
         feasibility_notes.append(op_duration_note)
 
         return {
@@ -203,16 +223,18 @@ def calculate_air_evacuation(
             "population": population,
             "flights_needed": int(flights_needed),
             "cost_per_flight_usd": cost_per_flight,
-            "operation_days": operation_days,
+            "aircraft_needed": aircraft_needed,
+            "fleet_planning": fleet_planning,
             "supplies": {"water_l": enroute_water_l, "food_kg": enroute_food_kg},
             "personnel": {
-                "pilots": PILOTS_PER_AIRCRAFT,
-                "cabin_crew": 1,
+                "pilots": PILOTS_PER_AIRCRAFT * aircraft_needed,
+                "cabin_crew": 1 * aircraft_needed,
                 "medical_staff": math.ceil(population / MEDICS_PAX_RATIO),
                 "coordinators": 1,
                 "note": (
                     f"Pilots/cabin crew are per-aircraft (ICAO Annex 1 mandatory 2-pilot crew). "
-                    f"With 1 aircraft, {PILOTS_PER_AIRCRAFT} pilots rotate across all {int(flights_needed)} flights. "
+                    f"Scaled to {aircraft_needed} aircraft operating in parallel (1-day scenario): "
+                    f"{PILOTS_PER_AIRCRAFT} pilots × {aircraft_needed} aircraft. "
                     f"Medical staff: 1 per {MEDICS_PAX_RATIO} pax (estimated, MSF/ICRC field convention)."
                 ),
             },
@@ -260,35 +282,21 @@ def calculate_air_evacuation(
     enroute_water_l = round(population * transit_days * WATER_L_PER_PERSON_DAY, 1)
     enroute_food_kg = round(population * transit_days * FOOD_KG_PER_PERSON_DAY, 1)
 
-    # Operation duration assuming 1 aircraft
+    # Fleet planning: helicopters operating in parallel for each tactical window,
+    # not "1 helicopter over N days" — see _build_fleet_planning() docstring.
     heli_round_trip_h = 2 * (distance_km / HELI_CRUISE_KMH)
     heli_cycle_h = heli_round_trip_h + GROUND_TURNAROUND_H
     heli_cycles_per_day = max(1, int(OPS_HOURS_PER_DAY / heli_cycle_h))
-    heli_operation_days = math.ceil(int(flights_needed) / heli_cycles_per_day)
+    fleet_planning = _build_fleet_planning(int(flights_needed), heli_cycles_per_day)
+    aircraft_needed = fleet_planning["1_days"]["aircraft_needed"]
 
     heli_op_note = (
-        f"Assuming 1 helicopter operating {OPS_HOURS_PER_DAY}h/day with "
-        f"{int(GROUND_TURNAROUND_H*60)}-min ground turnaround: "
-        f"{heli_cycles_per_day} sortie(s)/day → {heli_operation_days} day(s) total."
+        f"{int(flights_needed)} sortie(s) needed — requires {aircraft_needed} helicopters "
+        f"operating in parallel for a 1-day operation ({heli_cycles_per_day} sortie(s)/day/helicopter "
+        f"each, {int(GROUND_TURNAROUND_H*60)}-min ground turnaround), or fewer helicopters spread "
+        f"over more days (see fleet planning)."
     )
-    if heli_operation_days > 14:
-        heli_op_note += (
-            f" WARNING: {heli_operation_days}-day operation with 1 helicopter likely exceeds "
-            f"tactical window — multiple helicopters strongly recommended."
-        )
     feasibility_notes.append(heli_op_note)
-
-    # Fleet planning: how many helicopters needed for each tactical window
-    tactical_windows = [3, 7, 14, 30]
-    fleet_planning = {}
-    for days in tactical_windows:
-        sorties_per_day_needed = math.ceil(int(flights_needed) / days)
-        helis_needed = math.ceil(sorties_per_day_needed / max(1, heli_cycles_per_day))
-        fleet_planning[f'{days}_days'] = {
-            'helicopters_needed': helis_needed,
-            'sorties_per_day': sorties_per_day_needed,
-            'days': days,
-        }
 
     return {
         "mode": "helicopter",
@@ -308,19 +316,19 @@ def calculate_air_evacuation(
         "flight_hours_per_sortie": flight_hours_per_sortie,
         "total_flight_hours": total_flight_hours,
         "cost_per_sortie_usd": cost_per_sortie_mid,
-        "operation_days": heli_operation_days,
+        "aircraft_needed": aircraft_needed,
         "fleet_planning": fleet_planning,
         "supplies": {"water_l": enroute_water_l, "food_kg": enroute_food_kg},
         "personnel": {
-            "pilots": PILOTS_PER_AIRCRAFT,
-            "flight_engineers": HELI_FLIGHT_ENGINEERS,
+            "pilots": PILOTS_PER_AIRCRAFT * aircraft_needed,
+            "flight_engineers": HELI_FLIGHT_ENGINEERS * aircraft_needed,
             "medical_staff": math.ceil(population / MEDICS_PAX_RATIO),
             "coordinators": 1,
             "note": (
                 f"Pilots/engineers are per-aircraft (ICAO Annex 1: 2-pilot mandatory for IFR ops; "
                 f"Mi-8 standard crew includes flight engineer per manufacturer spec). "
-                f"With 1 helicopter, {PILOTS_PER_AIRCRAFT} pilots + {HELI_FLIGHT_ENGINEERS} engineer "
-                f"rotate across all {int(flights_needed)} sorties. "
+                f"Scaled to {aircraft_needed} helicopters operating in parallel (1-day scenario): "
+                f"{PILOTS_PER_AIRCRAFT} pilots + {HELI_FLIGHT_ENGINEERS} engineer × {aircraft_needed} helicopters. "
                 f"Medical staff: 1 per {MEDICS_PAX_RATIO} pax (estimated, MSF/ICRC field convention)."
             ),
         },
