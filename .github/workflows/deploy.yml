@@ -20,18 +20,6 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Generate snapshot JSONs
-        run: python3 snapshot.py
-
-      - name: Copy static site into docs/
-        run: |
-          # docs/index.html is a fixed redirect to the Railway production
-          # deployment and must never be overwritten by this workflow.
-          cp static/app.js docs/app.js
-          [ -f static/style.css ] && cp static/style.css docs/style.css
-          rm -rf docs/snapshot
-          cp -r snapshot docs/snapshot
-
       - name: Commit and push if changed
         run: |
           git config user.name "github-actions[bot]"
