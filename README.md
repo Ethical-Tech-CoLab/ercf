@@ -10,7 +10,7 @@ A decision-support tool for estimating the human and financial cost of civilian 
 
 ## Live Demo
 
-Hosted locally — see Installation below.
+**[https://ercf-production.up.railway.app](https://ercf-production.up.railway.app)**
 
 ## Key Features
 
