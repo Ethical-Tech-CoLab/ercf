@@ -23,6 +23,11 @@ env/
 data/*.csv
 data/*.zip
 
+# Large debug/audit archives — not for git
+ercf_auditoria.zip
+ercf_debug.zip
+*.zip
+
 # macOS
 .DS_Store
 
