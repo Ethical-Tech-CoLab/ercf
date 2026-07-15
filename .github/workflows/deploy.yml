@@ -25,13 +25,12 @@ jobs:
 
       - name: Copy static site into docs/
         run: |
-          cp static/index.html docs/index.html
+          # docs/index.html is a fixed redirect to the Railway production
+          # deployment and must never be overwritten by this workflow.
           cp static/app.js docs/app.js
           [ -f static/style.css ] && cp static/style.css docs/style.css
           rm -rf docs/snapshot
           cp -r snapshot docs/snapshot
-          sed -i 's#<script src="/static/app.js"></script>#<script src="app.js"></script>#' docs/index.html
-          sed -i 's#id="staticModeNotice" style="display:none;#id="staticModeNotice" style="display:block;#' docs/index.html
 
       - name: Commit and push if changed
         run: |
