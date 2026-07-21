@@ -1013,7 +1013,7 @@ function updateAll() {
     : (evacuatedPop > 0
         ? calcResources(evacuatedPop, state.vulnerablePct, risk.level, state.distanceKm, state.dims.d2, state.terrain, state.climateMult, effectiveTerrainMult, state.dims.d4, state.dims.d5).totalCost
         : 0);
-  updateRemainingCostCard(remaining, resources.totalCost, evacuatedCost);
+  updateRemainingCostCard(remaining, resources.totalCost);
 
   // Decision analysis — Option A (evacuate now + assist remaining) vs Option B (assist all in zone)
   const BASE_DAILY = [1.0, 2.0, 3.5, 6.0, 12.0];
@@ -1628,6 +1628,7 @@ async function fetchCommodityPrices(iso3) {
   document.getElementById('commodityRice').textContent   = '…';
   document.getElementById('commodityOil').textContent    = '…';
   document.getElementById('commodityFoodAdj').textContent = '…';
+  document.getElementById('commodityNetImpact').textContent = '…';
 
   const sign = v => v >= 0 ? '+' : '';
   const colorFor = adj => adj > 1.05 ? '#dc2626' : adj < 0.95 ? '#16a34a' : '#64748b';
@@ -1662,11 +1663,35 @@ async function fetchCommodityPrices(iso3) {
       ? `<span style="color:${foodColor}">${sign(foodPct)}${foodPct}%</span> vs ERCF baseline (wheat 40% · corn 30% · rice 20% · soybean oil 10%)`
       : '—';
 
+    // Combined net impact on evacuation cost total — fuel and food/water are weighted by their
+    // approximate share of ground evacuation cost (see calcResources() cost breakdown), since
+    // fuel/food price swings don't move the whole budget 1:1.
+    const netImpactEl = document.getElementById('commodityNetImpact');
+    if (data.fuel_adjustment != null || data.food_adjustment != null) {
+      const FUEL_WEIGHT = 0.35;
+      const FOOD_WEIGHT = 0.08;
+      const fuelContrib = (fuelAdj - 1) * FUEL_WEIGHT * 100;
+      const foodContrib = (foodAdj - 1) * FOOD_WEIGHT * 100;
+      const combinedImpact = fuelContrib + foodContrib;
+      const netColor = combinedImpact > 0 ? '#dc2626' : combinedImpact < 0 ? '#16a34a' : '#64748b';
+      const bigger  = Math.abs(fuelContrib) >= Math.abs(foodContrib) ? 'fuel' : 'food';
+      const smaller = bigger === 'fuel' ? 'food' : 'fuel';
+      const biggerPct  = bigger === 'fuel' ? fuelPct : foodPct;
+      const smallerPct = smaller === 'fuel' ? fuelPct : foodPct;
+      const impactStr = (combinedImpact >= 0 ? '+' : '') + combinedImpact.toFixed(1);
+      netImpactEl.innerHTML = `<span style="color:${netColor}">Net cost impact: ${impactStr}%</span> ` +
+        `(${bigger} ${sign(biggerPct)}${biggerPct}% outweighs ${smaller} ${sign(smallerPct)}${smallerPct}%) ` +
+        `<span style="font-weight:400;font-style:italic;color:#a16207">Applied to evacuation cost total</span>`;
+    } else {
+      netImpactEl.textContent = '—';
+    }
+
     card.dataset.fuelAdj = fuelAdj;
     card.dataset.foodAdj = foodAdj;
   } catch(e) {
     document.getElementById('commodityBrent').textContent = 'unavailable';
     document.getElementById('commodityFoodAdj').textContent = 'unavailable';
+    document.getElementById('commodityNetImpact').textContent = 'unavailable';
   }
   syncCommodityButtons();
 }
@@ -2138,19 +2163,24 @@ function _renderDecisionChart(evacCost, dailyCostA, dailyCostB, breakEvenDay) {
   });
 }
 
-function updateRemainingCostCard(rc, fullEvacCost, evacuatedCost) {
+function updateRemainingCostCard(rc, fullEvacCost) {
   document.getElementById('rcTotal').textContent   = '$' + fmt(rc.total);
   document.getElementById('rcExtProb').textContent = (rc.prob * 100).toFixed(0) + '%';
 
+  // Evac side of "total crisis cost" uses fullEvacCost — the same total shown in the
+  // "Resources Required for Evacuation" module (state._lastResources.totalCost). Decision
+  // Analysis uses a different, smaller evacuatedCost (prorated to evacuatedPop) — not used here.
+  const evacuatedPop = Math.max(0, (state.population || 0) - (state.remainingPop || 0));
+
   // Total crisis cost = cost of evacuating those who left + cost of assisting those who stayed
-  const totalCrisisCost = evacuatedCost + rc.total;
+  const totalCrisisCost = fullEvacCost + rc.total;
   document.getElementById('rcCrisisTotal').textContent = '$' + fmt(totalCrisisCost);
 
   // Breakdown sub-line
   const breakdownEl = document.getElementById('rcCrisisBreakdown');
-  if (evacuatedCost > 0 && rc.total > 0) {
-    breakdownEl.textContent = `Evac $${fmt(evacuatedCost)} + Assist $${fmt(rc.total)}`;
-  } else if (evacuatedCost === 0) {
+  if (evacuatedPop > 0 && rc.total > 0) {
+    breakdownEl.textContent = `Evac $${fmt(fullEvacCost)} + Assist $${fmt(rc.total)}`;
+  } else if (evacuatedPop === 0) {
     breakdownEl.textContent = 'Assistance only — all stayed';
   } else {
     breakdownEl.textContent = 'Evacuation only — none stayed';
@@ -2241,11 +2271,9 @@ function updateRemainingCostCard(rc, fullEvacCost, evacuatedCost) {
     </div>`).join('');
 
   // Comparison callout
-  const fullPop      = state.population || 1;
-  const evacuatedPop = fullPop - remPop;
   const cpprStr      = remPop      > 0 ? `$${fmt(rc.total / remPop)} pp`      : '—';
-  const cppeStr      = evacuatedPop > 0 ? `$${fmt(evacuatedCost / evacuatedPop)} pp` : '—';
-  const totalCrisis  = evacuatedCost + rc.total;
+  const cppeStr      = evacuatedPop > 0 ? `$${fmt(fullEvacCost / evacuatedPop)} pp` : '—';
+  const totalCrisis  = fullEvacCost + rc.total;
   breakdown.innerHTML += `
     <div class="rc-compare">
       <i class="fas fa-scale-balanced me-1"></i>
