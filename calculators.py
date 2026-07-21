@@ -973,8 +973,15 @@ UNHAS_RATE_USD_PER_KM = 2.08
 #   from monitored L2 conflicts (e.g., OCHA-monitored low-intensity NIAC)
 #   to validate. Current values are structurally plausible interpolations only.
 
-RC_EXTR_BASE_RATE = [0.0, 0.002, 0.005, 0.010, 0.021]  # per-day exponential rate
-RC_EXTR_MAX_PROB  = [0.0, 0.30,  0.60,  0.80,  0.95 ]  # cap on base_prob before modifiers
+# Emergency extraction rate: estimated 1-8% of remaining population requiring urgent
+# medical evacuation (critical casualties unable to self-evacuate). Based on conflict
+# casualty ratios (ICRC surgical data) — not mass evacuation rate. Revised from the prior
+# 10-95% range, which conflated "probability of a mass extraction operation" with "fraction
+# of the population needing individual medevac" — UNHAS 2022 data shows only ~0.25% of all
+# passengers transported required medical/security evacuation, two orders of magnitude below
+# the prior calibration even accounting for a higher-need trapped-population context.
+RC_EXTR_BASE_RATE = [0.0, 0.002, 0.005, 0.010, 0.021]  # per-day exponential rate (unchanged shape)
+RC_EXTR_MAX_PROB  = [0.0, 0.01,  0.02,  0.04,  0.08 ]  # cap on base_prob before modifiers: L1=1%, L2=2%, L3=4%, L4=8%
 
 # VALIDATION STATUS — ACCESS MULTIPLIERS (revised June 2026)
 # Values are the most conservative defensible estimates from documented sources.
@@ -2110,13 +2117,17 @@ def calculate_remaining_costs(
 
     # D3 Authorization → blocked corridors increase extraction need
     # Gentler correction than supply formula (different dynamics)
+    # Scaled ÷10 versus the pre-recalibration increments (Mariupol/Aleppo/Kosovo anchors
+    # below are the original 10-95%-scale figures) to stay proportionate within the new
+    # 1-8% critical-extraction range — the underlying D3 relationship is unchanged.
     # Anchors: Mariupol D3=1.5 (+12.5%), Aleppo D3=2.0 (+10%), Kosovo D3=2.0 (+10%)
-    d3_prob_add = (5.0 - d3) * 0.025 if d3 >= 3 else 0.05 + (3.0 - d3) * 0.05
+    d3_prob_add = (5.0 - d3) * 0.0025 if d3 >= 3 else 0.005 + (3.0 - d3) * 0.005
 
     # D6 Urgency floor: imminent threat forces extraction need regardless of duration
+    # Scaled ÷10 versus pre-recalibration for the same reason as d3_prob_add above.
     # Anchor: Srebrenica (D6=5, 3 days → 85% floor captures the extreme urgency)
     # at D6=4: Kherson/Mosul/CAR all show elevated urgency; 60% floor applied
-    d6_floor_val = 0.85 if d6 >= 5 else (0.60 if d6 >= 4 else 0.0)
+    d6_floor_val = 0.085 if d6 >= 5 else (0.06 if d6 >= 4 else 0.0)
 
     prob            = min(max(base_prob + d3_prob_add, d6_floor_val), 0.95)
     extraction_base = prob * (non_vuln * per_person_ground + vuln * per_person_air) * d1_ext_mult

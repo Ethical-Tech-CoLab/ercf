@@ -613,8 +613,16 @@ function calcRemaining(pop, vulPct, riskLevel, days, distKm, dims, terrain, clim
   //   L4: Mariupol (86d,81%→k=0.019) + Aleppo (100d,90%→k=0.023) → mean 0.021
   //   L3: Mosul (270d,90%→k=0.009) + DRC (180d,80%→k=0.009) + CAR (180d,88%→k=0.012) → mean 0.010
   //   L2/L1: interpolated (no direct cases at those levels)
-  const EXTR_BASE_RATE = [0.0, 0.002, 0.005, 0.010, 0.021];
-  const EXTR_MAX_PROB  = [0.0, 0.30,  0.60,  0.80,  0.95 ];
+  //
+  // Emergency extraction rate: estimated 1-8% of remaining population requiring urgent
+  // medical evacuation (critical casualties unable to self-evacuate). Based on conflict
+  // casualty ratios (ICRC surgical data) — not mass evacuation rate. Revised from the prior
+  // 10-95% range, which conflated "probability of a mass extraction operation" with "fraction
+  // of the population needing individual medevac" — UNHAS 2022 data shows only ~0.25% of all
+  // passengers transported required medical/security evacuation, two orders of magnitude below
+  // the prior calibration even accounting for a higher-need trapped-population context.
+  const EXTR_BASE_RATE = [0.0, 0.002, 0.005, 0.010, 0.021];  // per-day exponential rate (unchanged shape)
+  const EXTR_MAX_PROB  = [0.0, 0.01,  0.02,  0.04,  0.08 ];  // cap on base_prob: L1=1%, L2=2%, L3=4%, L4=8%
   const _rate   = EXTR_BASE_RATE[riskLevel];
   const baseProb = Math.min(
     _rate > 0 ? 1.0 - Math.exp(-_rate * days) : 0.0,
@@ -622,10 +630,14 @@ function calcRemaining(pop, vulPct, riskLevel, days, distKm, dims, terrain, clim
   );
 
   // D3 Authorization: blocked corridors → higher extraction need
+  // Scaled ÷10 versus the pre-recalibration increments (Mariupol/Aleppo/Kosovo anchors below
+  // are the original 10-95%-scale figures) to stay proportionate within the new 1-8% range —
+  // the underlying D3 relationship is unchanged.
   // Gentler slope than supply correction; anchored by Mariupol (D3=1.5→+12.5%), Kosovo (D3=2→+10%)
-  const d3ProbAdd  = d.d3 >= 3 ? (5 - d.d3) * 0.025 : 0.05 + (3 - d.d3) * 0.05;
-  // D6 Urgency floor: Srebrenica (D6=5, 3 days) → 85% floor; Kherson/Mosul/CAR (D6=4) → 60%
-  const d6FloorVal = d.d6 >= 5 ? 0.85 : d.d6 >= 4 ? 0.60 : 0.0;
+  const d3ProbAdd  = d.d3 >= 3 ? (5 - d.d3) * 0.0025 : 0.005 + (3 - d.d3) * 0.005;
+  // D6 Urgency floor: scaled ÷10 for the same reason as d3ProbAdd above.
+  // Srebrenica (D6=5, 3 days) → 85% floor; Kherson/Mosul/CAR (D6=4) → 60%
+  const d6FloorVal = d.d6 >= 5 ? 0.085 : d.d6 >= 4 ? 0.06 : 0.0;
 
   const prob     = Math.min(Math.max(baseProb + d3ProbAdd, d6FloorVal), 0.95);
   const extractBase  = prob * (nonVuln * perPsnGround + vuln * perPsnAir) * d1ExtMult;
@@ -1013,7 +1025,13 @@ function updateAll() {
     : (evacuatedPop > 0
         ? calcResources(evacuatedPop, state.vulnerablePct, risk.level, state.distanceKm, state.dims.d2, state.terrain, state.climateMult, effectiveTerrainMult, state.dims.d4, state.dims.d5).totalCost
         : 0);
-  updateRemainingCostCard(remaining, resources.totalCost);
+  // "Total crisis cost" should reflect whatever transport mode is currently selected, not
+  // always the ground total — fall back to ground while an alt-mode fetch is still pending
+  // (state._lastAltResult null) so the card never shows a stale/undefined value.
+  const fullEvacCostForCard = _isAltMode
+    ? (state._lastAltResult?.total_cost_usd ?? resources.totalCost)
+    : resources.totalCost;
+  updateRemainingCostCard(remaining, fullEvacCostForCard);
 
   // Decision analysis — Option A (evacuate now + assist remaining) vs Option B (assist all in zone)
   const BASE_DAILY = [1.0, 2.0, 3.5, 6.0, 12.0];
@@ -1400,7 +1418,6 @@ function updateCostCharts(data) {
   state.charts.human.update('none');
 
   const last = days.length - 1;
-  document.getElementById('statCost').textContent = '$'+fmt(fin[last]);
 
   // Mortality range — derived from log-log regression (R²=0.765, p<0.00001)
   // L3: 80% PI ×0.35–×2.0 | L4: 80% PI ×0.25–×3.0
@@ -2167,9 +2184,9 @@ function updateRemainingCostCard(rc, fullEvacCost) {
   document.getElementById('rcTotal').textContent   = '$' + fmt(rc.total);
   document.getElementById('rcExtProb').textContent = (rc.prob * 100).toFixed(0) + '%';
 
-  // Evac side of "total crisis cost" uses fullEvacCost — the same total shown in the
-  // "Resources Required for Evacuation" module (state._lastResources.totalCost). Decision
-  // Analysis uses a different, smaller evacuatedCost (prorated to evacuatedPop) — not used here.
+  // fullEvacCost reflects whatever transport mode is currently selected (ground/air/walking —
+  // see updateAll()). Decision Analysis uses a different, smaller evacuatedCost (prorated to
+  // evacuatedPop) — not used here.
   const evacuatedPop = Math.max(0, (state.population || 0) - (state.remainingPop || 0));
 
   // Total crisis cost = cost of evacuating those who left + cost of assisting those who stayed
