@@ -649,7 +649,14 @@ function calcRemaining(pop, vulPct, riskLevel, days, distKm, dims, terrain, clim
   const treatCostPer = 800 * d5CostMult;  // $800 base (peer-reviewed range $211–$1,013; updated Prompt 1)
   const medCost      = cumInjuries * treatCostPer;
 
-  const total = supplyCost + extractCost + medCost;
+  // ── Component 4: vulnerable population support ──────────────────────────
+  // Additional per-capita cost for special needs (mobility assistance, extra medical
+  // supplies, mental health support) not captured by the flat $3.50/day survival baseline.
+  // No published per-capita figure exists (Sphere 2018 does not price this) — ESTIMATED.
+  const VULNERABLE_DAILY_PREMIUM = 2.50;
+  const vulnerablePremium = vuln * days * VULNERABLE_DAILY_PREMIUM;
+
+  const total = supplyCost + extractCost + medCost + vulnerablePremium;
 
   // baseCost: what it would cost to keep this population alive with zero conflict overhead
   // ($3.50/person/day × population × days — the UNHCR humanitarian baseline).
@@ -660,7 +667,7 @@ function calcRemaining(pop, vulPct, riskLevel, days, distKm, dims, terrain, clim
   const accessPremium = Math.max(0, Math.round(supplyCost - baseCost));
 
   return {
-    total, supplyCost, extractCost, medCost, prob, cumInjuries,
+    total, supplyCost, extractCost, medCost, vulnerablePremium, vuln, prob, cumInjuries,
     accessMult, effectiveAccessMult, lossRate, effectiveLossRate,
     terrainMult,
     distKm, perPsnGround, perPsnAir, treatCostPer,
@@ -749,9 +756,9 @@ function updateRemainingVulnPct() {
   const color = isElevated ? '#92400e' : '#64748b';
   el.innerHTML = `<span style="${bg}font-size:.67rem;color:${color};line-height:1.5;display:block">
     ${isElevated ? '<i class="fas fa-triangle-exclamation me-1"></i>' : ''}
-    Est. vulnerable among remaining: <strong>${fmtFull(remainingVuln)} (${state.remainingVulnPct}%)</strong>
-    ${isElevated ? '— significantly ' : '— '}higher than baseline ${state.vulnerablePct}%
-    because vulnerable individuals evacuate at half the rate of the general population.
+    Of ${fmtFull(state.remainingPop)} remaining, an estimated <strong>${fmtFull(remainingVuln)} (${state.remainingVulnPct}%)</strong> are vulnerable
+    — proportionally higher because vulnerable individuals are ~2× less likely to evacuate
+    (ref: AARP/FEMA Katrina 2006; WHO Disability &amp; Disasters 2005). Higher per-capita assistance costs applied below.
   </span>`;
 }
 
@@ -2266,6 +2273,13 @@ function updateRemainingCostCard(rc, fullEvacCost) {
       label: `Field medical treatment <span style="font-weight:400;color:#64748b">(${fmtFull(Math.round(rc.cumInjuries))} injuries × $${Math.round(rc.treatCostPer).toLocaleString()}${dimTag(medDimParts)})</span>`,
       value: '$' + fmt(rc.medCost),
       tip:   `Base $800/injury. Peer-reviewed range: $211–$1,013 (MSF Nigeria 2009, inflation-adjusted to 2024 USD). $800 adopted as conservative upper-mid estimate. ICRC per-patient surgical cost data not publicly available. (ref: Chu et al. 2010, Conflict & Health; MSF Nigeria field reports). D5 destination multiplies cost/injury ×1.0–2.0 (no medical infrastructure at D5=1).`,
+    },
+    {
+      cls:  'rc-vulnerable',
+      icon: 'fa-wheelchair',
+      label: `Vulnerable population support <span style="font-weight:400;color:#64748b">(${fmtFull(rc.vuln)} persons × $2.50/day × ${state.days}d)</span> · <span style="color:#7c3aed">2× retention rate applied</span>`,
+      value: '$' + fmt(rc.vulnerablePremium),
+      tip:   'ESTIMATED — no published per-capita figure. Reflects mobility assistance, extra medical supplies, and mental health support for vulnerable individuals. Population count reflects differential retention: vulnerable individuals are ~2× less likely to evacuate than the general population (ref: AARP/FEMA Post-Katrina Look Back 2006; WHO Disability, Disaster Risk Reduction and Emergency Preparedness 2005).',
     },
     {
       cls:  'rc-total',

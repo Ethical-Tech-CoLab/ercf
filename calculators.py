@@ -2141,7 +2141,14 @@ def calculate_remaining_costs(
     treat_cost_per = 800 * d5_cost_mult  # Range peer-reviewed: $211–$1,013. Valor conservador $800 adoptado (fonte: source-notes internas).
     field_med_cost = round(cum_injuries * treat_cost_per, 2)
 
-    total = round(supply_cost + extraction_cost + field_med_cost, 2)
+    # ── Component 4: vulnerable population support ───────────────────────────
+    # Additional per-capita cost for special needs (mobility assistance, extra medical
+    # supplies, mental health support) not captured by the flat $3.50/day survival baseline.
+    # No published per-capita figure exists (Sphere 2018 does not price this) — ESTIMATED.
+    VULNERABLE_DAILY_PREMIUM_USD = 2.50
+    vulnerable_premium = round(vuln * days * VULNERABLE_DAILY_PREMIUM_USD, 2)
+
+    total = round(supply_cost + extraction_cost + field_med_cost + vulnerable_premium, 2)
 
     return {
         "parameters": {
@@ -2178,6 +2185,7 @@ def calculate_remaining_costs(
             "supply_delivery":       supply_cost,
             "emergency_extraction":  extraction_cost,
             "field_medical":         field_med_cost,
+            "vulnerable_support":    vulnerable_premium,
             "total":                 total,
         },
         "intermediates": {
