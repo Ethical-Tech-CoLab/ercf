@@ -1725,7 +1725,6 @@ function onTransportModeChange() {
   const mode = document.getElementById('transportMode').value;
   const groundPanel = document.getElementById('groundResourcePanel');
   const altPanel    = document.getElementById('altModeResourcePanel');
-  const isAlt = mode !== 'ground';
 
   if (mode === 'ground') {
     groundPanel.style.display = 'block';
@@ -1735,13 +1734,12 @@ function onTransportModeChange() {
     altPanel.style.display    = 'block';
     fetchAltModeResult(mode);
   }
-  // Air and walking modes drive the headline card / Decision Analysis — clear any stale
-  // result (e.g. an air total left over from before this switch) and show "Calculating…"
-  // immediately, before the fetch resolves.
-  if (isAlt) {
-    state._lastAltResult = null;
-    if (state._lastResources) updateResourceDisplay(state._lastResources);
-  }
+  // Clear any stale alt-mode result (e.g. an air/walking total left over from before this
+  // switch) and refresh the headline immediately, before any fetch resolves: air/walking
+  // show "Calculating…" until fetchAltModeResult() completes, ground shows the terrestrial
+  // total right away since it needs no fetch.
+  state._lastAltResult = null;
+  if (state._lastResources) updateResourceDisplay(state._lastResources);
   renderTransportWarnings(mode, state.dims, state.population);
 }
 
