@@ -248,7 +248,7 @@ const state = {
   _lastResources:   null,   // cached each updateAll() for comparison panel
   _lastStayData:    null,
   _lastRisk:        null,
-  _lastAirResult:   null,   // cached air-evacuation API response, cleared on scenario change until re-fetched
+  _lastAltResult:   null,   // cached air/walking-evacuation API response, cleared on scenario or mode change until re-fetched
   charts: {},
   conflictCoords:    null,   // {lat, lng}
   safeZoneCoords:    null,   // {lat, lng, name}
@@ -1001,14 +1001,14 @@ function updateAll() {
   updateResourceDisplay(resources);
   updateCostCharts(stayData);
   const _tMode = document.getElementById('transportMode')?.value ?? 'ground';
-  const _isAirMode = _tMode === 'air_fixed' || _tMode === 'air_heli';
+  const _isAltMode = _tMode === 'air_fixed' || _tMode === 'air_heli' || _tMode === 'walking';
   const evacuatedPop  = Math.max(0, state.population - state.remainingPop);
-  // Air API prices the full population, not just evacuatedPop — scale proportionally
-  // (cost is linear in pax for both fixed_wing and helicopter formulas) to stay comparable
-  // with the ground-mode evacuatedCost below.
-  const evacuatedCost = _isAirMode
-    ? (state._lastAirResult && state.population > 0
-        ? Math.round(state._lastAirResult.total_cost_usd * (evacuatedPop / state.population))
+  // Air/walking API prices the full population, not just evacuatedPop — scale proportionally
+  // (cost is ~linear in pax for fixed_wing/helicopter/walking) to stay comparable with the
+  // ground-mode evacuatedCost below.
+  const evacuatedCost = _isAltMode
+    ? (state._lastAltResult && state.population > 0
+        ? Math.round(state._lastAltResult.total_cost_usd * (evacuatedPop / state.population))
         : 0)
     : (evacuatedPop > 0
         ? calcResources(evacuatedPop, state.vulnerablePct, risk.level, state.distanceKm, state.dims.d2, state.terrain, state.climateMult, effectiveTerrainMult, state.dims.d4, state.dims.d5).totalCost
@@ -1167,9 +1167,9 @@ function updateResourceDisplay(r) {
     if (_mode === 'air_heli')  return 'Air (helicopter)';
     return 'Ground';
   })();
-  // Air modes drive the headline card from the air-evacuation API result. Walking keeps the
-  // ground-cost headline (only its label changes) — same as before this branch was added.
-  const _isAirMode = _mode === 'air_fixed' || _mode === 'air_heli';
+  // Air AND walking modes drive the headline card from the alt-mode API result; only
+  // ground uses the local calcResources() total.
+  const _isAltMode = _mode === 'air_fixed' || _mode === 'air_heli' || _mode === 'walking';
 
   // ── Headline cost card (above risk level panel) ─────────────────────────────
   const headlineTotal = document.getElementById('costHeadlineTotal');
@@ -1178,15 +1178,15 @@ function updateResourceDisplay(r) {
     if (state.population === 0) {
       headlineTotal.textContent = '—';
       headlineSub.textContent   = 'define scenario above';
-    } else if (_isAirMode && !state._lastAirResult) {
+    } else if (_isAltMode && !state._lastAltResult) {
       headlineTotal.textContent = 'Calculating…';
       headlineSub.textContent   = fmtFull(state.population) + ' persons · ' + modeLabel + ' · ' + state.distanceKm + ' km';
-    } else if (_isAirMode) {
-      const air = state._lastAirResult;
-      // Air cost is uniform per-capita, so cost/evacuee == cost/population regardless of evacuatedPop.
-      const cppAir = evacuatedPop > 0 ? Math.round(air.total_cost_usd / state.population) : null;
-      const cppStr = cppAir !== null ? '$' + fmt(cppAir) + '/evacuee · ' : '';
-      headlineTotal.textContent = '$' + fmt(air.total_cost_usd);
+    } else if (_isAltMode) {
+      const alt = state._lastAltResult;
+      // Alt-mode cost is uniform per-capita, so cost/evacuee == cost/population regardless of evacuatedPop.
+      const cppAlt = evacuatedPop > 0 ? Math.round(alt.total_cost_usd / state.population) : null;
+      const cppStr = cppAlt !== null ? '$' + fmt(cppAlt) + '/evacuee · ' : '';
+      headlineTotal.textContent = '$' + fmt(alt.total_cost_usd);
       headlineSub.textContent = cppStr + fmtFull(state.population) + ' persons · ' + modeLabel + ' · ' + state.distanceKm + ' km';
     } else {
       headlineTotal.textContent = '$' + fmt(r.totalCost);
@@ -1725,7 +1725,7 @@ function onTransportModeChange() {
   const mode = document.getElementById('transportMode').value;
   const groundPanel = document.getElementById('groundResourcePanel');
   const altPanel    = document.getElementById('altModeResourcePanel');
-  const isAir = mode === 'air_fixed' || mode === 'air_heli';
+  const isAlt = mode !== 'ground';
 
   if (mode === 'ground') {
     groundPanel.style.display = 'block';
@@ -1735,11 +1735,11 @@ function onTransportModeChange() {
     altPanel.style.display    = 'block';
     fetchAltModeResult(mode);
   }
-  // Air modes drive the headline card / Decision Analysis (walking does not — see
-  // updateResourceDisplay/updateAll) — clear any stale result and show "Calculating…"
+  // Air and walking modes drive the headline card / Decision Analysis — clear any stale
+  // result (e.g. an air total left over from before this switch) and show "Calculating…"
   // immediately, before the fetch resolves.
-  if (isAir) {
-    state._lastAirResult = null;
+  if (isAlt) {
+    state._lastAltResult = null;
     if (state._lastResources) updateResourceDisplay(state._lastResources);
   }
   renderTransportWarnings(mode, state.dims, state.population);
@@ -1751,6 +1751,7 @@ async function fetchAltModeResult(mode) {
   altPanel.innerHTML = '<div class="text-muted small"><i class="fas fa-spinner fa-spin me-1"></i>Calculating...</div>';
 
   const isAir = mode === 'air_fixed' || mode === 'air_heli';
+  const isAlt = isAir || mode === 'walking';
   const endpoint = isAir ? '/api/air-evacuation' : '/api/walking-evacuation';
   const requestBody = isAir
     ? {
@@ -1786,10 +1787,10 @@ async function fetchAltModeResult(mode) {
       if (fuelAdj !== 1.0) data._fuelAdjApplied = fuelAdj;
     }
     renderAltModeResult(data, altPanel);
-    if (isAir) {
-      state._lastAirResult = data;
+    if (isAlt) {
+      state._lastAltResult = data;
       // Re-run updateAll() (not just updateResourceDisplay) so Decision Analysis's
-      // evacuatedCost — computed inside updateAll() — also picks up the new air result.
+      // evacuatedCost — computed inside updateAll() — also picks up the new alt-mode result.
       _suppressAltFetch = true;
       updateAll();
       _suppressAltFetch = false;
@@ -1797,8 +1798,8 @@ async function fetchAltModeResult(mode) {
   } catch (e) {
     if (myToken !== _altFetchToken) return; // a newer fetch has already superseded this one
     altPanel.innerHTML = `<div class="alert alert-danger small mb-0">Error: ${e.message}</div>`;
-    if (isAir) {
-      state._lastAirResult = null;
+    if (isAlt) {
+      state._lastAltResult = null;
       if (state._lastResources) updateResourceDisplay(state._lastResources);
     }
   }
