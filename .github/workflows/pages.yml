@@ -15,10 +15,11 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - name: Build docs/index.html from static/index.html
+      - name: Build docs/index.html and docs/app.js from static/
         run: |
           cp static/index.html docs/index.html
           sed -i 's|src="/static/app.js"|src="app.js"|g' docs/index.html
+          cp static/app.js docs/app.js
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

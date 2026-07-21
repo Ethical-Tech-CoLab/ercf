@@ -248,6 +248,7 @@ const state = {
   _lastResources:   null,   // cached each updateAll() for comparison panel
   _lastStayData:    null,
   _lastRisk:        null,
+  _lastAirResult:   null,   // cached air-evacuation API response, cleared on scenario change until re-fetched
   charts: {},
   conflictCoords:    null,   // {lat, lng}
   safeZoneCoords:    null,   // {lat, lng, name}
@@ -999,10 +1000,19 @@ function updateAll() {
   updateSimilarCases(findSimilar(d, state.historicalCases));
   updateResourceDisplay(resources);
   updateCostCharts(stayData);
+  const _tMode = document.getElementById('transportMode')?.value ?? 'ground';
+  const _isAirMode = _tMode === 'air_fixed' || _tMode === 'air_heli';
   const evacuatedPop  = Math.max(0, state.population - state.remainingPop);
-  const evacuatedCost = evacuatedPop > 0
-    ? calcResources(evacuatedPop, state.vulnerablePct, risk.level, state.distanceKm, state.dims.d2, state.terrain, state.climateMult, effectiveTerrainMult, state.dims.d4, state.dims.d5).totalCost
-    : 0;
+  // Air API prices the full population, not just evacuatedPop — scale proportionally
+  // (cost is linear in pax for both fixed_wing and helicopter formulas) to stay comparable
+  // with the ground-mode evacuatedCost below.
+  const evacuatedCost = _isAirMode
+    ? (state._lastAirResult && state.population > 0
+        ? Math.round(state._lastAirResult.total_cost_usd * (evacuatedPop / state.population))
+        : 0)
+    : (evacuatedPop > 0
+        ? calcResources(evacuatedPop, state.vulnerablePct, risk.level, state.distanceKm, state.dims.d2, state.terrain, state.climateMult, effectiveTerrainMult, state.dims.d4, state.dims.d5).totalCost
+        : 0);
   updateRemainingCostCard(remaining, resources.totalCost, evacuatedCost);
 
   // Decision analysis — Option A (evacuate now + assist remaining) vs Option B (assist all in zone)
@@ -1015,7 +1025,6 @@ function updateAll() {
     : (BASE_DAILY[risk.level] ?? 3.5) * (state.population || 0);
   updateDecisionAnalysis(evacuatedCost, _dailyCostA, _dailyCostB);
 
-  const _tMode = document.getElementById('transportMode')?.value ?? 'ground';
   renderTransportWarnings(_tMode, state.dims, state.population);
 
   updateStayContext();
@@ -1031,8 +1040,10 @@ function updateAll() {
     worldMapState.geojsonLayer.setStyle(choroStyle);
   }
 
-  // Re-fetch alt-mode result reactively when parameters change
-  if (_tMode === 'walking' || _tMode === 'air_fixed' || _tMode === 'air_heli') {
+  // Re-fetch alt-mode result reactively when parameters change.
+  // Suppressed when this updateAll() run was itself triggered by a fetch completing
+  // (see fetchAltModeResult) to avoid an infinite fetch → updateAll → fetch loop.
+  if (!_suppressAltFetch && (_tMode === 'walking' || _tMode === 'air_fixed' || _tMode === 'air_heli')) {
     fetchAltModeResult(_tMode);
   }
 }
@@ -1149,25 +1160,38 @@ function togglePersonnelRate() {
 function updateResourceDisplay(r) {
   const evacuatedPop = Math.max(0, state.population - state.remainingPop);
   const cppPerEvacuee = evacuatedPop > 0 ? Math.round(r.totalCost / evacuatedPop) : null;
+  const _mode  = document.getElementById('transportMode')?.value ?? 'ground';
+  const modeLabel = (() => {
+    if (_mode === 'walking')   return 'Walking';
+    if (_mode === 'air_fixed') return 'Air (fixed-wing)';
+    if (_mode === 'air_heli')  return 'Air (helicopter)';
+    return 'Ground';
+  })();
+  // Air modes drive the headline card from the air-evacuation API result. Walking keeps the
+  // ground-cost headline (only its label changes) — same as before this branch was added.
+  const _isAirMode = _mode === 'air_fixed' || _mode === 'air_heli';
 
   // ── Headline cost card (above risk level panel) ─────────────────────────────
   const headlineTotal = document.getElementById('costHeadlineTotal');
   const headlineSub   = document.getElementById('costHeadlineSub');
   if (headlineTotal && headlineSub) {
-    if (state.population > 0) {
-      headlineTotal.textContent = '$' + fmt(r.totalCost);
-      const modeLabel = (() => {
-        const m = document.getElementById('transportMode')?.value;
-        if (m === 'walking')   return 'Walking';
-        if (m === 'air_fixed') return 'Air (fixed-wing)';
-        if (m === 'air_heli')  return 'Air (helicopter)';
-        return 'Ground';
-      })();
-      const cppStr = cppPerEvacuee !== null ? '$' + fmt(cppPerEvacuee) + '/evacuee · ' : '';
-      headlineSub.textContent = cppStr + fmtFull(state.population) + ' persons · ' + modeLabel + ' · ' + state.distanceKm + ' km';
-    } else {
+    if (state.population === 0) {
       headlineTotal.textContent = '—';
       headlineSub.textContent   = 'define scenario above';
+    } else if (_isAirMode && !state._lastAirResult) {
+      headlineTotal.textContent = 'Calculating…';
+      headlineSub.textContent   = fmtFull(state.population) + ' persons · ' + modeLabel + ' · ' + state.distanceKm + ' km';
+    } else if (_isAirMode) {
+      const air = state._lastAirResult;
+      // Air cost is uniform per-capita, so cost/evacuee == cost/population regardless of evacuatedPop.
+      const cppAir = evacuatedPop > 0 ? Math.round(air.total_cost_usd / state.population) : null;
+      const cppStr = cppAir !== null ? '$' + fmt(cppAir) + '/evacuee · ' : '';
+      headlineTotal.textContent = '$' + fmt(air.total_cost_usd);
+      headlineSub.textContent = cppStr + fmtFull(state.population) + ' persons · ' + modeLabel + ' · ' + state.distanceKm + ' km';
+    } else {
+      headlineTotal.textContent = '$' + fmt(r.totalCost);
+      const cppStr = cppPerEvacuee !== null ? '$' + fmt(cppPerEvacuee) + '/evacuee · ' : '';
+      headlineSub.textContent = cppStr + fmtFull(state.population) + ' persons · ' + modeLabel + ' · ' + state.distanceKm + ' km';
     }
   }
 
@@ -1686,10 +1710,22 @@ function syncCommodityButtons() {
   revertBtn.style.cursor     = isApplied ? 'pointer'  : 'default';
 }
 
+// Set by fetchAltModeResult while it re-runs updateAll() to refresh dependents (headline,
+// Decision Analysis) after an air-mode fetch resolves — prevents that updateAll() call from
+// triggering another fetch (infinite fetch → updateAll → fetch loop).
+let _suppressAltFetch = false;
+
+// Bumped on every fetchAltModeResult() call. A response is only rendered if its token still
+// matches the latest — otherwise a newer request has superseded it. Without this, an older
+// in-flight request that resolves after a newer one (e.g. air_heli fetch outlasting a walking
+// fetch fired right after it) overwrites the panel with stale/wrong-mode data.
+let _altFetchToken = 0;
+
 function onTransportModeChange() {
   const mode = document.getElementById('transportMode').value;
   const groundPanel = document.getElementById('groundResourcePanel');
   const altPanel    = document.getElementById('altModeResourcePanel');
+  const isAir = mode === 'air_fixed' || mode === 'air_heli';
 
   if (mode === 'ground') {
     groundPanel.style.display = 'block';
@@ -1699,10 +1735,18 @@ function onTransportModeChange() {
     altPanel.style.display    = 'block';
     fetchAltModeResult(mode);
   }
+  // Air modes drive the headline card / Decision Analysis (walking does not — see
+  // updateResourceDisplay/updateAll) — clear any stale result and show "Calculating…"
+  // immediately, before the fetch resolves.
+  if (isAir) {
+    state._lastAirResult = null;
+    if (state._lastResources) updateResourceDisplay(state._lastResources);
+  }
   renderTransportWarnings(mode, state.dims, state.population);
 }
 
 async function fetchAltModeResult(mode) {
+  const myToken = ++_altFetchToken;
   const altPanel = document.getElementById('altModeResourcePanel');
   altPanel.innerHTML = '<div class="text-muted small"><i class="fas fa-spinner fa-spin me-1"></i>Calculating...</div>';
 
@@ -1732,9 +1776,31 @@ async function fetchAltModeResult(mode) {
       throw new Error(err.detail || `Request failed (${resp.status})`);
     }
     const data = await resp.json();
+    if (myToken !== _altFetchToken) return; // a newer fetch has already superseded this one
+
+    if (isAir) {
+      // Air cost model has no fuel/food line items of its own — approximate market exposure
+      // by scaling the whole quote with the same fuel adjustment used for ground transport.
+      const fuelAdj = state.fuelAdjFactor ?? 1.0;
+      data.total_cost_usd = Math.round(data.total_cost_usd * fuelAdj);
+      if (fuelAdj !== 1.0) data._fuelAdjApplied = fuelAdj;
+    }
     renderAltModeResult(data, altPanel);
+    if (isAir) {
+      state._lastAirResult = data;
+      // Re-run updateAll() (not just updateResourceDisplay) so Decision Analysis's
+      // evacuatedCost — computed inside updateAll() — also picks up the new air result.
+      _suppressAltFetch = true;
+      updateAll();
+      _suppressAltFetch = false;
+    }
   } catch (e) {
+    if (myToken !== _altFetchToken) return; // a newer fetch has already superseded this one
     altPanel.innerHTML = `<div class="alert alert-danger small mb-0">Error: ${e.message}</div>`;
+    if (isAir) {
+      state._lastAirResult = null;
+      if (state._lastResources) updateResourceDisplay(state._lastResources);
+    }
   }
 }
 
@@ -1790,6 +1856,20 @@ function renderAltModeResult(data, container) {
       ? `<div class="text-muted small">${data.flights_needed} flight(s) needed · ${data.aircraft_needed} ${aircraftLabel(data.aircraft_needed)} in parallel (1-day operation)</div>`
       : '';
     costBlock = `<div class="val" style="font-size:1.4rem">$${data.total_cost_usd.toLocaleString()}</div>${aircraftLine}`;
+    personnelRow = `
+      <div class="small fw-semibold text-muted mt-2 mb-1" style="text-transform:uppercase;letter-spacing:.05em;font-size:.68rem">Personnel Required</div>
+      <div class="row g-2 mb-2">
+        <div class="col-6 col-md-3"><div class="stat-mini text-center"><div class="val">${p.pilots ?? '—'}</div><div class="lbl">✈️ Pilots</div></div></div>
+        <div class="col-6 col-md-3"><div class="stat-mini text-center"><div class="val">${p.cabin_crew ?? '—'}</div><div class="lbl">🧑‍✈️ Cabin crew</div></div></div>
+        <div class="col-6 col-md-3"><div class="stat-mini text-center"><div class="val">${p.medical_staff ?? '—'}</div><div class="lbl">🏥 Medical</div></div></div>
+        <div class="col-6 col-md-3"><div class="stat-mini text-center"><div class="val">${p.coordinators ?? '—'}</div><div class="lbl">📡 Coord.</div></div></div>
+      </div>`;
+    suppliesRow = `
+      <div class="small fw-semibold text-muted mt-2 mb-1" style="text-transform:uppercase;letter-spacing:.05em;font-size:.68rem">En-Route Supplies</div>
+      <div class="row g-2 mb-2">
+        <div class="col-6 col-md-6"><div class="stat-mini text-center"><div class="val">${(s.water_l||0).toLocaleString()}L</div><div class="lbl">💧 Water</div></div></div>
+        <div class="col-6 col-md-6"><div class="stat-mini text-center"><div class="val">${(s.food_kg||0).toLocaleString()}kg</div><div class="lbl">🍚 Food</div></div></div>
+      </div>`;
   }
 
   let notesHtml = '';
@@ -1838,6 +1918,16 @@ function renderAltModeResult(data, container) {
       <div style="height:${isWalking ? '64px' : '44px'}"><canvas id="altCostBarChart"></canvas></div>
     </div>`;
 
+  // Ground-cost reference — air modes only (walking keeps its own self-contained breakdown,
+  // unchanged from before this comparison line was added).
+  const groundRefHtml = !isWalking && state._lastResources
+    ? `<div class="text-muted small mt-2">Ground convoy cost: $${fmt(state._lastResources.totalCost)} (reference)</div>`
+    : '';
+
+  const fuelAdjNoteHtml = data._fuelAdjApplied
+    ? `<div class="text-muted small mt-1">Fuel market adjustment applied: ×${data._fuelAdjApplied}</div>`
+    : '';
+
   container.innerHTML = `
     <div class="d-flex justify-content-between align-items-start mb-2">
       ${feasBadge}
@@ -1850,6 +1940,8 @@ function renderAltModeResult(data, container) {
     ${chartHtml}
     ${notesHtml}
     <div class="text-muted" style="font-size:.68rem">${data.source}</div>
+    ${fuelAdjNoteHtml}
+    ${groundRefHtml}
   `;
 
   const ctx = document.getElementById('altCostBarChart');
