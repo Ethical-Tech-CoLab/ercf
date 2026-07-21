@@ -1660,6 +1660,7 @@ def calculate_remaining_costs(
     dims: Optional[Dict[str, float]] = None,
     terrain: int = 3,
     climate_mult: Optional[Dict[str, float]] = None,
+    injuries_override: Optional[float] = None,
     # NOTE: parameter order is (days, distance_km) — verified June 2026.
     # main.py passes body.days then body.distance_km; both match this signature.
     # Swapping these would produce distance_km=N_days and days=N_km in output.
@@ -2134,10 +2135,14 @@ def calculate_remaining_costs(
     extraction_cost = round(extraction_base * (2.5 if risk_level == 4 else 1.0), 2)
 
     # ── Component 3: field medical ───────────────────────────────────────────
-    # Injury count from shared calculate_injuries() — identical to calculate_staying_costs()
-    # for the same inputs. d2_inj_mult / d1_inj_mult are applied inside calculate_injuries;
-    # they are retained above only for the dim_modifiers return dict (label display).
-    cum_injuries   = calculate_injuries(population, risk_level, days, dims)
+    # Injury count: if the caller already ran calculate_staying_costs() for this scenario,
+    # pass its cumulative "injuries" figure here via injuries_override so this dollar amount
+    # and the mortality-model injury estimate never disagree (mirrors static/app.js calcRemaining()).
+    # Otherwise falls back to the simpler flat-rate calculate_injuries() — identical to the old
+    # calculate_staying_costs() behavior for the same inputs. d2_inj_mult / d1_inj_mult are
+    # applied inside calculate_injuries; they are retained above only for the dim_modifiers
+    # return dict (label display).
+    cum_injuries   = injuries_override if injuries_override is not None else calculate_injuries(population, risk_level, days, dims)
     treat_cost_per = 800 * d5_cost_mult  # Range peer-reviewed: $211–$1,013. Valor conservador $800 adoptado (fonte: source-notes internas).
     field_med_cost = round(cum_injuries * treat_cost_per, 2)
 

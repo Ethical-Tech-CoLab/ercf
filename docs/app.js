@@ -561,7 +561,7 @@ function calcStay(pop, riskLevel, maxDays, dims, remainingPct = 1.0, exposureFac
   return { days, fin: bareSurvival, dead, inj, infraDenialApplied };
 }
 
-function calcRemaining(pop, vulPct, riskLevel, days, distKm, dims, terrain, climateMult = state.climateMult) {
+function calcRemaining(pop, vulPct, riskLevel, days, distKm, dims, terrain, climateMult = state.climateMult, injuriesOverride) {
   const d = dims || { d1:3, d2:3, d3:3, d4:3, d5:3, d6:3, d7:3 };
   const vuln    = Math.round(pop * vulPct / 100);
   const nonVuln = pop - vuln;
@@ -644,8 +644,11 @@ function calcRemaining(pop, vulPct, riskLevel, days, distKm, dims, terrain, clim
   const extractCost  = riskLevel === 4 ? extractBase * 2.5 : extractBase;
 
   // ── Component 3: field medical ──────────────────────────────────────────
-  // Injury count from shared calcInjuries() — identical to calcStay() for the same inputs.
-  const cumInjuries  = calcInjuries(pop, riskLevel, days);
+  // Injury count sourced from calcStay()'s dims-modulated, day-saturated model — the same
+  // number shown in the "EST. INJURIES" stat card — so this dollar figure and that card never
+  // disagree. Falls back to the simpler flat-rate calcInjuries() only if no override is passed
+  // (i.e. calcStay() wasn't run first by the caller).
+  const cumInjuries  = injuriesOverride ?? calcInjuries(pop, riskLevel, days);
   const treatCostPer = 800 * d5CostMult;  // $800 base (peer-reviewed range $211–$1,013; updated Prompt 1)
   const medCost      = cumInjuries * treatCostPer;
 
@@ -1006,7 +1009,7 @@ function updateAll() {
   // Siege cap disabled for regional (4) and city_conflict (3) conflict patterns
   const siegeCapEnabled = (state.conflictType !== 3 && state.conflictType !== 4);
   const stayData  = calcStay(state.remainingPop, risk.level, state.days, state.dims, remainingPct, exposureFactor, siegeCapEnabled);
-  const remaining = calcRemaining(state.remainingPop, state.remainingVulnPct, risk.level, state.days, state.distanceKm, state.dims, state.terrain);
+  const remaining = calcRemaining(state.remainingPop, state.remainingVulnPct, risk.level, state.days, state.distanceKm, state.dims, state.terrain, undefined, stayData.inj[stayData.inj.length - 1]);
 
   // Cache current results so comparison panel can diff against them
   state._lastResources = resources;
@@ -2256,7 +2259,7 @@ function updateRemainingCostCard(rc, fullEvacCost) {
     {
       cls:  'rc-supply',
       icon: 'fa-truck',
-      label: `Supply delivery <span style="font-weight:400;color:#64748b">(×${rc.effectiveAccessMult.toFixed(2)} access · ×${rc.terrainMult.toFixed(1)} terrain · +${pct(rc.effectiveLossRate)}% loss${dimTag(supplyDimParts)})</span> <span title="Delivery cost includes access multiplier, terrain factor, and supply loss rate. The base survival cost ($3.50/person/day) represents minimum needs; the total delivery cost reflects what it actually costs to get those supplies to the population in this conflict context." style="cursor:help;color:#94a3b8;font-size:.75rem;font-weight:400;border:1px solid #cbd5e1;border-radius:50%;padding:0 .25rem;line-height:1.4;display:inline-block;margin-left:.2rem">?</span>`,
+      label: `Supply delivery <span style="font-weight:400;color:#64748b">(×${rc.effectiveAccessMult.toFixed(2)} access · ×${rc.terrainMult.toFixed(1)} terrain · +${pct(rc.effectiveLossRate)}% loss${dimTag(supplyDimParts)})</span>`,
       value: '$' + fmt(rc.supplyCost),
       tip:   `Daily survival cost ($3.50/person/day × ${fmtFull(remPop)} remaining × ${state.days}d = $${fmt(baseCost)}) plus conflict access overhead (+$${fmt(accessPremium)}). Access multiplier ×${rc.effectiveAccessMult.toFixed(2)} (WFP Logistics Cluster 2020–2023). Terrain multiplier ×${rc.terrainMult.toFixed(1)} (Level ${state.terrain}: ${['','Critical — mountains/forest unpaved','High — hilly mostly unpaved','Moderate — mixed terrain','Low — mostly flat paved','Minimal — flat paved all-season'][state.terrain]}) reflects road access difficulty affecting all aid delivery logistics. Applied on top of conflict access multiplier. Source: World Bank RAI (SDG 9.1.1); Puga TRI dataset. Loss rate +${pct(rc.effectiveLossRate)}% (OCHA access monitoring).`,
     },
@@ -2277,9 +2280,9 @@ function updateRemainingCostCard(rc, fullEvacCost) {
     {
       cls:  'rc-vulnerable',
       icon: 'fa-wheelchair',
-      label: `Vulnerable population support <span style="font-weight:400;color:#64748b">(${fmtFull(rc.vuln)} persons × $2.50/day × ${state.days}d)</span> · <span style="color:#7c3aed">2× retention rate applied</span>`,
+      label: `Vulnerable population support <span style="font-weight:400;color:#64748b">(${fmtFull(rc.vuln)} persons × $2.50/day premium × ${state.days}d · total $6.00/day vs $3.50/day for general population)</span> · <span style="color:#7c3aed">2× retention rate applied (ref: AARP/FEMA 2006)</span>`,
       value: '$' + fmt(rc.vulnerablePremium),
-      tip:   'ESTIMATED — no published per-capita figure. Reflects mobility assistance, extra medical supplies, and mental health support for vulnerable individuals. Population count reflects differential retention: vulnerable individuals are ~2× less likely to evacuate than the general population (ref: AARP/FEMA Post-Katrina Look Back 2006; WHO Disability, Disaster Risk Reduction and Emergency Preparedness 2005).',
+      tip:   'ESTIMATED — no published per-capita figure. The $2.50/day here is INCREMENTAL — on top of the $3.50/day base survival cost already counted for every remaining person (vulnerable included) inside "Supply delivery" above; the two are not alternatives, they stack to $6.00/day total for vulnerable individuals. Reflects mobility assistance, extra medical supplies, and mental health support. Population count reflects differential retention: vulnerable individuals are ~2× less likely to evacuate than the general population (ref: AARP/FEMA Post-Katrina Look Back 2006; WHO Disability, Disaster Risk Reduction and Emergency Preparedness 2005).',
     },
     {
       cls:  'rc-total',
