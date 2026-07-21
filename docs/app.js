@@ -1785,6 +1785,15 @@ async function fetchAltModeResult(mode) {
       const fuelAdj = state.fuelAdjFactor ?? 1.0;
       data.total_cost_usd = Math.round(data.total_cost_usd * fuelAdj);
       if (fuelAdj !== 1.0) data._fuelAdjApplied = fuelAdj;
+    } else if (mode === 'walking') {
+      // Walking's only commodity-priced line item is en-route provisions (food/water) — mirror
+      // the ground model's food/water market adjustment there, then recompute the total.
+      const foodAdj = state.foodAdjFactor ?? 1.0;
+      const cb = data.cost_breakdown || {};
+      const adjProvisions = Math.round((cb.provisions_usd || 0) * foodAdj);
+      data.cost_breakdown = { ...cb, provisions_usd: adjProvisions };
+      data.total_cost_usd = adjProvisions + (cb.personnel_usd || 0);
+      if (foodAdj !== 1.0) data._foodAdjApplied = foodAdj;
     }
     renderAltModeResult(data, altPanel);
     if (isAlt) {
@@ -1927,6 +1936,8 @@ function renderAltModeResult(data, container) {
 
   const fuelAdjNoteHtml = data._fuelAdjApplied
     ? `<div class="text-muted small mt-1">Fuel market adjustment applied: ×${data._fuelAdjApplied}</div>`
+    : data._foodAdjApplied
+    ? `<div class="text-muted small mt-1">Food/water market adjustment applied to provisions: ×${data._foodAdjApplied}</div>`
     : '';
 
   container.innerHTML = `
