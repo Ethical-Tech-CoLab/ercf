@@ -1,5 +1,8 @@
 # ERCF — Evacuation Risk and Cost Framework
 
+**[Live site](https://ercf-production.up.railway.app/)** ·
+**[Research report](ERCF-Paper.md)** (plain-language, non-technical)
+
 **Version:** v7.2
 
 A decision-support tool for estimating the human and financial cost of civilian evacuation in armed conflict. Developed as part of doctoral research in International Humanitarian Law and civilian protection at NYU.
