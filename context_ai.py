@@ -40,7 +40,7 @@ Return a JSON object with these exact keys:
   "dimension_scores": {{
     "d1_kinetic": float 1.0-5.0,
     "d2_vulnerability": float 1.0-5.0,  (D2 = mobility constraints: 1=fully mobile population, 5=mass casualty / complete mobility collapse — drives medical vehicle allocation)
-    "d3_political": float 1.0-5.0,
+    "d3_political": float 1.0-5.0,  (D3 = authorization: 1=full consent from all armed parties, 5=active refusal / no valid authorization — same direction as the other dimensions, higher is worse)
     "d4_logistics": float 1.0-5.0,
     "d5_destination": float 1.0-5.0,
     "d6_urgency": float 1.0-5.0,
@@ -62,10 +62,10 @@ def _fallback_context(iso3: str) -> dict:
     # Map ERCF level to plausible dimension scores
     dim_map = {
         0: dict(d1_kinetic=1.0,d2_vulnerability=1.5,d3_political=3.0,d4_logistics=2.0,d5_destination=2.0,d6_urgency=1.0,d7_information=1.5),
-        1: dict(d1_kinetic=2.0,d2_vulnerability=2.5,d3_political=2.5,d4_logistics=2.5,d5_destination=2.5,d6_urgency=2.0,d7_information=2.0),
-        2: dict(d1_kinetic=3.0,d2_vulnerability=3.0,d3_political=2.5,d4_logistics=3.0,d5_destination=2.5,d6_urgency=3.0,d7_information=2.5),
-        3: dict(d1_kinetic=4.0,d2_vulnerability=3.5,d3_political=2.5,d4_logistics=3.5,d5_destination=3.0,d6_urgency=4.0,d7_information=3.0),
-        4: dict(d1_kinetic=5.0,d2_vulnerability=4.0,d3_political=1.5,d4_logistics=4.0,d5_destination=3.0,d6_urgency=4.5,d7_information=4.0),
+        1: dict(d1_kinetic=2.0,d2_vulnerability=2.5,d3_political=3.5,d4_logistics=2.5,d5_destination=2.5,d6_urgency=2.0,d7_information=2.0),
+        2: dict(d1_kinetic=3.0,d2_vulnerability=3.0,d3_political=3.5,d4_logistics=3.0,d5_destination=2.5,d6_urgency=3.0,d7_information=2.5),
+        3: dict(d1_kinetic=4.0,d2_vulnerability=3.5,d3_political=3.5,d4_logistics=3.5,d5_destination=3.0,d6_urgency=4.0,d7_information=3.0),
+        4: dict(d1_kinetic=5.0,d2_vulnerability=4.0,d3_political=4.5,d4_logistics=4.0,d5_destination=3.0,d6_urgency=4.5,d7_information=4.0),
     }
     return {
         "summary": f"{d['name']}: {d['crisis']}",

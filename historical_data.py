@@ -31,7 +31,7 @@ HISTORICAL_CASES = [
             "Source: HRW 2022; NPR 2022; travelmath.com."
         ),
         "risk_indicators": {
-            "d1_kinetic": 5.0, "d2_vulnerability": 4.0, "d3_political": 1.5,
+            "d1_kinetic": 5.0, "d2_vulnerability": 4.0, "d3_political": 4.5,
             "d4_logistics": 4.5, "d5_destination": 3.0, "d6_urgency": 5.0, "d7_information": 4.0
         },
         "key_lessons": [
@@ -157,7 +157,7 @@ HISTORICAL_CASES = [
             "Source: BBC 2023; Middle East Eye; CNN 2023."
         ),
         "risk_indicators": {
-            "d1_kinetic": 5.0, "d2_vulnerability": 4.5, "d3_political": 1.0,
+            "d1_kinetic": 5.0, "d2_vulnerability": 4.5, "d3_political": 5.0,
             "d4_logistics": 4.8, "d5_destination": 2.0, "d6_urgency": 5.0, "d7_information": 3.5
         },
         "key_lessons": [
@@ -288,7 +288,7 @@ HISTORICAL_CASES = [
             "Source: HRW 1995; Al Jazeera 2025; USHMM; Srebrenica.org.uk."
         ),
         "risk_indicators": {
-            "d1_kinetic": 5.0, "d2_vulnerability": 5.0, "d3_political": 1.0,
+            "d1_kinetic": 5.0, "d2_vulnerability": 5.0, "d3_political": 5.0,
             "d4_logistics": 3.0, "d5_destination": 2.0, "d6_urgency": 5.0, "d7_information": 4.5
         },
         "key_lessons": [
@@ -411,7 +411,7 @@ HISTORICAL_CASES = [
             "documented destination. Source: Al Jazeera 2016; BBC 2016; IRC 2016."
         ),
         "risk_indicators": {
-            "d1_kinetic": 5.0, "d2_vulnerability": 4.0, "d3_political": 2.0,
+            "d1_kinetic": 5.0, "d2_vulnerability": 4.0, "d3_political": 4.0,
             "d4_logistics": 4.0, "d5_destination": 3.5, "d6_urgency": 5.0, "d7_information": 3.5
         },
         "key_lessons": [
@@ -536,7 +536,7 @@ HISTORICAL_CASES = [
             "Source: Al Jazeera 2022; The Guardian 2022; CIVIC Ukraine 2025."
         ),
         "risk_indicators": {
-            "d1_kinetic": 4.0, "d2_vulnerability": 3.5, "d3_political": 3.5,
+            "d1_kinetic": 4.0, "d2_vulnerability": 3.5, "d3_political": 2.5,
             "d4_logistics": 3.0, "d5_destination": 4.0, "d6_urgency": 4.0, "d7_information": 3.0
         },
         "key_lessons": [
@@ -782,7 +782,7 @@ HISTORICAL_CASES = [
             "Source: Migration News UC Davis 1999; US State Dept UNHCR situational updates."
         ),
         "risk_indicators": {
-            "d1_kinetic": 4.5, "d2_vulnerability": 3.5, "d3_political": 2.0,
+            "d1_kinetic": 4.5, "d2_vulnerability": 3.5, "d3_political": 4.0,
             "d4_logistics": 3.5, "d5_destination": 3.5, "d6_urgency": 5.0, "d7_information": 3.0
         },
         "key_lessons": [
@@ -920,7 +920,7 @@ HISTORICAL_CASES = [
             "estimated from geographic mapping of Bangui–Cameroon border routes."
         ),
         "risk_indicators": {
-            "d1_kinetic": 4.0, "d2_vulnerability": 4.5, "d3_political": 2.5,
+            "d1_kinetic": 4.0, "d2_vulnerability": 4.5, "d3_political": 3.5,
             "d4_logistics": 4.0, "d5_destination": 2.5, "d6_urgency": 4.0, "d7_information": 4.0
         },
         "key_lessons": [
@@ -1054,7 +1054,7 @@ HISTORICAL_CASES = [
             "Source: Wikipedia foreign nationals evacuation; EMERGENCY Sudan updates 2024."
         ),
         "risk_indicators": {
-            "d1_kinetic": 5.0, "d2_vulnerability": 4.5, "d3_political": 1.0,
+            "d1_kinetic": 5.0, "d2_vulnerability": 4.5, "d3_political": 5.0,
             "d4_logistics": 4.5, "d5_destination": 3.0, "d6_urgency": 5.0, "d7_information": 4.5
         },
         "key_lessons": [
@@ -1206,7 +1206,7 @@ HISTORICAL_CASES = [
             "Source: World Bank DRC 2011; UK FCDO travel advice DRC 2024; DTM DRC 2024."
         ),
         "risk_indicators": {
-            "d1_kinetic": 4.5, "d2_vulnerability": 5.0, "d3_political": 2.0,
+            "d1_kinetic": 4.5, "d2_vulnerability": 5.0, "d3_political": 4.0,
             "d4_logistics": 4.5, "d5_destination": 2.5, "d6_urgency": 4.5, "d7_information": 4.0
         },
         "key_lessons": [
@@ -1316,7 +1316,7 @@ HISTORICAL_CASES = [
         "vulnerable_pct_source": "Elderly and disabled unable to evacuate; UNHCR Bosnia 1994 demographics",
         "distance_km": 50,
         "distance_km_source": "Sarajevo to nearest safe zone (Mostar/Croatian border) ~50-80km; tunnel exit to Mt. Igman",
-        "risk_indicators": {"d1": 4.0, "d2": 5.0, "d3": 2.0, "d4": 4.0, "d5": 3.0, "d6": 3.0, "d7": 3.5},
+        "risk_indicators": {"d1": 4.0, "d2": 5.0, "d3": 4.0, "d4": 4.0, "d5": 3.0, "d6": 3.0, "d7": 3.5},
         "key_lessons": [
             "Longest modern urban siege (1,425 days) — sustained attrition, not acute crisis",
             "Tunnel of Hope (1993) as sole supply line — D4 logistics critical to survival",
@@ -1385,7 +1385,7 @@ HISTORICAL_CASES = [
         "vulnerable_pct_source": "Trapped population was predominantly elderly, infirm, and poor who could not flee; HRW Feb 2000 field report",
         "distance_km": 80,
         "distance_km_source": "Grozny to Ingushetia border (nearest IDP destination) ~80km",
-        "risk_indicators": {"d1": 5.0, "d2": 5.0, "d3": 1.0, "d4": 4.5, "d5": 2.0, "d6": 5.0, "d7": 2.0},
+        "risk_indicators": {"d1": 5.0, "d2": 5.0, "d3": 5.0, "d4": 4.5, "d5": 2.0, "d6": 5.0, "d7": 2.0},
         "key_lessons": [
             "360,000 fled before siege — self-evacuation window exists even under extreme threat if acted early",
             "Trapped population (40,000) was 90%+ elderly/disabled — vulnerable % determines who cannot self-evacuate",
@@ -1456,7 +1456,7 @@ HISTORICAL_CASES = [
         "vulnerable_pct_source": "Estimated from Amnesty/Airwars survivor interview demographics; elderly and disabled unable to flee ISIS-controlled city",
         "distance_km": 160,
         "distance_km_source": "Raqqa to Deir ez-Zor / Kurdish-controlled safe zones ~160km",
-        "risk_indicators": {"d1": 4.5, "d2": 4.5, "d3": 2.0, "d4": 4.0, "d5": 3.0, "d6": 4.0, "d7": 3.0},
+        "risk_indicators": {"d1": 4.5, "d2": 4.5, "d3": 4.0, "d4": 4.0, "d5": 3.0, "d6": 4.0, "d7": 3.0},
         "key_lessons": [
             "Coalition admitted 159 deaths; Amnesty/Airwars documented ≥1,600 — accountability gap of 10× in modern warfare",
             "ISIS used civilians as human shields — D2 constrained by both ISIS and coalition operations simultaneously",
@@ -1536,7 +1536,7 @@ HISTORICAL_CASES = [
         "vulnerable_pct_source": "Fallujah General Hospital records: 157 women + 146 children among confirmed deaths, suggesting ~43% of victims were non-combatant-age civilians",
         "distance_km": 65,
         "distance_km_source": "Fallujah to Baghdad (nearest major safe zone) ~65km via highway",
-        "risk_indicators": {"d1": 4.5, "d2": 3.5, "d3": 2.5, "d4": 3.5, "d5": 3.5, "d6": 5.0, "d7": 3.5},
+        "risk_indicators": {"d1": 4.5, "d2": 3.5, "d3": 3.5, "d4": 3.5, "d5": 3.5, "d6": 5.0, "d7": 3.5},
         "key_lessons": [
             "US Marines withdrew after 28 days due to political pressure — D6 urgency can reverse rapidly",
             "Short intense siege: 700 deaths in 28 days from 275,000 population — low % but high absolute toll",
@@ -1607,7 +1607,7 @@ HISTORICAL_CASES = [
         "vulnerable_pct_source": "UNRWA camp demographics; refugee camp populations have higher elderly/child ratio",
         "distance_km": 45,
         "distance_km_source": "Jenin camp to nearest safe zone (Nablus/Jordan Valley) ~45km",
-        "risk_indicators": {"d1": 3.5, "d2": 4.5, "d3": 2.0, "d4": 3.0, "d5": 3.0, "d6": 3.5, "d7": 3.5},
+        "risk_indicators": {"d1": 3.5, "d2": 4.5, "d3": 4.0, "d4": 3.0, "d5": 3.0, "d6": 3.5, "d7": 3.5},
         "key_lessons": [
             "Exceptional multi-source agreement (HRW, UN, ICRC, IDF) on a death toll — rare in conflict documentation",
             "Initial Palestinian claim of 400-500 deaths was comprehensively refuted — primary source verification matters",
@@ -1674,7 +1674,7 @@ HISTORICAL_CASES = [
         "vulnerable_pct_source": "Croatian demographic records; elderly/disabled unable to evacuate during siege",
         "distance_km": 90,
         "distance_km_source": "Vukovar to Osijek (nearest Croatian-controlled safe zone) ~90km via Drava river route",
-        "risk_indicators": {"d1": 4.5, "d2": 5.0, "d3": 1.5, "d4": 4.0, "d5": 2.5, "d6": 4.0, "d7": 2.5},
+        "risk_indicators": {"d1": 4.5, "d2": 5.0, "d3": 4.5, "d4": 4.0, "d5": 2.5, "d6": 4.0, "d7": 2.5},
         "key_lessons": [
             "87-day siege at ERCF operational window boundary — tests model at maximum declared scope",
             "JNA deliberately targeted civilian infrastructure (hospital, water) — D4 logistics weaponised",
@@ -1757,7 +1757,7 @@ HISTORICAL_CASES = [
         "vulnerable_pct_source": "West Point MWI: 116,000 made homeless; demographic composition of Hue (university city, higher elderly/student proportion)",
         "distance_km": 80,
         "distance_km_source": "Hue to Da Nang (nearest major safe zone) ~80km via Highway 1",
-        "risk_indicators": {"d1": 5.0, "d2": 4.5, "d3": 1.5, "d4": 3.5, "d5": 2.5, "d6": 5.0, "d7": 2.5},
+        "risk_indicators": {"d1": 5.0, "d2": 4.5, "d3": 4.5, "d4": 3.5, "d5": 2.5, "d6": 5.0, "d7": 2.5},
         "key_lessons": [
             "Mixed causation: US massed artillery attrition + PAVN/VC deliberate civilian executions (Hue Massacre)",
             "2,000+ civilians executed in shallow graves — D3 Authorization=0 from occupying force perspective",
@@ -1833,7 +1833,7 @@ HISTORICAL_CASES = [
         "vulnerable_pct_source": "Philippines wartime demographics; significant elderly, children, and non-combatant population in Intramuros and civilian districts",
         "distance_km": 60,
         "distance_km_source": "Manila (Intramuros) to Cavite/Laguna safe zones ~60km south",
-        "risk_indicators": {"d1": 5.0, "d2": 5.0, "d3": 1.0, "d4": 3.0, "d5": 2.0, "d6": 5.0, "d7": 2.0},
+        "risk_indicators": {"d1": 5.0, "d2": 5.0, "d3": 5.0, "d4": 3.0, "d5": 2.0, "d6": 5.0, "d7": 2.0},
         "key_lessons": [
             "100,000+ civilian deaths in 28 days from 500,000 population (20% mortality rate) — maximum documented urban battle toll",
             "Japanese forces conducted systematic massacres in hospitals, churches, and civilian shelters",
@@ -1908,7 +1908,7 @@ HISTORICAL_CASES = [
         "vulnerable_pct_source": "IBC analysis: significant pre-battle civilian evacuation; remaining 30,000 had higher elderly/immobile proportion",
         "distance_km": 65,
         "distance_km_source": "Fallujah to Baghdad (nearest major safe zone) ~65km via highway",
-        "risk_indicators": {"d1": 5.0, "d2": 4.0, "d3": 2.0, "d4": 3.5, "d5": 3.5, "d6": 5.0, "d7": 3.0},
+        "risk_indicators": {"d1": 5.0, "d2": 4.0, "d3": 4.0, "d4": 3.5, "d5": 3.5, "d6": 5.0, "d7": 3.0},
         "key_lessons": [
             "Pre-battle US evacuation campaign reduced trapped civilian population from 275,000 to ~30,000 — early warning saves lives",
             "46-day battle with ~700 civilian deaths from ~30,000 remaining = 2.3% mortality of trapped population",
@@ -1986,7 +1986,7 @@ HISTORICAL_CASES = [
         "vulnerable_pct_source": "UNHCR/UNRWA: Gaza population is 50%+ under 18; significant elderly and disabled in refugee camp population",
         "distance_km": 0,
         "distance_km_source": "Enclave — no evacuation route available; blockaded territory",
-        "risk_indicators": {"d1": 4.5, "d2": 5.0, "d3": 1.0, "d4": 3.5, "d5": 1.5, "d6": 4.5, "d7": 3.5},
+        "risk_indicators": {"d1": 4.5, "d2": 5.0, "d3": 5.0, "d4": 3.5, "d5": 1.5, "d6": 4.5, "d7": 3.5},
         "key_lessons": [
             "22-day operation on 1.5M population enclave produced ~965 civilian deaths — low per-capita rate despite D1=4.5",
             "B'Tselem (Israeli) and PCHR (Palestinian) independent sources converge within 1.5× — rare adversarial agreement",
@@ -2065,7 +2065,7 @@ HISTORICAL_CASES = [
         "vulnerable_pct_source": "UNHCR/UNRWA: Gaza population 50%+ under 18; unchanged from 2008 demographics",
         "distance_km": 0,
         "distance_km_source": "Enclave — no evacuation route available",
-        "risk_indicators": {"d1": 4.5, "d2": 5.0, "d3": 1.0, "d4": 3.5, "d5": 1.5, "d6": 4.5, "d7": 3.5},
+        "risk_indicators": {"d1": 4.5, "d2": 5.0, "d3": 5.0, "d4": 3.5, "d5": 1.5, "d6": 4.5, "d7": 3.5},
         "key_lessons": [
             "Tightest death range in dataset: 2,125–2,310 total (1.09×) — multiple independent sources all converge",
             "500,000 internally displaced (28% of population) despite no external exit route — internal displacement within enclave",
@@ -2146,7 +2146,7 @@ HISTORICAL_CASES = [
         "vulnerable_pct_source": "Ukrainian census 2022; elderly residents unable to evacuate before Russian occupation",
         "distance_km": 30,
         "distance_km_source": "Bucha to Kyiv (nearest safe zone) ~30km",
-        "risk_indicators": {"d1": 5.0, "d2": 5.0, "d3": 1.0, "d4": 3.0, "d5": 3.5, "d6": 5.0, "d7": 2.5},
+        "risk_indicators": {"d1": 5.0, "d2": 5.0, "d3": 5.0, "d4": 3.0, "d5": 3.5, "d6": 5.0, "d7": 2.5},
         "key_lessons": [
             "92% of deaths were summary executions/shootings (not shelling) — deliberate targeting of civilians, not combat attrition",
             "Bucha death toll higher than Vukovar despite shorter duration — intensity of deliberate targeting matters more than duration",
@@ -2229,7 +2229,7 @@ HISTORICAL_CASES = [
         "vulnerable_pct_source": "Lebanese census estimates; large refugee population (Palestinians) with higher vulnerable proportion",
         "distance_km": 40,
         "distance_km_source": "West Beirut to East Beirut (Christian-controlled, safer zone) ~10km; to Syrian border ~40km",
-        "risk_indicators": {"d1": 4.0, "d2": 4.0, "d3": 2.0, "d4": 3.5, "d5": 2.5, "d6": 4.0, "d7": 2.0},
+        "risk_indicators": {"d1": 4.0, "d2": 4.0, "d3": 4.0, "d4": 3.5, "d5": 2.5, "d6": 4.0, "d7": 2.0},
         "key_lessons": [
             "68-day siege of a major city with ~500,000 civilians — moderate death rate compared to intensity",
             "PLO negotiated evacuation with international guarantors (US, France, Italy) — D3 Authorization proved possible even in high-intensity siege",
@@ -2311,7 +2311,7 @@ HISTORICAL_CASES = [
         "vulnerable_pct_source": "Armenian/NK population demographics; significant elderly population in mountain villages",
         "distance_km": 120,
         "distance_km_source": "Stepanakert (capital) to Armenia border ~120km via mountain roads",
-        "risk_indicators": {"d1": 3.5, "d2": 3.0, "d3": 2.0, "d4": 3.0, "d5": 3.0, "d6": 4.0, "d7": 3.0},
+        "risk_indicators": {"d1": 3.5, "d2": 3.0, "d3": 4.0, "d4": 3.0, "d5": 3.0, "d6": 4.0, "d7": 3.0},
         "key_lessons": [
             "High military intensity (drones, artillery) + low civilian casualties because population fled early — self-evacuation saves lives",
             "90,000 displaced from 150,000 population (60%) before/during conflict — high self-evacuation rate",
@@ -2398,7 +2398,7 @@ HISTORICAL_CASES = [
         "vulnerable_pct_source": "Angola wartime demographics; significant elderly and child population unable to self-evacuate under shelling",
         "distance_km": 250,
         "distance_km_source": "Huambo to Luanda (government-controlled safe zone) ~250km via EN-280 highway",
-        "risk_indicators": {"d1": 5.0, "d2": 5.0, "d3": 1.0, "d4": 4.0, "d5": 2.0, "d6": 5.0, "d7": 2.0},
+        "risk_indicators": {"d1": 5.0, "d2": 5.0, "d3": 5.0, "d4": 4.0, "d5": 2.0, "d6": 5.0, "d7": 2.0},
         "key_lessons": [
             "UNITA fired 1,000+ artillery shells per day on Angola's 2nd largest city — maximum kinetic intensity in Sub-Saharan Africa context",
             "'Guerra dos 55 Dias' (War of 55 Days) — Portuguese-language historiography names this specific siege, enabling documentation",
@@ -2484,7 +2484,7 @@ HISTORICAL_CASES = [
         "vulnerable_pct_source": "Angola wartime demographics; Kuito/Bié province had high proportion of displaced persons from rural areas, including children",
         "distance_km": 300,
         "distance_km_source": "Kuito to Huambo (nearest larger government-held zone) ~300km; road access largely blocked",
-        "risk_indicators": {"d1": 5.0, "d2": 5.0, "d3": 1.0, "d4": 5.0, "d5": 2.0, "d6": 5.0, "d7": 2.0},
+        "risk_indicators": {"d1": 5.0, "d2": 5.0, "d3": 5.0, "d4": 5.0, "d5": 2.0, "d6": 5.0, "d7": 2.0},
         "key_lessons": [
             "18-21 month siege of a city of 135,000 — one of the longest urban sieges in African history",
             "HRW and Amnesty cross-validated death range (20,000-30,000) = 1.5x spread — exceptionally tight for an African conflict of this scale",
@@ -2580,7 +2580,7 @@ HISTORICAL_CASES = [
         "vulnerable_pct_source": "PHR 'Witness to War Crimes' (2011): significant elderly/child population documented in siege conditions",
         "distance_km": 210,
         "distance_km_source": "Misrata to Tripoli (nearest major safe zone under rebel control) ~210km via coastal highway",
-        "risk_indicators": {"d1": 4.5, "d2": 4.5, "d3": 2.0, "d4": 3.5, "d5": 2.5, "d6": 4.0, "d7": 3.0},
+        "risk_indicators": {"d1": 4.5, "d2": 4.5, "d3": 4.0, "d4": 3.5, "d5": 2.5, "d6": 4.0, "d7": 3.0},
         "key_lessons": [
             "Grad rockets and cluster munitions used indiscriminately in civilian areas — D1=4.5 reflects indiscriminate weapons",
             "Port remained partially operational — D4 logistics not fully degraded, enabling some supply",
@@ -2658,7 +2658,7 @@ HISTORICAL_CASES = [
         "vulnerable_pct_source": "Amnesty International 'The Battle of Marawi' (2017): significant elderly and disabled population unable to evacuate",
         "distance_km": 90,
         "distance_km_source": "Marawi to Iligan City (nearest safe zone) ~90km via Lake Lanao route",
-        "risk_indicators": {"d1": 4.5, "d2": 4.5, "d3": 2.0, "d4": 3.5, "d5": 3.0, "d6": 4.5, "d7": 3.0},
+        "risk_indicators": {"d1": 4.5, "d2": 4.5, "d3": 4.0, "d4": 3.5, "d5": 3.0, "d6": 4.5, "d7": 3.0},
         "key_lessons": [
             "IS-affiliated Maute Group used civilians as human shields — D2 constrained by both IS and AFP operations",
             "AFP urban warfare destroyed 80% of city — infrastructure denial component documented",
@@ -2733,7 +2733,7 @@ HISTORICAL_CASES = [
         "vulnerable_pct_source": "UN Panel of Experts (2011): civilian population included large proportion of elderly, disabled, and children unable to flee shrinking enclave",
         "distance_km": 80,
         "distance_km_source": "Mullaitivu (final enclave) to government-controlled safe zone ~80km",
-        "risk_indicators": {"d1": 5.0, "d2": 5.0, "d3": 1.0, "d4": 4.0, "d5": 2.0, "d6": 5.0, "d7": 2.5},
+        "risk_indicators": {"d1": 5.0, "d2": 5.0, "d3": 5.0, "d4": 4.0, "d5": 2.0, "d6": 5.0, "d7": 2.5},
         "key_lessons": [
             "300,000 civilians trapped in shrinking enclave — textbook ERCF enclave scenario at maximum scale",
             "Government media ban created near-total information blackout — D7=2.5 reflects deliberate restriction",
@@ -2827,7 +2827,7 @@ HISTORICAL_CASES = [
             "UN CoI Syria A/HRC/38/CRP.3 confirms evacuation to northern Syria under Mar 2018 agreement."
         ),
         "risk_indicators": {
-            "d1": 5.0, "d2": 4.5, "d3": 1.0, "d4": 4.5,
+            "d1": 5.0, "d2": 4.5, "d3": 5.0, "d4": 4.5,
             "d5": 3.0, "d6": 5.0, "d7": 3.5
         },
         "key_lessons": [
@@ -2959,7 +2959,7 @@ HISTORICAL_CASES = [
             "No evacuation occurred during this operation."
         ),
         "risk_indicators": {
-            "d1": 4.5, "d2": 3.5, "d3": 1.5, "d4": 3.5,
+            "d1": 4.5, "d2": 3.5, "d3": 4.5, "d4": 3.5,
             "d5": 2.5, "d6": 4.0, "d7": 3.0
         },
         "key_lessons": [

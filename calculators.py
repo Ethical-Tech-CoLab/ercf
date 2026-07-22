@@ -1195,13 +1195,16 @@ BASE_DAILY_COST  = [1.0,  2.0,  3.5,  6.0, 12.0]
 #   then differentiates siege from open-corridor conditions within each level.
 #
 # CONFINEMENT MODIFIER — D3 × D4 interaction:
-#   confinement_score = (5 − D3_authorization) × D4_logistics / 5
-#   Range: 0 (full corridor, unblocked logistics) → 5 (full siege, blocked logistics)
+#   confinement_score = (D3_authorization − 1) × D4_logistics / 5
+#   D3 runs the same direction as the other dimensions: 1 = full consent from all
+#   parties, 5 = active refusal / no valid authorization (see the D3 scale criteria in
+#   static/index.html). Confinement therefore rises with D3, not with (5 − D3).
+#   Range: 0 (full corridor, unblocked logistics) → 4 (full siege, blocked logistics)
 #   Multipliers: ≤1→×0.5, ≤2→×1.0, ≤3→×2.0, ≤4→×4.0, >4→×8.0
-#   Empirical anchors:
-#     Aleppo  (d3=2.0, d4=4.0): score=2.40 → ×2.0 (near-siege, high mortality ✓)
-#     Kosovo  (d3=2.0, d4=3.5): score=2.10 → ×2.0 (forced displacement ✓)
-#     Kherson (d3=3.5, d4=3.0): score=0.90 → ×0.5 (organized, open corridor ✓)
+#   Empirical anchors (d3 values as stored in historical_data.py, same scale):
+#     Aleppo  (d3=4.0, d4=4.0): score=2.40 → ×2.0 (near-siege, high mortality ✓)
+#     Kosovo  (d3=4.0, d4=3.5): score=2.10 → ×2.0 (forced displacement ✓)
+#     Kherson (d3=2.5, d4=3.0): score=0.90 → ×0.5 (organized, open corridor ✓)
 #     Mosul   (d3=3.0, d4=3.5): score=1.40 → ×1.0 (structured military op ✓)
 #
 # DISPLACEMENT PROTECTION FACTOR:
@@ -1290,13 +1293,13 @@ CONFLICT_TYPE_EXPOSURE = {
 #
 # IMPROVEMENT 2 — Siege protection cap
 #   Old: protection_factor = (1 − remaining_pct) × 0.60  (universal)
-#   New: protection_factor = (1 − remaining_pct) × 0.30  (if D3 ≤ 2 AND D1 ≥ 4)
+#   New: protection_factor = (1 − remaining_pct) × 0.30  (if D3 ≥ 4 AND D1 ≥ 4)
 #   Rationale: The 0.60 coefficient assumes displacement = safety. In urban sieges
 #   (no authorized corridor + active direct fire), movement itself carries high
 #   mortality risk — evacuees passed checkpoints under fire, buses were attacked.
 #   The 0.30 cap means displacement is still protective (better than staying)
 #   but only half as protective as in an open-corridor scenario.
-#   Siege condition: D3_authorization ≤ 2.0 AND D1_kinetic ≥ 4.0.
+#   Siege condition: D3_authorization ≥ 4.0 AND D1_kinetic ≥ 4.0.
 #   Affected cases: Mariupol, Gaza, Aleppo, Kosovo, Sudan
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -1392,8 +1395,8 @@ def calculate_staying_costs(
 
     MORTALITY — ERCF Mortality Model v4
       base_rate         = DEATH_RATE_10K_EMPIRICAL[risk_level] / 10,000          (v2)
-      confinement_score = (5−d3) × d4 / 5; conf_mult = ×0.5–×8.0 stepwise       (v2)
-      is_siege          = D3 ≤ 2.0 AND D1 ≥ 4.0 AND pop ≤ 500k AND not regional/city (v4)
+      confinement_score = (d3−1) × d4 / 5; conf_mult = ×0.5–×8.0 stepwise       (v2)
+      is_siege          = D3 ≥ 4.0 AND D1 ≥ 4.0 AND pop ≤ 500k AND not regional/city (v4)
       max_protection    = 0.30 (siege) or 0.60 (open corridor)                   (v4)
       protection_factor = (1−remaining_pct) × max_protection                     (v4)
       exposure_factor   = CONFLICT_TYPE_EXPOSURE[conflict_type]   (named)         (v3)
@@ -1421,7 +1424,10 @@ def calculate_staying_costs(
         d4_val = float(dims.get('d4_logistics', dims.get('d4', 3.0)))
         d6_val = float(dims.get('d6_urgency',   dims.get('d6', 3.0)))
         d4     = d4_val
-        confinement_score = (5.0 - d3_val) * d4_val / 5.0
+        # D3 runs the same direction as every other dimension (see WEIGHTS block above and
+        # the D3 scale criteria in static/index.html): 1 = full consent from all parties,
+        # 5 = active refusal / no valid authorization. Confinement therefore rises with D3.
+        confinement_score = (d3_val - 1.0) * d4_val / 5.0
         if   confinement_score <= 1: conf_mult = 0.5
         elif confinement_score <= 2: conf_mult = 1.0
         elif confinement_score <= 3: conf_mult = 2.0
@@ -1429,15 +1435,15 @@ def calculate_staying_costs(
         else:                        conf_mult = 8.0
 
     # ── v4: siege protection cap ─────────────────────────────────────────────
-    # In urban sieges (D3 ≤ 2 AND D1 ≥ 4 AND pop ≤ 500k), displaced people moved
+    # In urban sieges (D3 ≥ 4 AND D1 ≥ 4 AND pop ≤ 500k), displaced people moved
     # under direct fire — cap displacement protection at 0.30.
     # Population threshold: urban sieges historically < 500k (Mariupol 430k, Aleppo
-    # 300k, Srebrenica 8k). Large populations with D3=1 (Sudan 6M, DRC 1.5M, Gaza
+    # 300k, Srebrenica 8k). Large populations with D3=5 (Sudan 6M, DRC 1.5M, Gaza
     # 2.3M) reflect regional access denial, not urban encirclement.
     # Named regional/city_conflict types also override siege=False: dispersed conflict
-    # can have low D3 (no corridor access across large area) without being a siege.
+    # can have high D3 (no corridor access across large area) without being a siege.
     rp_clamped = max(0.0, min(1.0, remaining_pct))
-    is_siege   = (d3_val <= 2.0 and d1_val >= 4.0 and population <= 500000
+    is_siege   = (d3_val >= 4.0 and d1_val >= 4.0 and population <= 500000
                   and conflict_type not in ('regional', 'city_conflict'))
     max_protection    = 0.30 if is_siege else 0.60
     protection_factor = (1.0 - rp_clamped) * max_protection
@@ -1979,8 +1985,9 @@ def calculate_remaining_costs(
     # ── Dimension modifiers ──────────────────────────────────────────────────
     # D4 Logistics: higher D4 = harder delivery = supply cost multiplier
     d4_penalty   = (d4 - 1) * 0.10 if d4 <= 3 else 0.20 + (d4 - 3) * 0.20
-    # D3 Authorization: lower D3 = more blockade = higher loss rate
-    d3_loss_add  = (5 - d3) * 0.05 if d3 >= 3 else 0.10 + (3 - d3) * 0.075
+    # D3 Authorization: higher D3 = consent absent/refused = more blockade = higher loss rate
+    # (D3 runs 1 = full consent → 5 = active refusal, same direction as every other dimension)
+    d3_loss_add  = (d3 - 1) * 0.05 if d3 <= 3 else 0.10 + (d3 - 3) * 0.075
     # D7 Information: lower D7 = harder coordination = supply overhead
     d7_overhead  = (5 - d7) * 0.025 if d7 >= 3 else 0.05 + (3 - d7) * 0.05
 
@@ -2025,8 +2032,8 @@ def calculate_remaining_costs(
     # Scaled ÷10 versus the pre-recalibration increments (Mariupol/Aleppo/Kosovo anchors
     # below are the original 10-95%-scale figures) to stay proportionate within the new
     # 1-8% critical-extraction range — the underlying D3 relationship is unchanged.
-    # Anchors: Mariupol D3=1.5 (+12.5%), Aleppo D3=2.0 (+10%), Kosovo D3=2.0 (+10%)
-    d3_prob_add = (5.0 - d3) * 0.0025 if d3 >= 3 else 0.005 + (3.0 - d3) * 0.005
+    # Anchors: Mariupol D3=4.5 (+12.5%), Aleppo D3=4.0 (+10%), Kosovo D3=4.0 (+10%)
+    d3_prob_add = (d3 - 1.0) * 0.0025 if d3 <= 3 else 0.005 + (d3 - 3.0) * 0.005
 
     # D6 Urgency floor: imminent threat forces extraction need regardless of duration
     # Scaled ÷10 versus pre-recalibration for the same reason as d3_prob_add above.

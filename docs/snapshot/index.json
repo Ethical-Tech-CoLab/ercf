@@ -18,7 +18,7 @@
     "risk_indicators": {
       "d1_kinetic": 5.0,
       "d2_vulnerability": 4.0,
-      "d3_political": 1.5,
+      "d3_political": 4.5,
       "d4_logistics": 4.5,
       "d5_destination": 3.0,
       "d6_urgency": 5.0,
@@ -98,7 +98,7 @@
       }
     },
     "three_index": {
-      "risk_score": 4.21,
+      "risk_score": 4.35,
       "risk_level": 4,
       "risk_label": "Critical / Emergency",
       "nato_equivalent": "Hostile (Imminent)",
@@ -113,8 +113,8 @@
           "question": "How dangerous is the situation for civilians?"
         },
         "feasibility": {
-          "score": 3.0,
-          "label": "Severely constrained \u2014 partial or contested corridor",
+          "score": 2.0,
+          "label": "Impossible \u2014 corridor blocked or does not exist",
           "dimensions": "D3 authorization + D4 logistics + D5 destination (inverted)",
           "question": "Can people realistically move?"
         },
@@ -154,7 +154,7 @@
     "risk_indicators": {
       "d1_kinetic": 5.0,
       "d2_vulnerability": 4.5,
-      "d3_political": 1.0,
+      "d3_political": 5.0,
       "d4_logistics": 4.8,
       "d5_destination": 2.0,
       "d6_urgency": 5.0,
@@ -229,7 +229,7 @@
       }
     },
     "three_index": {
-      "risk_score": 4.21,
+      "risk_score": 4.37,
       "risk_level": 4,
       "risk_label": "Critical / Emergency",
       "nato_equivalent": "Hostile (Imminent)",
@@ -244,8 +244,8 @@
           "question": "How dangerous is the situation for civilians?"
         },
         "feasibility": {
-          "score": 3.4,
-          "label": "Viable \u2014 corridor open with significant risk",
+          "score": 2.067,
+          "label": "Severely constrained \u2014 partial or contested corridor",
           "dimensions": "D3 authorization + D4 logistics + D5 destination (inverted)",
           "question": "Can people realistically move?"
         },
@@ -258,11 +258,11 @@
       },
       "matrix": {
         "risk_cell": "high",
-        "feasibility_cell": "high",
-        "recommendation": "Evacuate immediately",
-        "rationale": "High danger AND viable corridor \u2014 delay increases deaths with no operational benefit.",
-        "ihl_trigger": "GC IV Art. 49: security of the population demands evacuation.",
-        "color": "#ef4444"
+        "feasibility_cell": "low",
+        "recommendation": "Shelter-in-place \u2014 negotiate corridor urgently",
+        "rationale": "High danger but movement not viable. Forced evacuation without a safe corridor risks greater harm than staying.",
+        "ihl_trigger": "AP I Art. 57\u201358: precautionary measures. Negotiate Art. 49 GC IV corridor with all parties.",
+        "color": "#f97316"
       }
     }
   },
@@ -286,7 +286,7 @@
     "risk_indicators": {
       "d1_kinetic": 5.0,
       "d2_vulnerability": 5.0,
-      "d3_political": 1.0,
+      "d3_political": 5.0,
       "d4_logistics": 3.0,
       "d5_destination": 2.0,
       "d6_urgency": 5.0,
@@ -362,7 +362,7 @@
       }
     },
     "three_index": {
-      "risk_score": 4.21,
+      "risk_score": 4.225,
       "risk_level": 4,
       "risk_label": "Critical / Emergency",
       "nato_equivalent": "Hostile (Imminent)",
@@ -377,8 +377,8 @@
           "question": "How dangerous is the situation for civilians?"
         },
         "feasibility": {
-          "score": 4.0,
-          "label": "Viable \u2014 corridor open with significant risk",
+          "score": 2.667,
+          "label": "Severely constrained \u2014 partial or contested corridor",
           "dimensions": "D3 authorization + D4 logistics + D5 destination (inverted)",
           "question": "Can people realistically move?"
         },
@@ -391,11 +391,11 @@
       },
       "matrix": {
         "risk_cell": "high",
-        "feasibility_cell": "high",
-        "recommendation": "Evacuate immediately",
-        "rationale": "High danger AND viable corridor \u2014 delay increases deaths with no operational benefit.",
-        "ihl_trigger": "GC IV Art. 49: security of the population demands evacuation.",
-        "color": "#ef4444"
+        "feasibility_cell": "low",
+        "recommendation": "Shelter-in-place \u2014 negotiate corridor urgently",
+        "rationale": "High danger but movement not viable. Forced evacuation without a safe corridor risks greater harm than staying.",
+        "ihl_trigger": "AP I Art. 57\u201358: precautionary measures. Negotiate Art. 49 GC IV corridor with all parties.",
+        "color": "#f97316"
       }
     }
   },
@@ -418,7 +418,7 @@
     "risk_indicators": {
       "d1_kinetic": 5.0,
       "d2_vulnerability": 4.0,
-      "d3_political": 2.0,
+      "d3_political": 4.0,
       "d4_logistics": 4.0,
       "d5_destination": 3.5,
       "d6_urgency": 5.0,
@@ -496,7 +496,7 @@
       }
     },
     "three_index": {
-      "risk_score": 4.21,
+      "risk_score": 4.25,
       "risk_level": 4,
       "risk_label": "Critical / Emergency",
       "nato_equivalent": "Hostile (Imminent)",
@@ -511,7 +511,7 @@
           "question": "How dangerous is the situation for civilians?"
         },
         "feasibility": {
-          "score": 2.833,
+          "score": 2.167,
           "label": "Severely constrained \u2014 partial or contested corridor",
           "dimensions": "D3 authorization + D4 logistics + D5 destination (inverted)",
           "question": "Can people realistically move?"
@@ -552,7 +552,7 @@
     "risk_indicators": {
       "d1_kinetic": 4.0,
       "d2_vulnerability": 3.5,
-      "d3_political": 3.5,
+      "d3_political": 2.5,
       "d4_logistics": 3.0,
       "d5_destination": 4.0,
       "d6_urgency": 4.0,
@@ -626,13 +626,13 @@
       }
     },
     "three_index": {
-      "risk_score": 3.65,
-      "risk_level": 3,
-      "risk_label": "High Risk (Contested)",
-      "nato_equivalent": "Hostile (Partial)",
-      "color": "#f97316",
-      "decision": "Mass evacuation \u2014 last resort threshold met. Military/CIMIC escort required. Notify all parties.",
-      "ihl_reference": "GC IV Art. 49: 'security of the population so demand'.",
+      "risk_score": 3.5,
+      "risk_level": 2,
+      "risk_label": "Moderate Risk (Watchful)",
+      "nato_equivalent": "Uncertain",
+      "color": "#f59e0b",
+      "decision": "Activate Protection Cluster. Negotiate humanitarian corridors. Exhaust alternatives before proceeding.",
+      "ihl_reference": "AP I Art. 57\u201358 \u2014 precautionary measures required.",
       "sub_scores": {
         "risk_severity": {
           "score": 3.85,
@@ -641,7 +641,7 @@
           "question": "How dangerous is the situation for civilians?"
         },
         "feasibility": {
-          "score": 2.5,
+          "score": 2.833,
           "label": "Severely constrained \u2014 partial or contested corridor",
           "dimensions": "D3 authorization + D4 logistics + D5 destination (inverted)",
           "question": "Can people realistically move?"
@@ -813,7 +813,7 @@
     "risk_indicators": {
       "d1_kinetic": 4.5,
       "d2_vulnerability": 3.5,
-      "d3_political": 2.0,
+      "d3_political": 4.0,
       "d4_logistics": 3.5,
       "d5_destination": 3.5,
       "d6_urgency": 5.0,
@@ -906,8 +906,8 @@
           "question": "How dangerous is the situation for civilians?"
         },
         "feasibility": {
-          "score": 3.0,
-          "label": "Viable \u2014 corridor open with significant risk",
+          "score": 2.333,
+          "label": "Severely constrained \u2014 partial or contested corridor",
           "dimensions": "D3 authorization + D4 logistics + D5 destination (inverted)",
           "question": "Can people realistically move?"
         },
@@ -920,11 +920,11 @@
       },
       "matrix": {
         "risk_cell": "high",
-        "feasibility_cell": "high",
-        "recommendation": "Evacuate immediately",
-        "rationale": "High danger AND viable corridor \u2014 delay increases deaths with no operational benefit.",
-        "ihl_trigger": "GC IV Art. 49: security of the population demands evacuation.",
-        "color": "#ef4444"
+        "feasibility_cell": "low",
+        "recommendation": "Shelter-in-place \u2014 negotiate corridor urgently",
+        "rationale": "High danger but movement not viable. Forced evacuation without a safe corridor risks greater harm than staying.",
+        "ihl_trigger": "AP I Art. 57\u201358: precautionary measures. Negotiate Art. 49 GC IV corridor with all parties.",
+        "color": "#f97316"
       }
     }
   },
@@ -947,7 +947,7 @@
     "risk_indicators": {
       "d1_kinetic": 4.0,
       "d2_vulnerability": 4.5,
-      "d3_political": 2.5,
+      "d3_political": 3.5,
       "d4_logistics": 4.0,
       "d5_destination": 2.5,
       "d6_urgency": 4.0,
@@ -1024,7 +1024,7 @@
       }
     },
     "three_index": {
-      "risk_score": 3.625,
+      "risk_score": 3.775,
       "risk_level": 3,
       "risk_label": "High Risk (Contested)",
       "nato_equivalent": "Hostile (Partial)",
@@ -1039,8 +1039,8 @@
           "question": "How dangerous is the situation for civilians?"
         },
         "feasibility": {
-          "score": 3.0,
-          "label": "Viable \u2014 corridor open with significant risk",
+          "score": 2.667,
+          "label": "Severely constrained \u2014 partial or contested corridor",
           "dimensions": "D3 authorization + D4 logistics + D5 destination (inverted)",
           "question": "Can people realistically move?"
         },
@@ -1053,11 +1053,11 @@
       },
       "matrix": {
         "risk_cell": "high",
-        "feasibility_cell": "high",
-        "recommendation": "Evacuate immediately",
-        "rationale": "High danger AND viable corridor \u2014 delay increases deaths with no operational benefit.",
-        "ihl_trigger": "GC IV Art. 49: security of the population demands evacuation.",
-        "color": "#ef4444"
+        "feasibility_cell": "low",
+        "recommendation": "Shelter-in-place \u2014 negotiate corridor urgently",
+        "rationale": "High danger but movement not viable. Forced evacuation without a safe corridor risks greater harm than staying.",
+        "ihl_trigger": "AP I Art. 57\u201358: precautionary measures. Negotiate Art. 49 GC IV corridor with all parties.",
+        "color": "#f97316"
       }
     }
   },
@@ -1080,7 +1080,7 @@
     "risk_indicators": {
       "d1_kinetic": 5.0,
       "d2_vulnerability": 4.5,
-      "d3_political": 1.0,
+      "d3_political": 5.0,
       "d4_logistics": 4.5,
       "d5_destination": 3.0,
       "d6_urgency": 5.0,
@@ -1158,7 +1158,7 @@
       }
     },
     "three_index": {
-      "risk_score": 4.21,
+      "risk_score": 4.525,
       "risk_level": 4,
       "risk_label": "Critical / Emergency",
       "nato_equivalent": "Hostile (Imminent)",
@@ -1173,8 +1173,8 @@
           "question": "How dangerous is the situation for civilians?"
         },
         "feasibility": {
-          "score": 3.167,
-          "label": "Viable \u2014 corridor open with significant risk",
+          "score": 1.833,
+          "label": "Impossible \u2014 corridor blocked or does not exist",
           "dimensions": "D3 authorization + D4 logistics + D5 destination (inverted)",
           "question": "Can people realistically move?"
         },
@@ -1187,11 +1187,11 @@
       },
       "matrix": {
         "risk_cell": "high",
-        "feasibility_cell": "high",
-        "recommendation": "Evacuate immediately",
-        "rationale": "High danger AND viable corridor \u2014 delay increases deaths with no operational benefit.",
-        "ihl_trigger": "GC IV Art. 49: security of the population demands evacuation.",
-        "color": "#ef4444"
+        "feasibility_cell": "low",
+        "recommendation": "Shelter-in-place \u2014 negotiate corridor urgently",
+        "rationale": "High danger but movement not viable. Forced evacuation without a safe corridor risks greater harm than staying.",
+        "ihl_trigger": "AP I Art. 57\u201358: precautionary measures. Negotiate Art. 49 GC IV corridor with all parties.",
+        "color": "#f97316"
       }
     }
   },
@@ -1214,7 +1214,7 @@
     "risk_indicators": {
       "d1_kinetic": 4.5,
       "d2_vulnerability": 5.0,
-      "d3_political": 2.0,
+      "d3_political": 4.0,
       "d4_logistics": 4.5,
       "d5_destination": 2.5,
       "d6_urgency": 4.5,
@@ -1304,8 +1304,8 @@
           "question": "How dangerous is the situation for civilians?"
         },
         "feasibility": {
-          "score": 3.0,
-          "label": "Viable \u2014 corridor open with significant risk",
+          "score": 2.333,
+          "label": "Severely constrained \u2014 partial or contested corridor",
           "dimensions": "D3 authorization + D4 logistics + D5 destination (inverted)",
           "question": "Can people realistically move?"
         },
@@ -1318,11 +1318,11 @@
       },
       "matrix": {
         "risk_cell": "high",
-        "feasibility_cell": "high",
-        "recommendation": "Evacuate immediately",
-        "rationale": "High danger AND viable corridor \u2014 delay increases deaths with no operational benefit.",
-        "ihl_trigger": "GC IV Art. 49: security of the population demands evacuation.",
-        "color": "#ef4444"
+        "feasibility_cell": "low",
+        "recommendation": "Shelter-in-place \u2014 negotiate corridor urgently",
+        "rationale": "High danger but movement not viable. Forced evacuation without a safe corridor risks greater harm than staying.",
+        "ihl_trigger": "AP I Art. 57\u201358: precautionary measures. Negotiate Art. 49 GC IV corridor with all parties.",
+        "color": "#f97316"
       }
     }
   },
@@ -1345,7 +1345,7 @@
     "risk_indicators": {
       "d1": 4.0,
       "d2": 5.0,
-      "d3": 2.0,
+      "d3": 4.0,
       "d4": 4.0,
       "d5": 3.0,
       "d6": 3.0,
@@ -1451,7 +1451,7 @@
     "risk_indicators": {
       "d1": 5.0,
       "d2": 5.0,
-      "d3": 1.0,
+      "d3": 5.0,
       "d4": 4.5,
       "d5": 2.0,
       "d6": 5.0,
@@ -1556,7 +1556,7 @@
     "risk_indicators": {
       "d1": 4.5,
       "d2": 4.5,
-      "d3": 2.0,
+      "d3": 4.0,
       "d4": 4.0,
       "d5": 3.0,
       "d6": 4.0,
@@ -1666,7 +1666,7 @@
     "risk_indicators": {
       "d1": 4.5,
       "d2": 3.5,
-      "d3": 2.5,
+      "d3": 3.5,
       "d4": 3.5,
       "d5": 3.5,
       "d6": 5.0,
@@ -1770,7 +1770,7 @@
     "risk_indicators": {
       "d1": 3.5,
       "d2": 4.5,
-      "d3": 2.0,
+      "d3": 4.0,
       "d4": 3.0,
       "d5": 3.0,
       "d6": 3.5,
@@ -1875,7 +1875,7 @@
     "risk_indicators": {
       "d1": 4.5,
       "d2": 5.0,
-      "d3": 1.5,
+      "d3": 4.5,
       "d4": 4.0,
       "d5": 2.5,
       "d6": 4.0,
@@ -1989,7 +1989,7 @@
     "risk_indicators": {
       "d1": 5.0,
       "d2": 4.5,
-      "d3": 1.5,
+      "d3": 4.5,
       "d4": 3.5,
       "d5": 2.5,
       "d6": 5.0,
@@ -2096,7 +2096,7 @@
     "risk_indicators": {
       "d1": 5.0,
       "d2": 5.0,
-      "d3": 1.0,
+      "d3": 5.0,
       "d4": 3.0,
       "d5": 2.0,
       "d6": 5.0,
@@ -2203,7 +2203,7 @@
     "risk_indicators": {
       "d1": 5.0,
       "d2": 4.0,
-      "d3": 2.0,
+      "d3": 4.0,
       "d4": 3.5,
       "d5": 3.5,
       "d6": 5.0,
@@ -2308,7 +2308,7 @@
     "risk_indicators": {
       "d1": 4.5,
       "d2": 5.0,
-      "d3": 1.0,
+      "d3": 5.0,
       "d4": 3.5,
       "d5": 1.5,
       "d6": 4.5,
@@ -2414,7 +2414,7 @@
     "risk_indicators": {
       "d1": 4.5,
       "d2": 5.0,
-      "d3": 1.0,
+      "d3": 5.0,
       "d4": 3.5,
       "d5": 1.5,
       "d6": 4.5,
@@ -2524,7 +2524,7 @@
     "risk_indicators": {
       "d1": 5.0,
       "d2": 5.0,
-      "d3": 1.0,
+      "d3": 5.0,
       "d4": 3.0,
       "d5": 3.5,
       "d6": 5.0,
@@ -2631,7 +2631,7 @@
     "risk_indicators": {
       "d1": 4.0,
       "d2": 4.0,
-      "d3": 2.0,
+      "d3": 4.0,
       "d4": 3.5,
       "d5": 2.5,
       "d6": 4.0,
@@ -2740,7 +2740,7 @@
     "risk_indicators": {
       "d1": 3.5,
       "d2": 3.0,
-      "d3": 2.0,
+      "d3": 4.0,
       "d4": 3.0,
       "d5": 3.0,
       "d6": 4.0,
@@ -2846,7 +2846,7 @@
     "risk_indicators": {
       "d1": 5.0,
       "d2": 5.0,
-      "d3": 1.0,
+      "d3": 5.0,
       "d4": 4.0,
       "d5": 2.0,
       "d6": 5.0,
@@ -2958,7 +2958,7 @@
     "risk_indicators": {
       "d1": 5.0,
       "d2": 5.0,
-      "d3": 1.0,
+      "d3": 5.0,
       "d4": 5.0,
       "d5": 2.0,
       "d6": 5.0,
@@ -3067,7 +3067,7 @@
     "risk_indicators": {
       "d1": 4.5,
       "d2": 4.5,
-      "d3": 2.0,
+      "d3": 4.0,
       "d4": 3.5,
       "d5": 2.5,
       "d6": 4.0,
@@ -3175,7 +3175,7 @@
     "risk_indicators": {
       "d1": 4.5,
       "d2": 4.5,
-      "d3": 2.0,
+      "d3": 4.0,
       "d4": 3.5,
       "d5": 3.0,
       "d6": 4.5,
@@ -3284,7 +3284,7 @@
     "risk_indicators": {
       "d1": 5.0,
       "d2": 5.0,
-      "d3": 1.0,
+      "d3": 5.0,
       "d4": 4.0,
       "d5": 2.0,
       "d6": 5.0,
@@ -3394,7 +3394,7 @@
     "risk_indicators": {
       "d1": 5.0,
       "d2": 4.5,
-      "d3": 1.0,
+      "d3": 5.0,
       "d4": 4.5,
       "d5": 3.0,
       "d6": 5.0,
@@ -3507,7 +3507,7 @@
     "risk_indicators": {
       "d1": 4.5,
       "d2": 3.5,
-      "d3": 1.5,
+      "d3": 4.5,
       "d4": 3.5,
       "d5": 2.5,
       "d6": 4.0,

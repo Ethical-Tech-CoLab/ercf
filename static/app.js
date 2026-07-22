@@ -501,7 +501,7 @@ function calcInjuries(pop, riskLevel, days) {
 // Mirrors calculate_staying_costs() v4 in calculators.py — must stay in sync.
 // v2: empirical base rates, D3×D4 confinement modifier, displacement protection.
 // v3: geographic exposure factor (conflict pattern × population dispersion).
-// v4: siege protection cap (D3≤2 AND D1≥4 → max 0.30); steeper log falloff (^1.4).
+// v4: siege protection cap (D3≥4 AND D1≥4 → max 0.30); steeper log falloff (^1.4).
 // ─────────────────────────────────────────────────────────────────────────────
 function calcStay(pop, riskLevel, maxDays, dims, remainingPct = 1.0, exposureFactor = 1.0, siegeCapEnabled = true) {
   const base     = [1.0, 2.0, 3.5, 6.0, 12.0][riskLevel];
@@ -520,7 +520,9 @@ function calcStay(pop, riskLevel, maxDays, dims, remainingPct = 1.0, exposureFac
     d4Val = dims.d4_logistics ?? dims.d4 ?? 3.0;
     d6Val = dims.d6_urgency   ?? dims.d6 ?? 3.0;
     const d4 = d4Val;
-    const cs = (5.0 - d3Val) * d4Val / 5.0;
+    // D3 runs 1 = full consent → 5 = active refusal (see the D3 scale criteria in
+    // index.html and calculators.py's WEIGHTS block): confinement rises with D3.
+    const cs = (d3Val - 1.0) * d4Val / 5.0;
     if      (cs <= 1) confMult = 0.5;
     else if (cs <= 2) confMult = 1.0;
     else if (cs <= 3) confMult = 2.0;
@@ -529,13 +531,13 @@ function calcStay(pop, riskLevel, maxDays, dims, remainingPct = 1.0, exposureFac
   }
 
   // v4: siege protection cap — displacement under fire is only half as safe.
-  // Requires pop ≤ 500k: large populations with D3=1 reflect regional access denial,
+  // Requires pop ≤ 500k: large populations with D3=5 reflect regional access denial,
   // not urban encirclement. exposureFactor proxy for conflict type: named regional
   // (0.12) and city_conflict (0.40) thresholds disable the cap via caller.
   // In auto mode, the state.conflictType guard is applied in computeExposureFactor;
   // here we use population size as the sole runtime discriminator.
   const rp             = Math.max(0, Math.min(1, remainingPct ?? 1.0));
-  const isSiege        = siegeCapEnabled && (d3Val <= 2.0 && d1Val >= 4.0 && pop <= 500000);
+  const isSiege        = siegeCapEnabled && (d3Val >= 4.0 && d1Val >= 4.0 && pop <= 500000);
   const maxProtection  = isSiege ? 0.30 : 0.60;
   const protectionFactor = (1 - rp) * maxProtection;
   // Geographic exposure factor (v3/v4)
@@ -577,8 +579,8 @@ function calcRemaining(pop, vulPct, riskLevel, days, distKm, dims, terrain, clim
   // ── Dimension modifiers ──────────────────────────────────────────────────
   // D4 Logistics: higher D4 = harder delivery = supply cost multiplier
   const d4Penalty  = d.d4 <= 3 ? (d.d4 - 1) * 0.10 : 0.20 + (d.d4 - 3) * 0.20;
-  // D3 Authorization: lower D3 = more blockade/seizure = higher loss rate
-  const d3LossAdd  = d.d3 >= 3 ? (5 - d.d3) * 0.05 : 0.10 + (3 - d.d3) * 0.075;
+  // D3 Authorization: higher D3 = consent absent/refused = more blockade/seizure = higher loss rate
+  const d3LossAdd  = d.d3 <= 3 ? (d.d3 - 1) * 0.05 : 0.10 + (d.d3 - 3) * 0.075;
   // D7 Information: lower D7 = harder coordination = supply overhead
   const d7Overhead = d.d7 >= 3 ? (5 - d.d7) * 0.025 : 0.05 + (3 - d.d7) * 0.05;
 
@@ -629,8 +631,8 @@ function calcRemaining(pop, vulPct, riskLevel, days, distKm, dims, terrain, clim
   // Scaled ÷10 versus the pre-recalibration increments (Mariupol/Aleppo/Kosovo anchors below
   // are the original 10-95%-scale figures) to stay proportionate within the new 1-8% range —
   // the underlying D3 relationship is unchanged.
-  // Gentler slope than supply correction; anchored by Mariupol (D3=1.5→+12.5%), Kosovo (D3=2→+10%)
-  const d3ProbAdd  = d.d3 >= 3 ? (5 - d.d3) * 0.0025 : 0.005 + (3 - d.d3) * 0.005;
+  // Gentler slope than supply correction; anchored by Mariupol (D3=4.5→+12.5%), Kosovo (D3=4→+10%)
+  const d3ProbAdd  = d.d3 <= 3 ? (d.d3 - 1) * 0.0025 : 0.005 + (d.d3 - 3) * 0.005;
   // D6 Urgency floor: scaled ÷10 for the same reason as d3ProbAdd above.
   // Srebrenica (D6=5, 3 days) → 85% floor; Kherson/Mosul/CAR (D6=4) → 60%
   const d6FloorVal = d.d6 >= 5 ? 0.085 : d.d6 >= 4 ? 0.06 : 0.0;
@@ -1514,7 +1516,7 @@ function getTransportWarnings(mode, dims, population) {
       text: 'Mobility constraints (D2≥3.5) indicate significant proportion of wounded/bedridden — walking evacuation not suitable for this vulnerability profile.',
     });
   }
-  if ((mode === 'air_fixed' || mode === 'air_heli') && d3 <= 2.0) warnings.push({
+  if ((mode === 'air_fixed' || mode === 'air_heli') && d3 >= 4.0) warnings.push({
     priority: 1,
     text: 'Air evacuation requires airspace authorization — D3 indicates limited or absent party consent. Verify airspace clearance before planning air operations.',
   });
@@ -5137,7 +5139,7 @@ async function buildScenarioFromCountry(iso3) {
   let ds = {
     d1_kinetic:       lvl===4?5 : lvl===3?4 : lvl===2?3 : lvl===1?2 : 1,
     d2_vulnerability: 3,
-    d3_political:     5 - lvl,
+    d3_political:     1 + lvl,
     d4_logistics:     lvl===4?4 : lvl===3?3.5 : 2.5,
     d5_destination:   3,
     d6_urgency:       lvl===4?4.5 : lvl===3?3.5 : 2,
