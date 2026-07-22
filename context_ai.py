@@ -42,9 +42,9 @@ Return a JSON object with these exact keys:
     "d2_vulnerability": float 1.0-5.0,  (D2 = mobility constraints: 1=fully mobile population, 5=mass casualty / complete mobility collapse — drives medical vehicle allocation)
     "d3_political": float 1.0-5.0,  (D3 = authorization: 1=full consent from all armed parties, 5=active refusal / no valid authorization — same direction as the other dimensions, higher is worse)
     "d4_logistics": float 1.0-5.0,
-    "d5_destination": float 1.0-5.0,
+    "d5_destination": float 1.0-5.0,  (D5 = destination viability: 1=destination fully equipped to receive the population, 5=destination unsafe or non-existent — higher is worse)
     "d6_urgency": float 1.0-5.0,
-    "d7_information": float 1.0-5.0
+    "d7_information": float 1.0-5.0  (D7 = information environment: 1=reliable communications with all actors, 5=complete blackout — higher is worse)
   }},
   "sphere_considerations": "key SPHERE standard considerations for this context",
   "last_updated": "June 2026"

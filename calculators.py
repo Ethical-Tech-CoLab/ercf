@@ -674,10 +674,12 @@ def calculate_resources(
     d4_logistics_mult = 1.0 + max(0, (d4 - 1)) * 0.10
 
     # D5 Destination multiplier on tent/shelter requirement
-    # D5=5 (good destination, has infrastructure): ×0.5 tents needed
-    # D5=1 (no infrastructure at destination): ×2.0
+    # (D5 runs 1 = destination fully equipped → 5 = destination unsafe/non-existent,
+    #  same direction as every other dimension)
+    # D5=1 (good destination, has infrastructure): ×0.5 tents needed
+    # D5=5 (no infrastructure at destination): ×2.0
     # ESTIMATED — no primary source; based on operational logic.
-    _D5_TENT_MULT = {5: 0.5, 4: 0.75, 3: 1.0, 2: 1.5, 1: 2.0}
+    _D5_TENT_MULT = {1: 0.5, 2: 0.75, 3: 1.0, 4: 1.5, 5: 2.0}
     d5_tent_mult = _D5_TENT_MULT.get(int(round(d5)), 1.0)
     tents       = math.ceil((population / 5) * d5_tent_mult)
     med_kits    = math.ceil(population / 100)
@@ -1988,8 +1990,9 @@ def calculate_remaining_costs(
     # D3 Authorization: higher D3 = consent absent/refused = more blockade = higher loss rate
     # (D3 runs 1 = full consent → 5 = active refusal, same direction as every other dimension)
     d3_loss_add  = (d3 - 1) * 0.05 if d3 <= 3 else 0.10 + (d3 - 3) * 0.075
-    # D7 Information: lower D7 = harder coordination = supply overhead
-    d7_overhead  = (5 - d7) * 0.025 if d7 >= 3 else 0.05 + (3 - d7) * 0.05
+    # D7 Information: higher D7 = worse information environment = harder coordination
+    # (D7 runs 1 = reliable comms → 5 = complete blackout, same direction as the others)
+    d7_overhead  = (d7 - 1) * 0.025 if d7 <= 3 else 0.05 + (d7 - 3) * 0.05
 
     # D1 Kinetic: higher D1 = more dangerous extraction
     d1_ext_mult  = 1.0 + (d1 - 1) * 0.15 if d1 <= 3 else 1.3 + (d1 - 3) * 0.35
@@ -2002,8 +2005,10 @@ def calculate_remaining_costs(
     d2_inj_mult  = 1.0 + (d2 - 1) * 0.15 if d2 <= 3 else 1.3 + (d2 - 3) * 0.25
     # D1 Kinetic: higher D1 = more injuries per day (applied on top of D2)
     d1_inj_mult  = 1.5 if d1 >= 5 else (1.3 if d1 >= 4 else 1.0)
-    # D5 Destination: lower D5 = fewer medical resources = higher cost per injury
-    d5_cost_mult = 1.0 + (5 - d5) * 0.15 if d5 >= 3 else 1.3 + (3 - d5) * 0.35
+    # D5 Destination: higher D5 = destination overwhelmed / unsafe = fewer medical
+    # resources on arrival = higher cost per injury
+    # (D5 runs 1 = destination fully equipped → 5 = destination unsafe/non-existent)
+    d5_cost_mult = 1.0 + (d5 - 1) * 0.15 if d5 <= 3 else 1.3 + (d5 - 3) * 0.35
 
     # ── Component 1: in-situ supply ─────────────────────────────────────────
     eff_access_mult = access_mult * (1 + d4_penalty)

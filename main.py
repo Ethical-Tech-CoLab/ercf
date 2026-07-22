@@ -177,13 +177,17 @@ async def historical_one(cid: int):
 
 # ─── GeoNames city population lookup ─────────────────────────────────────────
 
-GEONAMES_USERNAME = os.getenv("GEONAMES_USERNAME", "demo")
+# No "demo" fallback: the shared demo account is globally rate-limited, so lookups
+# fail silently and callers cannot tell a bad city name from an exhausted quota.
+GEONAMES_USERNAME = os.getenv("GEONAMES_USERNAME", "")
 
 @app.get("/api/city-population/{city_name}")
 async def city_population(city_name: str):
     import urllib.request, urllib.parse, json as _json
+    if not GEONAMES_USERNAME:
+        raise HTTPException(503, "GeoNames lookup unavailable: GEONAMES_USERNAME is not configured")
     url = (
-        f"http://api.geonames.org/searchJSON"
+        f"https://secure.geonames.org/searchJSON"
         f"?q={urllib.parse.quote(city_name)}"
         f"&maxRows=20&featureClass=P&orderby=population"
         f"&username={GEONAMES_USERNAME}"

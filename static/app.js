@@ -407,7 +407,8 @@ function calcResources(pop, vulPct, riskLevel, distKm, d2Mobility, terrain, clim
   // WATER_L_PER_PERSON updated 15 → 20 (Tavily validation June 2026)
   // UNHCR full standard: 20 L/person/day; Sphere 2018 emergency minimum: 7.5-15 L
   const waterL  = pop * 3 * 20;
-  const D5_TENT_MULT = {5: 0.5, 4: 0.75, 3: 1.0, 2: 1.5, 1: 2.0};
+  // D5 runs 1 = destination fully equipped -> 5 = destination unsafe/non-existent
+  const D5_TENT_MULT = {1: 0.5, 2: 0.75, 3: 1.0, 4: 1.5, 5: 2.0};
   const d5TentMult = D5_TENT_MULT[Math.round(d5)] ?? 1.0;
   const tents   = Math.ceil((pop / 5) * d5TentMult);
   const radios  = Math.ceil(totVeh / 5) + 5;
@@ -448,7 +449,7 @@ function calcResources(pop, vulPct, riskLevel, distKm, d2Mobility, terrain, clim
     supplies:  { fuelL: Math.round(fuelL), foodKg: Math.round(foodKg), waterL: Math.round(waterL), tents, radios },
     costs: c,
     totalCost: total,
-    cpp: Math.round(total / pop),
+    cpp: pop > 0 ? Math.round(total / pop) : 0,
   };
 }
 
@@ -581,15 +582,17 @@ function calcRemaining(pop, vulPct, riskLevel, days, distKm, dims, terrain, clim
   const d4Penalty  = d.d4 <= 3 ? (d.d4 - 1) * 0.10 : 0.20 + (d.d4 - 3) * 0.20;
   // D3 Authorization: higher D3 = consent absent/refused = more blockade/seizure = higher loss rate
   const d3LossAdd  = d.d3 <= 3 ? (d.d3 - 1) * 0.05 : 0.10 + (d.d3 - 3) * 0.075;
-  // D7 Information: lower D7 = harder coordination = supply overhead
-  const d7Overhead = d.d7 >= 3 ? (5 - d.d7) * 0.025 : 0.05 + (3 - d.d7) * 0.05;
+  // D7 Information: higher D7 = worse information environment = harder coordination
+  // (D7 runs 1 = reliable comms -> 5 = complete blackout, same direction as the others)
+  const d7Overhead = d.d7 <= 3 ? (d.d7 - 1) * 0.025 : 0.05 + (d.d7 - 3) * 0.05;
 
   // D1 Kinetic: higher D1 = more dangerous = extraction difficulty multiplier
   const d1ExtMult  = d.d1 <= 3 ? 1.0 + (d.d1 - 1) * 0.15 : 1.3 + (d.d1 - 3) * 0.35;
 
-  // D5 Destination: lower D5 = fewer medical resources = higher cost per injury
+  // D5 Destination: higher D5 = destination overwhelmed/unsafe = fewer medical resources
+  // on arrival = higher cost per injury (1 = fully equipped -> 5 = unsafe/non-existent)
   // (D2/D1 injury-count multipliers removed — WHO rates already represent typical populations)
-  const d5CostMult = d.d5 >= 3 ? 1.0 + (5 - d.d5) * 0.15 : 1.3 + (3 - d.d5) * 0.35;
+  const d5CostMult = d.d5 <= 3 ? 1.0 + (d.d5 - 1) * 0.15 : 1.3 + (d.d5 - 3) * 0.35;
 
   // ── Component 1: in-situ supply ─────────────────────────────────────────
   const effectiveAccessMult = accessMult * (1 + d4Penalty);
@@ -2296,7 +2299,7 @@ function updateRemainingCostCard(rc, fullEvacCost) {
       icon: 'fa-kit-medical',
       label: `Field medical treatment <span style="font-weight:400;color:#64748b">(${fmtFull(Math.round(rc.cumInjuries))} injuries × $${Math.round(rc.treatCostPer).toLocaleString()}${dimTag(medDimParts)})</span>`,
       value: '$' + fmt(rc.medCost),
-      tip:   `Base $800/injury. Peer-reviewed range: $211–$1,013 (MSF Nigeria 2009, inflation-adjusted to 2024 USD). $800 adopted as conservative upper-mid estimate. ICRC per-patient surgical cost data not publicly available. (ref: Chu et al. 2010, Conflict & Health; MSF Nigeria field reports). D5 destination multiplies cost/injury ×1.0–2.0 (no medical infrastructure at D5=1).`,
+      tip:   `Base $800/injury. Peer-reviewed range: $211–$1,013 (MSF Nigeria 2009, inflation-adjusted to 2024 USD). $800 adopted as conservative upper-mid estimate. ICRC per-patient surgical cost data not publicly available. (ref: Chu et al. 2010, Conflict & Health; MSF Nigeria field reports). D5 destination multiplies cost/injury ×1.0–2.0 (no medical infrastructure at D5=5).`,
     },
     {
       cls:  'rc-vulnerable',
