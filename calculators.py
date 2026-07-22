@@ -767,13 +767,17 @@ def calculate_resources(
       comms      = (ceil(vehicles/5)+5) × $500/radio
       contingency = subtotal × 15%
 
-    VERIFIED TRACE — 10 000 people, 20% vulnerable, Level 2, 50 km:
-      std_buses=160, med_buses=100, ambulances=50, total_veh=310
-      security=50, med_staff=20, paramedics=100, drivers=310
-      fuel_l=10 850  food_kg=15 000  water_l=450 000  tents=2 000  radios=67
-      transport=$92 500  fuel=$16 275  personnel=$34 000  food=$45 000
-      water=$22 500  shelter=$300 000  medical=$15 000  comms=$33 500
-      subtotal=$558 775  contingency=$83 816  TOTAL=$642 591 ≈ $643K
+    VERIFIED TRACE — 10 000 people, 20% vulnerable, Level 2, 50 km, D2=3 (baseline mobility),
+    baseline terrain (no multiplier):
+      std_buses=160, med_buses=130, ambulances=18, total_veh=308
+      security=50, med_staff=40, paramedics=100, drivers=308
+      fuel_l=10 780  food_kg=13 500  water_l=600 000  tents=2 000  radios=67
+      transport=$134 400  fuel=$15 523  personnel=$38 000  food=$40 500
+      water=$30 000  shelter=$760 000  medical=$12 100  comms=$33 500
+      subtotal=$1 064 023  contingency=$159 603  TOTAL=$1 223 626 ≈ $1.22M
+      (recomputed and cross-checked against a live calculate_resources() call, June 2026 —
+      reflects the current 1:150 ambulance ratio, 1:250 med_staff ratio, 0.45kg food,
+      20L water, $400/$700 vehicle costs, $1.20/L fuel, $380/tent, $21/med-kit.)
 
     KNOWN LIMITATIONS
       • No unit cost is validated against WFP/ICRC/UNHCR field data by country/year.
@@ -1023,9 +1027,10 @@ RC_ACCESS_MULT  = [1.0,  1.5,  2.0,  3.6,  4.0]
 # Source: OCHA access monitoring reports
 RC_LOSS_RATE    = [0.05, 0.05, 0.15, 0.30, 0.50]
 
-# In-field injury rate per 1 000 persons per day (distinct from evacuating-population rates)
-# Source: WHO/ICRC conflict epidemiology literature
-RC_INFIELD_INJ  = [0.0,  0.1,  0.5,  2.0,  8.0]
+# NOTE: RC_INFIELD_INJ (in-field injury rate per 1,000/day) was removed — dead constant,
+# never wired into executable code. calculate_remaining_costs() uses the shared
+# calculate_injuries() helper (INJURY_RATE_10K) instead. See "infield_injury_rates_per_1k_per_day"
+# in REMAINING_COST_SOURCE_NOTES below for the historical reference values.
 
 REMAINING_COST_SOURCE_NOTES = {
     "base_supply_usd_per_person_day": {
@@ -1225,14 +1230,21 @@ REMAINING_COST_SOURCE_NOTES = {
     },
     "extraction_ground_usd_per_person": {
         "value": 800,
-        "source": "Internal heuristic — no published source. Reflects reduced fuel, logistics, and "
-                  "personnel costs vs air extraction (computed as 30% of UNHAS air rate × distance). "
-                  "Requires validation against UNHCR/IOM field data.",
+        "superseded": True,
+        "source": "SUPERSEDED — not consumed by the current calculation. calculate_remaining_costs() "
+                  "computes per_person_ground = UNHAS_RATE_USD_PER_KM × 0.30 × distance_km (a "
+                  "distance-scaled figure), not this flat $800 value. Kept for reference only: "
+                  "internal heuristic, no published source, reflects reduced fuel/logistics/personnel "
+                  "costs vs air extraction. Requires validation against UNHCR/IOM field data.",
         "confidence": "estimated",
     },
     "extraction_medical_evac_usd_per_person": {
         "value": 2500,
-        "source": "ICRC field operation cost estimates, scaled from published per-capita figures",
+        "superseded": True,
+        "source": "SUPERSEDED — not consumed by the current calculation. calculate_remaining_costs() "
+                  "computes per_person_air = UNHAS_RATE_USD_PER_KM × 3.00 × distance_km (a "
+                  "distance-scaled figure), not this flat $2,500 value. Kept for reference only: "
+                  "ICRC field operation cost estimates, scaled from published per-capita figures.",
         "confidence": "estimated",
     },
     "extraction_helicopter_premium_multiplier": {
@@ -1242,7 +1254,12 @@ REMAINING_COST_SOURCE_NOTES = {
     },
     "infield_injury_rates_per_1k_per_day": {
         "value": {"L0": 0.0, "L1": 0.1, "L2": 0.5, "L3": 2.0, "L4": 8.0},
-        "source": "WHO/ICRC conflict epidemiology literature",
+        "superseded": True,
+        "source": "SUPERSEDED — not consumed by the current calculation. The RC_INFIELD_INJ constant "
+                  "these figures came from was removed from executable code; calculate_remaining_costs() "
+                  "now calls the shared calculate_injuries() helper, which uses INJURY_RATE_10K "
+                  "[1.2, 2.0, 6.0, 16.0, 40.0 per 10K/day] instead. Kept for reference only. "
+                  "Original source: WHO/ICRC conflict epidemiology literature.",
         "confidence": "estimated",
     },
     "field_treatment_cost_usd_per_injury": {
@@ -1679,12 +1696,15 @@ def calculate_remaining_costs(
     # separate logistical stream, not subtracted from convoy supplies.
     COMPONENT 1 — In-situ supply delivery
       base              = $3.50/person/day  (UNHCR baseline)
-      access_multiplier = RC_ACCESS_MULT[risk_level]   [1.0, 1.5, 3.0, 5.0, 8.0]
+      access_multiplier = RC_ACCESS_MULT[risk_level]   [1.0, 1.5, 2.0, 3.6, 4.0]
+        (revised June 2026 — reduced to upper bound of documented sources; see
+        RC_ACCESS_MULT definition above for the five-source validation trail.)
       loss_rate         = RC_LOSS_RATE[risk_level]      [5%, 5%, 15%, 30%, 50%]
-      raw_supply        = population × 3.50 × access_multiplier × days
+      raw_supply        = population × 3.50 × access_multiplier × terrain_mult
+                          × climate_fuel_mult × days
       supply_cost       = raw_supply × (1 + loss_rate)
 
-    COMPONENT 2 — Emergency extraction (probability-weighted, one-time)
+    COMPONENT 2 — Emergency extraction (probability-weighted, critical-medevac need)
       Anchored to UNHAS_RATE_USD_PER_KM = $2.08/passenger-km (2023)
       Source: WFP EB "Update on UNHAS", January 2025
 
@@ -1698,11 +1718,24 @@ def calculate_remaining_costs(
         per_person_ground = 2.08 × 0.30 × 50 = $31.20/person
         per_person_air    = 2.08 × 3.00 × 50 = $312.00/person
 
-      probability       = min(days / 30 × risk_level × 0.1, 0.95)
-        (saturates at 95%; ~143d for L2, ~95d for L3, ~71d for L4)
+      base_prob         = min(1 - exp(-RC_EXTR_BASE_RATE[risk_level] × days),
+                               RC_EXTR_MAX_PROB[risk_level])
+        RC_EXTR_BASE_RATE = [0.0, 0.002, 0.005, 0.010, 0.021]  (per-day exponential rate)
+        RC_EXTR_MAX_PROB  = [0.0, 0.01,  0.02,  0.04,  0.08 ]  (L1=1%, L2=2%, L3=4%, L4=8%)
+      probability       = min(max(base_prob + d3_prob_add, d6_floor_val), 0.95)
       extraction_base   = probability × (non_vuln × per_person_ground + vuln × per_person_air)
+                          × d1_ext_mult
       extraction_cost   = extraction_base × 2.5  if risk_level == 4 (helicopter premium)
                         = extraction_base          otherwise
+
+      Recalibrated (this session) from a prior 10-95% probability range (linear ramp,
+      `min(days/30 × risk_level × 0.1, 0.95)`) down to 1-8%. The prior range conflated
+      "probability of a mass extraction operation covering the whole remaining population"
+      with "fraction of the population needing individual critical medevac" — UNHAS 2022
+      data shows only ~0.25% of all passengers transported required medical/security
+      evacuation, roughly two orders of magnitude below the prior calibration even
+      accounting for a higher-need trapped-population context. See RC_EXTR_BASE_RATE /
+      RC_EXTR_MAX_PROB definitions above for the full rationale.
 
       FLAG: actual distance should use the distance_km input parameter, not a
       fixed value. Call sites must pass the scenario's distance_km to get
@@ -1711,19 +1744,40 @@ def calculate_remaining_costs(
       (urban corridor) to 300km+ (regional hub transfer).
 
     COMPONENT 3 — Field medical treatment
-      inj_rate_daily    = RC_INFIELD_INJ[risk_level] / 1000  [0, 0.1, 0.5, 2.0, 8.0 per 1K]
-      cum_injuries      = inj_rate_daily × population × days
-      field_med_cost    = cum_injuries × $1 200/injury  (WHO Emergency Health cluster)
+      cum_injuries      = calculate_injuries(population, risk_level, days, dims)
+                          — INJURY_RATE_10K[risk_level] / 10 000 × population × days
+                          [1.2, 2.0, 6.0, 16.0, 40.0 per 10K/day]
+        (NOTE: superseded RC_INFIELD_INJ [0, 0.1, 0.5, 2.0, 8.0 per 1K] constant removed —
+        it was never wired into the executable code; calculate_injuries()/INJURY_RATE_10K
+        is the only rate actually used here, shared with calculate_staying_costs().)
+      treat_cost_per    = $800 × d5_cost_mult  (Peer-reviewed range $211–$1,013,
+                          MSF Nigeria 2009 inflation-adjusted; $800 = conservative
+                          upper-mid estimate. Do not use $1,200 — see PARAMETERS
+                          THAT REMAIN UNVALIDATED below for why that figure was rejected.)
+      field_med_cost    = cum_injuries × treat_cost_per
 
-    TOTAL = supply_cost + extraction_cost + field_med_cost
+    COMPONENT 4 — Vulnerable population support (added this session)
+      No published per-capita figure exists (Sphere 2018 does not price this) — ESTIMATED.
+      vulnerable_premium = vuln × days × VULNERABLE_DAILY_PREMIUM_USD ($2.50/person/day)
+      Reflects mobility assistance, extra medical supplies, and mental health support for
+      vulnerable individuals, on top of (not instead of) the $3.50/day baseline already
+      counted for every remaining person inside COMPONENT 1. `vuln` here already reflects
+      differential retention — vulnerable individuals are estimated ~2× less likely to
+      evacuate than the general population (ref: AARP/FEMA Post-Katrina Look Back 2006;
+      WHO Disability, Disaster Risk Reduction and Emergency Preparedness 2005).
 
-    VERIFIED TRACE — 10 000 people, 20% vulnerable, Level 2, 180 days, 50 km:
-      per_person_ground = 2.08 × 0.30 × 50            =     $31.20
-      per_person_air    = 2.08 × 3.00 × 50            =    $312.00
-      supply:  10 000 × 3.50 × 3.0 × 180 × 1.15      = $21 735 000
-      extract: 0.95 × (8 000×31.20 + 2 000×312.00)   =    $829 920
-      medical: 0.0005 × 10 000 × 180 × 1 200          =  $1 080 000
-      TOTAL                                            = $23 644 920  (~$23.6M)
+    TOTAL = supply_cost + extraction_cost + field_med_cost + vulnerable_premium
+
+    VERIFIED TRACE — 10 000 people, 20% vulnerable, Level 2, 180 days, 50 km, baseline terrain:
+      per_person_ground = 2.08 × 0.30 × 50                      =      $31.20
+      per_person_air    = 2.08 × 3.00 × 50                      =     $312.00
+      supply:   10 000 × 3.50 × 2.4 × 1.0 × 180 × 1.30         = $19 656 000
+      extract:  0.025 × (8 000×31.20 + 2 000×312.00) × 1.3     =     $28 392
+      medical:  1 080 injuries × $1 040/injury                  =  $1 123 200
+      vulnerable: 2 000 × 180 × $2.50                            =    $900 000
+      TOTAL                                                       = $21 707 592  (~$21.7M)
+      (recomputed and cross-checked against a live calculate_remaining_costs() call,
+      June 2026 — see also the identical static/app.js calcRemaining() output.)
 
     KNOWN LIMITATIONS
       • Access multipliers and loss rates are regional averages, not country-specific.
@@ -1741,16 +1795,21 @@ def calculate_remaining_costs(
     PARAMETERS WITH QUALITATIVE SUPPORT FROM HISTORICAL CASES
     (not derived numerically — historical data contains no dollar cost figures)
 
-      extraction_probability formula  [min(days/30 × risk_level × 0.1, 0.95)]
-        Qualitative support: All 5 Level-4 cases show structural access denial by
-        ~86–100 days (Mariupol siege, Aleppo corridor failure), consistent with
-        probability saturating at 0.95. The formula gives 95% at day 71 for L4,
-        which aligns with the historical pattern where extraction became
-        near-impossible within 2–3 months in every L4 case except Sudan (where
-        displacement was spontaneous, not organized).
-        Kherson (L3/45d) gives 45% — consistent with an observed outcome where
-        75% was eventually displaced, with the 45% representing unplanned
-        emergency extraction risk. Treated as: CALIBRATED (qualitative only).
+      extraction_probability formula — SUPERSEDED NOTE (this session's recalibration):
+        The qualitative support below (Mariupol/Aleppo/Kherson corridor-failure timelines)
+        was derived for the PRIOR linear formula, which modeled "probability that a mass
+        extraction operation covering the whole remaining population occurs" and saturated
+        near-certainty (95%) over weeks-to-months. The current exponential formula
+        (RC_EXTR_BASE_RATE / RC_EXTR_MAX_PROB, 1-8% ceiling) models a different quantity —
+        the fraction of the population needing individual critical medevac — and reaches
+        its (much lower) ceiling within the first few days regardless of case duration, so
+        the case-specific day-threshold reasoning below no longer applies to this parameter.
+        The historical case anchors themselves remain valid evidence for corridor-failure
+        *timing* in general; they have not yet been re-validated against the recalibrated
+        1-8% critical-medevac-rate parameter specifically. Flagged for future work.
+        Original (pre-recalibration) qualitative narrative, kept for reference:
+        All 5 Level-4 cases show structural access denial by ~86–100 days (Mariupol siege,
+        Aleppo corridor failure). Kherson (L3/45d): 75% was eventually displaced.
 
       Difficulty is dominated by CONSENT, not DURATION:
         Historical cases show Mosul (L3/270 days, pre-staged IDP camps) had lower

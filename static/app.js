@@ -976,8 +976,9 @@ function initCharts() {
 // ═══════════════════════════════════════════════════════════
 
 function updateStayContext() {
-  const el = document.getElementById('stayPopContext');
-  if (!el) return;
+  const el       = document.getElementById('stayPopContext');
+  const elAssist = document.getElementById('stayPopContextAssist');
+  if (!el && !elAssist) return;
   const total     = state.population || 1;
   const remain    = state.remainingPop;
   const pct       = Math.round(remain / total * 100);
@@ -986,7 +987,8 @@ function updateStayContext() {
   if (remain < total) {
     html += `<br><span style="color:#b45309">Evacuated: ${fmtFull(evacuated)} people · Evacuation cost applied to this group</span>`;
   }
-  el.innerHTML = html;
+  if (el)       el.innerHTML       = html;
+  if (elAssist) elAssist.innerHTML = html;
 }
 
 function updateAll() {
@@ -1062,6 +1064,8 @@ function updateAll() {
   updateVulnDisplay();
 
   document.getElementById('globalRiskBadge').textContent = `LEVEL ${risk.level} · SCORE ${risk.score}`;
+  const globalRiskBadgeMapEl = document.getElementById('globalRiskBadgeMap');
+  if (globalRiskBadgeMapEl) globalRiskBadgeMapEl.textContent = `LEVEL ${risk.level} · SCORE ${risk.score}`;
 
   // Refresh choropleth colours when risk level changes
   if (worldMapState.initialized && worldMapState.geojsonLayer) {
@@ -4344,18 +4348,25 @@ function applyRoadFactor(checked) {
 }
 
 function updateDistanceLabel() {
-  const lbl   = document.getElementById('distMapLabel');
-  const rfRow = document.getElementById('roadFactorRow');
+  const lbl      = document.getElementById('distMapLabel');
+  const lblWorld = document.getElementById('distMapLabelWorld');
+  const rfRow    = document.getElementById('roadFactorRow');
   if (state.distanceSource !== 'map_pin' || state._haversineKm == null) {
-    if (lbl)   lbl.style.display   = 'none';
-    if (rfRow) rfRow.style.display = 'none';
+    if (lbl)      lbl.style.display      = 'none';
+    if (lblWorld) lblWorld.style.display = 'none';
+    if (rfRow)    rfRow.style.display    = 'none';
     return;
   }
   const rdKm = Math.round(state._haversineKm * 1.3);
+  const html = `<i class="fas fa-map-pin me-1"></i>Set from map — straight-line `
+    + `<strong>${fmtDist(state._haversineKm)}</strong>. Road estimate (×1.3): ~${fmtDist(rdKm)}.`;
   if (lbl) {
     lbl.style.display = '';
-    lbl.innerHTML = `<i class="fas fa-map-pin me-1"></i>Set from map — straight-line `
-      + `<strong>${fmtDist(state._haversineKm)}</strong>. Road estimate (×1.3): ~${fmtDist(rdKm)}.`;
+    lbl.innerHTML = html;
+  }
+  if (lblWorld) {
+    lblWorld.style.display = '';
+    lblWorld.innerHTML = html;
   }
   if (rfRow) rfRow.style.display = '';
   updateDistanceDisplay();

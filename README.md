@@ -19,6 +19,9 @@ A decision-support tool for estimating the human and financial cost of civilian 
 
 - **Scenario Builder** — 7-dimension risk scoring (D1 Kinetic Threat, D2 Mobility, D3 Authorization, D4 Logistics, D5 Destination, D6 Urgency, D7 Information)
 - **Cost Estimation** — evacuation resources (vehicles, personnel, fuel, supplies) + in-situ assistance for population remaining in zone
+- **Transport Mode Selection** — Ground / Air (fixed-wing) / Air (helicopter) / Walking, each with a dedicated cost model (`air_evac.py`, `walking_evac.py`); air and walking cost feed directly into the headline cost and the Decision Analysis break-even
+- **Market Price Adjustment** — live EIA (Brent crude) and FRED (wheat/corn/rice/soybean oil food basket) commodity prices applied as a fuel/food cost-adjustment factor on top of the ERCF baseline
+- **Vulnerable Population Retention Model** — vulnerable individuals (elderly/disabled) are modeled as ~2× less likely to evacuate than the general population (ref: AARP/FEMA Post-Katrina 2006; WHO Disability & Disasters 2005), adding a differential "vulnerable population support" cost line to the Assistance Cost breakdown
 - **Evacuation Decision Analysis** — break-even chart: compares one-time evacuation cost vs cumulative daily in-zone assistance cost; identifies the day after which evacuation becomes the lower-cost option
 - **Transport Consistency Warnings** — alerts when selected transport mode is inconsistent with D-scores (e.g. ground transport + D4≥4.0, walking + large population, air + D3≤2.0)
 - **Demographic Suggestions** — suggests vulnerable population % based on UNICEF/UN DESA 2023 data for 18 conflict-affected countries
@@ -76,6 +79,8 @@ Calibration is fully reproducible: `python3 calibration/calibrate.py`
 | Ambulance ratio | 1:150 vulnerable | Field practice (PMC10068156) | Estimated |
 | Medical kit | $21/kit (100 persons) | WHO IEHK (PMC5321368, 2017) | Estimated |
 | Access multiplier L4 | ×4.0 | No published source >4× | Unvalidated |
+| Emergency extraction rate | 1–8% of remaining population (L1–L4) | UNHAS 2022 medevac/security-evac share (~0.25% of all passengers); recalibrated from a prior 10–95% range | Estimated |
+| Vulnerable population support | +$2.50/person/day (on top of the $3.50/day baseline) | No published per-capita figure (Sphere 2018 does not price this) | Estimated |
 
 ## Cost Validation — Real Operations
 
@@ -120,11 +125,22 @@ git clone https://github.com/yagorocha-web/ercf
 cd ercf
 pip install -r requirements.txt
 pip install numpy scipy statsmodels  # required for calibration scripts
-cp .env.example .env  # add UCDP_API_TOKEN
+cp .env.example .env  # see below for which keys are required vs optional
 uvicorn main:app --reload
 ```
 
 Access at `http://localhost:8000`
+
+### Environment variables
+
+| Variable | Required for | Notes |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | AI-assisted country context suggestions | — |
+| `ACAPS_API_KEY` | ACAPS INFORM Severity Index (Map View) | Register at api.acaps.org |
+| `UCDP_API_TOKEN` | Live UCDP GED API queries | Optional — local CSV cache works without it |
+| `GEONAMES_USERNAME` | City population lookup | Free account at geonames.org |
+| `EIA_API_KEY` | Market Price Adjustment (fuel/Brent crude) | Register at eia.gov/opendata |
+| `FRED_API_KEY` | Market Price Adjustment (food basket) | Register at fred.stlouisfed.org |
 
 ## Calibration Scripts
 

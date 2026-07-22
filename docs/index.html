@@ -222,6 +222,7 @@ input[type=range] { cursor:pointer; accent-color:var(--navy); }
 .ref-tag-hist   { background:#f1f5f9; color:#334155; }
 .ref-tag-ihl    { background:#ede9fe; color:#5b21b6; }
 .ref-tag-unval  { background:#fef2f2; color:#991b1b; }
+.ref-tag-est    { background:#fffbeb; color:#b45309; }
 .ref-link { font-size:.68rem; color:var(--navy); margin-left:.3rem; opacity:.55; vertical-align:middle; }
 .ref-link:hover { opacity:1; }
 .ref-note-box {
@@ -1353,7 +1354,7 @@ function dismissDisclaimer() {
           </div>
 
           <!-- Stay context note -->
-          <div id="stayPopContext" style="margin-top:.5rem;font-size:.71rem;color:#64748b;border-top:1px solid #f1f5f9;padding-top:.4rem"></div>
+          <div id="stayPopContextAssist" style="margin-top:.5rem;font-size:.71rem;color:#64748b;border-top:1px solid #f1f5f9;padding-top:.4rem"></div>
 
         </div><!-- /card-body: Cost of Civilians Remaining -->
       </div><!-- /card: Cost of Civilians Remaining -->
@@ -1369,7 +1370,7 @@ function dismissDisclaimer() {
         <div class="card-body">
 
           <!-- Deploy notice (hidden — no country context in Scenario Builder) -->
-          <div id="deployNotice" class="deploy-notice" style="display:none;margin-bottom:.6rem;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden">
+          <div id="assistDeployNotice" class="deploy-notice" style="display:none;margin-bottom:.6rem;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden">
             <button onclick="const w=this.closest('.deploy-notice'); w.classList.toggle('collapsed');" type="button"
                     style="width:100%;text-align:left;padding:.3rem .5rem;background:#fafafa;border:none;
                            font-size:.72rem;font-weight:600;color:#475569;cursor:pointer;
@@ -1382,15 +1383,15 @@ function dismissDisclaimer() {
           </div>
 
           <!-- Cost breakdown (collapsible) -->
-          <div id="costWarning" class="cost-warning" style="margin-bottom:.6rem;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;background:none">
+          <div id="assistCostWarning" class="cost-warning" style="margin-bottom:.6rem;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;background:none">
             <div style="width:100%;text-align:left;padding:.3rem .5rem;background:#fafafa;
                         font-size:.72rem;font-weight:600;color:#475569;
                         display:flex;align-items:center;gap:.4rem">
               <i class="fas fa-receipt" style="color:#64748b;font-size:.7rem"></i>
               <span>Cost configuration</span>
             </div>
-            <div id="costWarnBody" class="cost-warning-body" style="background:none;border:none;padding:0">
-              <table class="table table-sm table-borderless mb-0" style="font-size:.72rem" id="costConfBody"></table>
+            <div id="assistCostWarnBody" class="cost-warning-body" style="background:none;border:none;padding:0">
+              <table class="table table-sm table-borderless mb-0" style="font-size:.72rem" id="assistCostConfBody"></table>
             </div>
           </div>
 
@@ -1639,11 +1640,11 @@ function dismissDisclaimer() {
         <input type="text" id="worldSearch" class="form-control form-control-sm"
                style="max-width:180px;font-size:.78rem" placeholder="Search country…"/>
         <div class="btn-group btn-group-sm ms-2" role="group" style="font-size:.72rem">
-          <button id="wfAll" class="btn btn-outline-secondary active" onclick="filterWorldMap(-1)" style="font-size:.7rem">All</button>
-          <button id="wf4"   class="btn btn-outline-danger"           onclick="filterWorldMap(4)"  style="font-size:.7rem">L4</button>
-          <button id="wf3"   class="btn btn-outline-warning"          onclick="filterWorldMap(3)"  style="font-size:.7rem">L3</button>
-          <button id="wf2"   class="btn btn-outline-info"             onclick="filterWorldMap(2)"  style="font-size:.7rem">L2</button>
-          <button id="wf1"   class="btn btn-outline-primary"          onclick="filterWorldMap(1)"  style="font-size:.7rem">L1</button>
+          <button id="wfAll" class="btn btn-outline-secondary active" onclick="setWorldFilter(-1)" style="font-size:.7rem">All</button>
+          <button id="wf4"   class="btn btn-outline-danger"           onclick="setWorldFilter(4)"  style="font-size:.7rem">L4</button>
+          <button id="wf3"   class="btn btn-outline-warning"          onclick="setWorldFilter(3)"  style="font-size:.7rem">L3</button>
+          <button id="wf2"   class="btn btn-outline-info"             onclick="setWorldFilter(2)"  style="font-size:.7rem">L2</button>
+          <button id="wf1"   class="btn btn-outline-primary"          onclick="setWorldFilter(1)"  style="font-size:.7rem">L1</button>
         </div>
         <div class="ms-2 d-flex align-items-center gap-1" style="font-size:.72rem;color:#475569">
           <i class="fas fa-exclamation-circle" style="color:#ef4444"></i>
@@ -1656,7 +1657,7 @@ function dismissDisclaimer() {
           <span id="countL1" class="fw-bold" style="color:#0ea5e9">—</span>
         </div>
         <div class="ms-auto">
-          <span id="globalRiskBadge" class="badge" style="background:#ef4444;font-size:.7rem">LEVEL — · SCORE —</span>
+          <span id="globalRiskBadgeMap" class="badge" style="background:#ef4444;font-size:.7rem">LEVEL — · SCORE —</span>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:.5rem;margin-top:.3rem;font-size:.72rem;min-height:2.4em">
@@ -1680,13 +1681,7 @@ function dismissDisclaimer() {
           <i class="fas fa-crosshairs me-1"></i>Set pins on map
         </button>
       </div>
-      <div id="distMapLabel" style="font-size:.72rem;color:#64748b;margin-top:.25rem"></div>
-      <div style="display:flex;align-items:center;gap:.5rem;margin-top:.3rem" id="roadFactorRow">
-        <input type="checkbox" id="roadFactorToggle"/>
-        <label for="roadFactorToggle" style="font-size:.72rem;color:#475569;cursor:pointer">
-          Apply road factor (+30% for terrain/checkpoints)
-        </label>
-      </div>
+      <div id="distMapLabelWorld" style="font-size:.72rem;color:#64748b;margin-top:.25rem"></div>
     </div>
 
     <!-- Country context panel -->
@@ -1899,10 +1894,10 @@ function dismissDisclaimer() {
           </div>
         </div>
         <div class="ref-source">
-          <span class="ref-tag ref-tag-unval">Unval.</span>
+          <span class="ref-tag ref-tag-est">Est.</span>
           <div>
-            <strong>Paramedic daily rate ($150/day) — unvalidated after six-search validation (June 2026).</strong>
-            No peer-reviewed or operational source found for humanitarian paramedic daily deployment rate in ICRC, MSF, WHO, or UN documents.
+            <strong>Paramedic daily rate ($150/day) — estimated after five-search validation (June 2026).</strong>
+            No paramedic-specific rate is published separately from general medical staff rates in any public ICRC, MSF, WHO, or UN document. MSF's uniform international field rate ($87–97/day take-home, +2–3× operational overhead) implies $174–291/day; $150/day is consistent with an experienced national paramedic at total operational cost. Validation gap remains: no operational per-person-per-day figure for humanitarian paramedic in conflict zone found in peer-reviewed literature.
           </div>
         </div>
 
@@ -2079,15 +2074,6 @@ function dismissDisclaimer() {
   </div>
 </div><!-- /caseModal -->
 
-<!-- ══════════════════ VULN HELP PANEL ══════════════════ -->
-<div id="vulnHelpPanel" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
-     z-index:9999;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:1rem 1.2rem;
-     max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,.15);font-size:.8rem">
-  <div style="font-weight:700;margin-bottom:.4rem;color:#1a237e">Vulnerability Breakdown</div>
-  <div id="vulnU5Display"></div>
-  <button onclick="document.getElementById('vulnHelpPanel').style.display='none'"
-          class="btn btn-sm btn-outline-secondary mt-2" style="font-size:.72rem">Close</button>
-</div>
 
 <!-- ══════════════════ SCRIPTS ══════════════════ -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
@@ -2224,7 +2210,7 @@ function dismissDisclaimer() {
             <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">Food</td><td>0.45 kg/person/day (~2,100 kcal, Sphere 2018)</td><td>Sphere Handbook 2018 (dry-weight conversion estimated)</td><td><span style="color:#d97706">Estimated</span></td></tr>
             <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">Tent ratio</td><td>1 tent per 5 people × D5 multiplier (0.5–2.0)</td><td>Sphere 2018 (ratio); D5 multiplier estimated</td><td><span style="color:#d97706">Estimated</span></td></tr>
             <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">Fuel cost</td><td>$1.20/L base</td><td>ACAPS Yemen Analysis Hub, Sep 2022</td><td><span style="color:#d97706">Estimated</span></td></tr>
-            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">Security personnel</td><td>$300/day</td><td>Humanitarian PSC mid-market range $200–$1,100+/day; no published UNDSS figure (ref: ODI HPG Policy Brief 33)</td><td><span style="color:#c0392b">Unvalidated</span></td></tr>
+            <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">Security personnel</td><td>$300/day</td><td>Humanitarian PSC mid-market range $200–$1,100+/day; no published UNDSS figure (ref: ODI HPG Policy Brief 33)</td><td><span style="color:#d97706">Estimated</span></td></tr>
             <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">Medical staff</td><td>$200/day</td><td>All-inclusive org cost; MSF mobile staff €1,100–1,300/month base, est. $150–300/day total (ref: MSF Compensation & Benefits 2024)</td><td><span style="color:#d97706">Estimated</span></td></tr>
             <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">NGO personnel rate</td><td>$92/day (MSF midpoint)</td><td>MSF international salary $87–97/day (doctorswithoutborders.org, 2022)</td><td><span style="color:#0a6e50">Validated</span></td></tr>
             <tr style="border-bottom:1px solid #edf0f5"><td style="padding:.3rem .5rem">UN personnel rate</td><td>×4.5 multiplier (~$414/day)</td><td>UN DSA Sudan $270/day, Yemen $225/day (ICSC/CIRC/DSA/574, Mar 2023)</td><td><span style="color:#0a6e50">Validated</span></td></tr>

@@ -10,11 +10,11 @@ import asyncio
 import os
 import uvicorn
 
-from database import init_db, create_scenario, get_scenario, list_scenarios, update_scenario, delete_scenario
-from calculators import calculate_risk, calculate_resources, calculate_staying_costs, calculate_remaining_costs
+from database import init_db, create_scenario, get_scenario, list_scenarios, delete_scenario
+from calculators import calculate_risk
 from historical_data import HISTORICAL_CASES
 from demographic_data import get_demographics
-from world_risk import get_all_risk_levels, get_risk_by_iso3, NUM_TO_ISO3
+from world_risk import get_all_risk_levels, NUM_TO_ISO3
 from context_ai import analyze_country
 from weather_data import get_climate_context
 from air_evac import calculate_air_evacuation
@@ -50,40 +50,6 @@ class ScenarioIn(Dims):
     distance_source:     str             = 'manual'
     road_factor_applied: bool            = False
     haversine_km:        Optional[float] = None
-
-class ResourceReq(BaseModel):
-    population:     int   = Field(..., gt=0)
-    vulnerable_pct: float = Field(20.0, ge=0, le=100)
-    distance_km:    float = Field(50.0, gt=0)
-    risk_level:     int   = Field(..., ge=0, le=4)
-    d2_mobility:    float = Field(3.0, ge=1, le=5)
-    terrain:        int   = Field(3, ge=1, le=5)
-
-class StayReq(BaseModel):
-    population:    int   = Field(..., gt=0)
-    risk_level:    int   = Field(..., ge=0, le=4)
-    days:          int   = Field(..., ge=1, le=365)
-    d1:            float = Field(3.0, ge=1, le=5)
-    d2:            float = Field(3.0, ge=1, le=5)
-    d3:            float = Field(3.0, ge=1, le=5)   # Authorization — drives confinement modifier
-    d4:            float = Field(3.0, ge=1, le=5)   # Logistics — drives confinement modifier
-    remaining_pct: float = Field(1.0, ge=0, le=1)  # Fraction still in zone (0=all evacuated, 1=none)
-    conflict_type: str   = Field('auto')            # 'urban_siege'|'enclave'|'city_conflict'|'regional'|'auto'
-
-class RemainingReq(BaseModel):
-    population:     int   = Field(..., gt=0)
-    vulnerable_pct: float = Field(20.0, ge=0, le=100)
-    risk_level:     int   = Field(..., ge=0, le=4)
-    days:           int   = Field(..., ge=1, le=365)
-    distance_km:    float = Field(50.0, gt=0)
-    terrain:        int   = Field(3, ge=1, le=5)
-    d1:             float = Field(3.0, ge=1, le=5)
-    d2:             float = Field(3.0, ge=1, le=5)
-    d3:             float = Field(3.0, ge=1, le=5)
-    d4:             float = Field(3.0, ge=1, le=5)
-    d5:             float = Field(3.0, ge=1, le=5)
-    d6:             float = Field(3.0, ge=1, le=5)
-    d7:             float = Field(3.0, ge=1, le=5)
 
 class ClimateReq(BaseModel):
     lat:        Optional[float] = None
@@ -141,47 +107,12 @@ async def get(sid: int):
         raise HTTPException(404, "Not found")
     return s
 
-@app.put("/api/scenarios/{sid}")
-async def update(sid: int, body: ScenarioIn):
-    risk = calculate_risk(body.model_dump())
-    data = {**body.model_dump(), **risk}
-    updated = update_scenario(sid, data)
-    if not updated:
-        raise HTTPException(404, "Not found")
-    return updated
-
 @app.delete("/api/scenarios/{sid}")
 async def delete(sid: int):
     if not delete_scenario(sid):
         raise HTTPException(404, "Not found")
     return {"ok": True}
 
-
-# ─── Calculation endpoints ───────────────────────────────────────────────────
-
-@app.post("/api/calculate/risk")
-async def calc_risk(body: Dims):
-    return calculate_risk(body.model_dump())
-
-@app.post("/api/calculate/resources")
-async def calc_resources(body: ResourceReq):
-    return calculate_resources(body.population, body.vulnerable_pct, body.risk_level, body.distance_km, body.d2_mobility, body.terrain)
-
-@app.post("/api/calculate/staying-cost")
-async def calc_staying(body: StayReq):
-    dims = {"d1": body.d1, "d2": body.d2, "d3": body.d3, "d4": body.d4}
-    return calculate_staying_costs(
-        body.population, body.risk_level, body.days, dims,
-        body.remaining_pct, body.conflict_type,
-    )
-
-@app.post("/api/calculate/remaining-cost")
-async def calc_remaining(body: RemainingReq):
-    dims = {k: getattr(body, k) for k in ("d1","d2","d3","d4","d5","d6","d7")}
-    return calculate_remaining_costs(
-        body.population, body.vulnerable_pct, body.risk_level, body.days,
-        body.distance_km, dims, body.terrain,
-    )
 
 @app.post("/api/air-evacuation")
 async def air_evacuation(body: AirEvacReq):
@@ -522,12 +453,6 @@ async def get_ucdp_data(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"UCDP query failed: {e}")
 
-@app.get("/api/ucdp/status")
-async def get_ucdp_status():
-    """Check UCDP API connectivity and token validity."""
-    from ucdp_data import check_api_status
-    return check_api_status()
-
 
 # ─── World risk map ──────────────────────────────────────────────────────────
 
@@ -536,12 +461,6 @@ async def world_risk():
     """All country risk levels keyed by ISO_A3."""
     loop = asyncio.get_event_loop()
     return await loop.run_in_executor(None, get_all_risk_levels)
-
-@app.get("/api/world-risk/{iso3}")
-async def country_risk(iso3: str):
-    iso3u = iso3.upper()
-    loop = asyncio.get_event_loop()
-    return await loop.run_in_executor(None, get_risk_by_iso3, iso3u)
 
 @app.get("/api/iso-lookup")
 async def iso_lookup():

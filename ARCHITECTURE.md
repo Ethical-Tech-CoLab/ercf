@@ -105,27 +105,30 @@ evacuation-risk-tool/
 | GET | `/api/scenarios` | List all saved scenarios |
 | POST | `/api/scenarios` | Create a new saved scenario |
 | GET | `/api/scenarios/{id}` | Get a single saved scenario |
-| PUT | `/api/scenarios/{id}` | Update a saved scenario |
 | DELETE | `/api/scenarios/{id}` | Delete a saved scenario |
-| POST | `/api/calculate/risk` | Calculate risk score from 7 dimensions |
-| POST | `/api/calculate/resources` | Calculate evacuation cost |
-| POST | `/api/calculate/staying-cost` | Calculate mortality model output |
-| POST | `/api/calculate/remaining-cost` | Calculate in-zone assistance cost |
-| POST | `/api/air-evacuation` | Calculate air evacuation (sorties, cost) |
-| POST | `/api/walking-evacuation` | Calculate walking evacuation (days, attrition) |
+| POST | `/api/air-evacuation` | Calculate air evacuation (sorties, cost) — fixed-wing/helicopter transport mode |
+| POST | `/api/walking-evacuation` | Calculate walking evacuation (days, attrition) — walking transport mode |
 | POST | `/api/climate` | Get climate/seasonal context for a location |
 | GET | `/api/historical-cases` | List all 31 historical cases with enriched data |
 | GET | `/api/historical-cases/{id}` | Get a single historical case |
-| GET | `/api/city-population/{name}` | GeoNames city population lookup (18 countries) |
+| GET | `/api/city-population/{name}` | GeoNames city population lookup |
 | GET | `/api/demographics/{country}` | Vulnerable population % suggestion |
+| GET | `/api/commodity-prices/{iso3}` | EIA (Brent crude) + FRED (food basket) live prices for Market Price Adjustment |
 | GET | `/api/ucdp` | UCDP GED event query (date/bbox filter) |
-| GET | `/api/ucdp/status` | UCDP API availability status |
 | GET | `/api/world-risk` | All country risk levels (ACAPS/INFORM) |
-| GET | `/api/world-risk/{iso3}` | Single country risk level |
 | GET | `/api/iso-lookup` | ISO3 → country name lookup table |
 | POST | `/api/country-context` | Claude API country narrative (AI-generated) |
 | GET | `/api/acaps/{iso3}` | Raw ACAPS data for a country |
 | GET | `/api/country-context-acaps/{iso3}` | ACAPS-enriched country context |
+
+**Note:** risk/resources/staying-cost/remaining-cost calculations and the scenario-update (PUT)
+route were removed from the API — the frontend computes all of these client-side
+(`calcRisk`/`calcResources`/`calcStay`/`calcRemaining` in `static/app.js`) and no UI flow
+ever called the backend versions or the PUT route. `calculate_risk`/`calculate_resources`/
+`calculate_staying_costs`/`calculate_remaining_costs` remain in `calculators.py` as the
+reference Python implementations (kept in numeric parity with their JS counterparts) but are
+no longer exposed as standalone endpoints. `/api/ucdp/status` and `/api/world-risk/{iso3}`
+were removed for the same reason (confirmed zero frontend callers).
 
 ## Data Flow
 
@@ -215,5 +218,7 @@ historical_data.py  ──→  31 documented cases (1991–2024)
 |--------|----------|-----------------|---------------|-------|
 | UCDP GED v26.1 | `ucdp.uu.se/api/gedevents/v26.1` | Annual | `UCDP_API_TOKEN` env var | CSV fallback: `data/ged261.csv` |
 | ACAPS/INFORM | `api.acaps.org` | Monthly | Public API | In-memory cache per session |
-| GeoNames | `api.geonames.org` | Continuous | `GEONAMES_USERNAME` env var | 10,000 free credits/day; 18-country scope |
+| GeoNames | `api.geonames.org` | Continuous | `GEONAMES_USERNAME` env var | 10,000 free credits/day |
 | Anthropic Claude | Anthropic SDK | On-demand | `ANTHROPIC_API_KEY` env var | Country context narratives only |
+| EIA (Brent crude) | `api.eia.gov/v2/petroleum/pri/spt` | Weekly | `EIA_API_KEY` env var | Fuel side of Market Price Adjustment |
+| FRED (IMF Primary Commodity Price System mirror) | `api.stlouisfed.org/fred` | Monthly | `FRED_API_KEY` env var | Food basket (wheat/corn/rice/soybean oil), weighted 40/30/20/10 |

@@ -18,6 +18,8 @@ The break-even analysis compares the cost of evacuation operations against the c
 
 All mortality estimates are contextual indicators to support operational planning. They are not predictions, not forecasts, and not measures of acceptable loss. The decision to evacuate civilians is a matter of IHL obligations and humanitarian judgment — not financial optimisation.
 
+**Vulnerable population retention assumption:** the Assistance Cost model assumes vulnerable individuals (elderly, disabled) are ~2× less likely to evacuate than the general population, based on documented evacuation/transportation barriers (ref: AARP/FEMA Post-Katrina Look Back 2006; WHO Disability, Disaster Risk Reduction and Emergency Preparedness 2005). This shapes both the estimated composition of the population remaining in-zone and the added per-capita assistance cost for that group. It is an operational planning assumption, not a normative judgment about whose evacuation matters more — the tool surfaces this composition shift so planners can account for it, not to justify deprioritising anyone's evacuation.
+
 This tool is intended for:
 - Humanitarian planners estimating resource requirements
 - Organisations preparing funding appeals

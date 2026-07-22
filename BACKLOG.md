@@ -2,7 +2,6 @@
 
 ## Priority 1 — High Impact, Feasible
 
-- **Supply price volatility** — fuel, food, and medical supply costs as configurable variables (user-adjustable per country context). Teresa Cantero suggestion.
 - **Data freshness indicators** — show in UI when ACAPS/INFORM and UCDP were last updated; flag stale data (>30 days for ACAPS, >1 year for UCDP).
 - **Mass atrocity / genocide indicator** — structured UI flag for OOS cases that are genocide or deliberate massacre (currently only in `out_of_scope_reason` text). Teresa Cantero suggestion.
 - **Recalibration with new cases** — pipeline to add new cases to the corpus and re-run `full_calibration.py` when the historical dataset expands.
@@ -13,7 +12,6 @@
 - **Multi-corridor scenario** — compare two evacuation routes side-by-side (different distance, terrain, D4).
 - **Export to PDF/Word** — generate funding appeal template with scenario summary, cost breakdown, and historical comparisons.
 - **Mobile responsive improvements** — current layout optimised for desktop; radar and charts need responsive sizing for tablets.
-- **Walking evacuation integration** — walking mode currently calls a separate endpoint but is not fully integrated into the decision analysis break-even.
 
 ## Priority 3 — Research / Academic
 
@@ -22,6 +20,11 @@
 - **Confidence intervals on cost estimates** — current outputs are point estimates; uncertainty bands would improve funding appeal usefulness.
 - **Integration with OCHA FTS** — link evacuation cost estimates to the OCHA Financial Tracking Service for real-operation comparisons.
 - **LOOCV within-2× computation** — not recomputed for v7 (only R² LOOCV available); requires implementing leave-one-out within-2× rate.
+
+## ✅ Recently Completed
+
+- **Supply price volatility** (was Priority 1) — implemented as the Market Price Adjustment feature: live EIA (Brent crude) + FRED (food basket) commodity prices, `/api/commodity-prices/{iso3}`, applied as a fuel/food cost-adjustment factor.
+- **Walking evacuation integration** (was Priority 2) — walking mode's cost now feeds directly into the headline cost and `updateDecisionAnalysis()` break-even (`static/app.js`), not just its own separate panel.
 
 ## Known Technical Debt
 
