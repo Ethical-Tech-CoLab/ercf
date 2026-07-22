@@ -87,10 +87,19 @@ def _fallback_context(iso3: str) -> dict:
     }
 
 
-def analyze_country(iso3: str, country_name: str) -> dict:
-    """Return AI-powered (or fallback) evacuation context for a country."""
+def analyze_country(iso3: str, country_name: str, allow_ai: bool = True) -> dict:
+    """Return AI-powered (or fallback) evacuation context for a country.
+
+    allow_ai=False forces the free static analysis — used when the caller has
+    exhausted the paid-API budget (see security.llm_budget_ok).
+    """
     d = get_risk_by_iso3(iso3)
     level = d.get("level", 0)
+
+    if not allow_ai:
+        ctx = _fallback_context(iso3)
+        ctx["_ai_note"] = "AI analysis quota reached — showing static ACAPS analysis."
+        return ctx
 
     if not _AI_AVAILABLE:
         ctx = _fallback_context(iso3)

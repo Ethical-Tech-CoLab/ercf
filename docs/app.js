@@ -701,6 +701,35 @@ function reinitTooltips(root = document) {
   );
 }
 
+// ── Escaping ────────────────────────────────────────────────
+// Anything that reaches the DOM from an API, a dataset or the LLM is
+// untrusted and MUST go through esc() before being interpolated into an
+// innerHTML template. Model output is untrusted by definition: the prompt
+// embeds caller-supplied text, so it can be coerced into emitting markup.
+function esc(v) {
+  if (v === null || v === undefined) return '';
+  return String(v)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Escape an untrusted URL for use in href/src — anything that isn't plain
+// http(s) (javascript:, data:, vbscript:, …) is dropped.
+function safeUrl(v) {
+  if (!v) return '';
+  const s = String(v).trim();
+  try {
+    const u = new URL(s, window.location.origin);
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return '';
+    return esc(u.href);
+  } catch (e) {
+    return '';
+  }
+}
+
 function fmt(v) {
   if (v >= 1e9) return (v/1e9).toFixed(2).replace(/\.?0+$/, '')+'B';
   if (v >= 1e6) return (v/1e6).toFixed(1)+'M';
@@ -4746,10 +4775,10 @@ async function loadCountryContext(iso3, name) {
   const ctxHeader = document.getElementById('ctxHeader');
   ctxHeader.innerHTML = `
     <div>
-      <span class="badge me-1" style="background:${color};font-size:.7rem">LEVEL ${lvl}</span>
-      <strong style="font-size:.88rem">${name}</strong>
+      <span class="badge me-1" style="background:${color};font-size:.7rem">LEVEL ${esc(lvl)}</span>
+      <strong style="font-size:.88rem">${esc(name)}</strong>
     </div>
-    <span class="badge bg-light text-dark acaps-badge">INFORM ${d.inform_score ?? '—'}/5</span>
+    <span class="badge bg-light text-dark acaps-badge">INFORM ${esc(d.inform_score ?? '—')}/5</span>
   `;
 
   const WORLD_MAP_DECISIONS = {
@@ -4810,8 +4839,8 @@ function renderAcapsSection(acaps) {
     return '<span class="text-muted" style="font-size:.72rem">ACAPS API not available.</span>';
   }
   if (acaps.error) {
-    const note = acaps._note ? `<br><span style="font-size:.65rem">${acaps._note}</span>` : '';
-    return `<span class="text-muted" style="font-size:.72rem">${acaps.error}${note}</span>`;
+    const note = acaps._note ? `<br><span style="font-size:.65rem">${esc(acaps._note)}</span>` : '';
+    return `<span class="text-muted" style="font-size:.72rem">${esc(acaps.error)}${note}</span>`;
   }
   const results = Array.isArray(acaps.results) ? acaps.results : [];
   if (!results.length) {
@@ -4826,13 +4855,13 @@ function renderAcapsSection(acaps) {
     const type     = c.crisis_type   ?? '';
     return `
       <div style="font-size:.74rem;padding:.35rem .5rem;background:#f0f9ff;border:1px solid #bae6fd;border-left:3px solid #0ea5e9;border-radius:0 6px 6px 0;margin-bottom:.3rem;">
-        <div class="fw-semibold">${crisis}</div>
+        <div class="fw-semibold">${esc(crisis)}</div>
         <div class="d-flex gap-3 flex-wrap mt-1">
-          ${score    != null ? `<span>INFORM: <strong>${score}/5</strong></span>` : ''}
-          ${affected != null ? `<span>Affected: <strong>${fmt(affected)}</strong></span>` : ''}
-          ${type              ? `<span class="text-muted">${type}</span>` : ''}
+          ${score    != null ? `<span>INFORM: <strong>${esc(score)}/5</strong></span>` : ''}
+          ${affected != null ? `<span>Affected: <strong>${esc(fmt(affected))}</strong></span>` : ''}
+          ${type              ? `<span class="text-muted">${esc(type)}</span>` : ''}
         </div>
-        ${updated ? `<div class="text-muted mt-1" style="font-size:.65rem">Updated: ${updated}</div>` : ''}
+        ${updated ? `<div class="text-muted mt-1" style="font-size:.65rem">Updated: ${esc(updated)}</div>` : ''}
       </div>`;
   }).join('');
 }
@@ -4860,8 +4889,8 @@ function renderAcapsLiveData(live) {
         <div class="fw-semibold mb-1" style="color:#374151">INFORM Severity</div>
         ${live.inform.map(r => `
           <div class="d-flex align-items-center gap-2 mb-1">
-            <span class="badge" style="background:${scoreColor};font-size:.65rem;min-width:2.4rem">${r.inform_severity_score ?? '—'}/5</span>
-            <span>${r.crisis_name || '—'}</span>
+            <span class="badge" style="background:${scoreColor};font-size:.65rem;min-width:2.4rem">${esc(r.inform_severity_score ?? '—')}/5</span>
+            <span>${esc(r.crisis_name || '—')}</span>
           </div>`).join('')}
       </div>`);
   }
@@ -4875,8 +4904,8 @@ function renderAcapsLiveData(live) {
       <div class="mb-2" style="font-size:.73rem">
         <div class="fw-semibold mb-1" style="color:#374151">Humanitarian Access</div>
         <div class="d-flex align-items-center gap-2">
-          <span class="badge" style="background:${ac};font-size:.65rem;min-width:2.4rem">${sc ?? '—'}/5</span>
-          ${a.weighted_score != null ? `<span class="text-muted">weighted: ${a.weighted_score}</span>` : ''}
+          <span class="badge" style="background:${ac};font-size:.65rem;min-width:2.4rem">${esc(sc ?? '—')}/5</span>
+          ${a.weighted_score != null ? `<span class="text-muted">weighted: ${esc(a.weighted_score)}</span>` : ''}
         </div>
       </div>`);
   }
@@ -4889,13 +4918,13 @@ function renderAcapsLiveData(live) {
       return `
         <div style="font-size:.72rem;padding:.3rem .45rem;background:#fff7ed;border-left:3px solid #f97316;border-radius:0 4px 4px 0;margin-bottom:.25rem;">
           <div class="d-flex justify-content-between align-items-start gap-1">
-            <span class="fw-semibold" style="flex:1">${r.risk_title || '—'}</span>
-            <span class="badge ms-1" style="background:${lvlColor};font-size:.6rem;white-space:nowrap">${r.risk_level || '?'}</span>
+            <span class="fw-semibold" style="flex:1">${esc(r.risk_title || '—')}</span>
+            <span class="badge ms-1" style="background:${lvlColor};font-size:.6rem;white-space:nowrap">${esc(r.risk_level || '?')}</span>
           </div>
           <div class="d-flex gap-2 mt-1 text-muted" style="font-size:.65rem">
-            ${trendIcon ? `<span>Trend: <strong>${trendIcon} ${r.risk_trend}</strong></span>` : ''}
-            ${r.probability  != null ? `<span>Prob: ${r.probability}</span>`  : ''}
-            ${r.impact       != null ? `<span>Impact: ${r.impact}</span>`     : ''}
+            ${trendIcon ? `<span>Trend: <strong>${trendIcon} ${esc(r.risk_trend)}</strong></span>` : ''}
+            ${r.probability  != null ? `<span>Prob: ${esc(r.probability)}</span>`  : ''}
+            ${r.impact       != null ? `<span>Impact: ${esc(r.impact)}</span>`     : ''}
           </div>
         </div>`;
     }).join('');
@@ -4913,8 +4942,8 @@ function renderAcapsLiveData(live) {
     parts.push(`
       <div class="mb-1" style="font-size:.72rem">
         <span class="fw-semibold" style="color:#374151">Active Crises:</span>
-        <span class="badge bg-danger ms-1" style="font-size:.65rem">${count}</span>
-        <div class="text-muted mt-1">${names}</div>
+        <span class="badge bg-danger ms-1" style="font-size:.65rem">${esc(count)}</span>
+        <div class="text-muted mt-1">${esc(names)}</div>
       </div>`);
   }
 
@@ -4929,48 +4958,50 @@ function renderContextPanel(iso3, name, lvl, color, sd, ctx, acaps, live, ucdp) 
   const dimLabels = ['D1 Kinetic','D2 Vulnerability','D3 Authorization','D4 Logistics','D5 Destination','D6 Urgency','D7 Information'];
   const ds = ctx.dimension_scores || {};
 
+  // ctx is model output and sd/acaps/live/ucdp are third-party API payloads —
+  // all untrusted. Every interpolation below goes through esc().
   const dimBars = dimKeys.map((k, i) => {
-    const v   = ds[k] || 1;
+    const v   = Number(ds[k]) || 1;
     const pct = (v - 1) / 4 * 100;
     const c   = v >= 4.5 ? '#ef4444' : v >= 3.5 ? '#f97316' : v >= 2.5 ? '#f59e0b' : v >= 1.5 ? '#0ea5e9' : '#6c757d';
     return `<div class="mb-1">
       <div class="d-flex justify-content-between" style="font-size:.68rem">
-        <span>${dimLabels[i]}</span><span class="fw-bold">${v}</span>
+        <span>${dimLabels[i]}</span><span class="fw-bold">${esc(v)}</span>
       </div>
       <div class="ctx-dim-bar"><div class="ctx-dim-fill" style="width:${pct}%;background:${c}"></div></div>
     </div>`;
   }).join('');
 
-  const routes    = (ctx.exit_routes || sd.exit_routes || []).map(r => `<span class="route-pill">🛣️ ${r}</span>`).join('');
-  const actors    = (ctx.humanitarian_actors || sd.actors || []).map(a => `<span class="actor-pill">${a}</span>`).join('');
-  const obstacles = (ctx.main_obstacles || []).map(o => `<div class="obstacle-item">⚠️ ${o}</div>`).join('');
+  const routes    = (ctx.exit_routes || sd.exit_routes || []).map(r => `<span class="route-pill">🛣️ ${esc(r)}</span>`).join('');
+  const actors    = (ctx.humanitarian_actors || sd.actors || []).map(a => `<span class="actor-pill">${esc(a)}</span>`).join('');
+  const obstacles = (ctx.main_obstacles || []).map(o => `<div class="obstacle-item">⚠️ ${esc(o)}</div>`).join('');
 
   const aiNote = ctx._ai_note
-    ? `<div class="alert alert-info py-1 mb-2" style="font-size:.7rem"><i class="fas fa-info-circle me-1"></i>${ctx._ai_note}</div>`
+    ? `<div class="alert alert-info py-1 mb-2" style="font-size:.7rem"><i class="fas fa-info-circle me-1"></i>${esc(ctx._ai_note)}</div>`
     : ctx._source === 'claude-haiku-4-5'
       ? `<div class="alert alert-success py-1 mb-2" style="font-size:.7rem"><i class="fas fa-robot me-1"></i>AI analysis (Claude Haiku)</div>`
       : '';
 
   document.getElementById('ctxBody').innerHTML = `
     ${aiNote}
-    <p style="font-size:.78rem">${ctx.summary || sd.crisis || '—'}</p>
+    <p style="font-size:.78rem">${esc(ctx.summary || sd.crisis || '—')}</p>
 
     <div class="row g-2 mb-2">
       <div class="col-6"><div class="stat-mini text-center">
-        <div class="val" style="font-size:1rem">${fmt(ctx.population_at_risk || sd.pop_at_risk || 0)}</div>
+        <div class="val" style="font-size:1rem">${esc(fmt(Number(ctx.population_at_risk) || sd.pop_at_risk || 0))}</div>
         <div class="lbl">Pop. at Risk</div>
       </div></div>
       <div class="col-6"><div class="stat-mini text-center">
-        <div class="val" style="font-size:1rem">${fmt(sd.displaced || 0)}</div>
+        <div class="val" style="font-size:1rem">${esc(fmt(sd.displaced || 0))}</div>
         <div class="lbl">Displaced</div>
       </div></div>
     </div>
 
     <div class="mb-2" style="font-size:.75rem">
-      <strong>Conflict type:</strong> ${ctx.conflict_type || sd.conflict_type || '—'}<br>
-      <strong>Access:</strong> ${ctx.humanitarian_access || sd.access_label || '—'}
+      <strong>Conflict type:</strong> ${esc(ctx.conflict_type || sd.conflict_type || '—')}<br>
+      <strong>Access:</strong> ${esc(ctx.humanitarian_access || sd.access_label || '—')}
       <span class="badge ms-1" style="background:${CHORO_COLORS[ctx.access_score ?? lvl]||'#ccc'};font-size:.62rem">
-        Score ${ctx.access_score ?? sd.access ?? '?'}/5
+        Score ${esc(ctx.access_score ?? sd.access ?? '?')}/5
       </span>
     </div>
 
@@ -5027,7 +5058,7 @@ function renderContextPanel(iso3, name, lvl, color, sd, ctx, acaps, live, ucdp) 
     </div>` : ''}
 
     <div class="mb-2" style="font-size:.73rem">
-      <strong>IHL Framework:</strong> ${ctx.ihl_framework || '—'}
+      <strong>IHL Framework:</strong> ${esc(ctx.ihl_framework || '—')}
     </div>
 
     <div class="mb-2">
@@ -5044,13 +5075,13 @@ function renderContextPanel(iso3, name, lvl, color, sd, ctx, acaps, live, ucdp) 
         </div>
         <div style="background:#f0f8ff;border:1px solid #a8d4f0;border-left:3px solid #009EDB;border-radius:4px;padding:.4rem .6rem;font-size:.72rem">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:.2rem .8rem;margin-bottom:.3rem">
-            <span><strong>Events:</strong> ${ucdp.total_events.toLocaleString()}</span>
-            <span><strong>One-sided:</strong> ${ucdp.one_sided_events.toLocaleString()}</span>
-            <span><strong>Civilian deaths (floor):</strong> ${(ucdp.deaths_civilians_explicit||0).toLocaleString()}</span>
-            <span><strong>Total best:</strong> ${(ucdp.total_best||0).toLocaleString()}</span>
+            <span><strong>Events:</strong> ${esc(ucdp.total_events.toLocaleString())}</span>
+            <span><strong>One-sided:</strong> ${esc(ucdp.one_sided_events.toLocaleString())}</span>
+            <span><strong>Civilian deaths (floor):</strong> ${esc((ucdp.deaths_civilians_explicit||0).toLocaleString())}</span>
+            <span><strong>Total best:</strong> ${esc((ucdp.total_best||0).toLocaleString())}</span>
           </div>
           <div style="font-size:.68rem;color:#4a5568">
-            <strong>Range:</strong> ${ucdp.uncertainty_range||'—'}
+            <strong>Range:</strong> ${esc(ucdp.uncertainty_range||'—')}
           </div>
           ${ucdp.total_best === 0 ? '<div style="color:#6b7280;font-size:.68rem;margin-top:.2rem">No conflict events recorded in UCDP for this period.</div>' : ''}
         </div>
@@ -5063,11 +5094,11 @@ function renderContextPanel(iso3, name, lvl, color, sd, ctx, acaps, live, ucdp) 
     <div class="mb-2">
       <button class="btn btn-sm w-100 d-flex justify-content-between align-items-center py-1 px-2"
         style="background:#f0f9ff;border:1px solid #bae6fd;font-size:.73rem;font-weight:700;color:#0369a1"
-        type="button" data-bs-toggle="collapse" data-bs-target="#acapsLiveCollapse-${iso3}" aria-expanded="false">
+        type="button" data-bs-toggle="collapse" data-bs-target="#acapsLiveCollapse-${esc(iso3)}" aria-expanded="false">
         <span><i class="fas fa-satellite-dish me-1"></i>ACAPS LIVE DATA</span>
         <i class="fas fa-chevron-down" style="font-size:.6rem"></i>
       </button>
-      <div class="collapse" id="acapsLiveCollapse-${iso3}">
+      <div class="collapse" id="acapsLiveCollapse-${esc(iso3)}">
         <div style="border:1px solid #bae6fd;border-top:none;border-radius:0 0 6px 6px;padding:.5rem .5rem .25rem">
           ${renderAcapsLiveData(live)}
         </div>
@@ -5075,12 +5106,12 @@ function renderContextPanel(iso3, name, lvl, color, sd, ctx, acaps, live, ucdp) 
     </div>
 
     <div class="d-grid gap-1 mt-3">
-      <button class="btn btn-primary btn-sm" onclick="buildScenarioFromCountry('${iso3}')">
+      <button class="btn btn-primary btn-sm" onclick="buildScenarioFromCountry('${esc(String(iso3).replace(/[^A-Za-z0-9]/g, ''))}')">
         <i class="fas fa-sliders me-1"></i>Build Scenario from this Country
       </button>
     </div>
     <div class="text-muted mt-2" style="font-size:.65rem">
-      Source: ${sd.source || 'ACAPS/INFORM'} · ${ctx.last_updated || 'June 2025'}
+      Source: ${esc(sd.source || 'ACAPS/INFORM')} · ${esc(ctx.last_updated || 'June 2025')}
     </div>
   `;
 
