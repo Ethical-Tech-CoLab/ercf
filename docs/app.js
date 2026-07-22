@@ -917,7 +917,7 @@ function initCharts() {
 
   state.charts.fin = new Chart(document.getElementById('financialChart').getContext('2d'), {
     type: 'line',
-    data: { labels:[], datasets:[{ label:'Cumulative (USD)', data:[], borderColor:'#ef4444',
+    data: { labels:[], datasets:[{ label:'Cumulative Assistance (USD)', data:[], borderColor:'#ef4444',
       backgroundColor:'rgba(239,68,68,.08)', fill:true, tension:.35, pointRadius:0 }] },
     options: {
       responsive:true, maintainAspectRatio:false,
@@ -1406,12 +1406,25 @@ function renderSeasonalTerrainWarning(st, terrain) {
 }
 
 function updateCostCharts(data) {
-  const { days, fin, dead, inj, infraDenialApplied } = data;
+  const { days, dead, inj, infraDenialApplied } = data;
   const step = Math.max(1, Math.floor(days.length / 60));
   const sl = arr => arr.filter((_, i) => i % step === 0);
 
-  state.charts.fin.data.labels = sl(days);
-  state.charts.fin.data.datasets[0].data = sl(fin);
+  const riskLvl = calcRisk(state.dims).level;
+
+  // Cumulative Assistance Cost — recompute calcRemaining() (supply delivery + emergency
+  // extraction + field medical + vulnerable support) at each sampled day, instead of the
+  // flat $3.50/person/day survival baseline previously shown here. Injuries at each day
+  // come from inj[] (the same array driving EST. INJURIES) so Field medical's cost and
+  // this chart never disagree, mirroring the earlier EST. INJURIES alignment fix.
+  const sampledDays = sl(days);
+  const assistCumulative = sampledDays.map(d => calcRemaining(
+    state.remainingPop, state.remainingVulnPct, riskLvl, d, state.distanceKm,
+    state.dims, state.terrain, state.climateMult, inj[d - 1],
+  ).total);
+
+  state.charts.fin.data.labels = sampledDays;
+  state.charts.fin.data.datasets[0].data = assistCumulative;
   state.charts.fin.update('none');
 
   state.charts.human.data.labels = sl(days);
@@ -1423,7 +1436,6 @@ function updateCostCharts(data) {
 
   // Mortality range — derived from log-log regression (R²=0.765, p<0.00001)
   // L3: 80% PI ×0.35–×2.0 | L4: 80% PI ×0.25–×3.0
-  const riskLvl    = calcRisk(state.dims).level;
   const deadCenter = Math.round(dead[last]);
   const deadLow    = riskLvl >= 4 ? Math.round(deadCenter * 0.25) : Math.round(deadCenter * 0.35);
   const deadHigh   = riskLvl >= 4 ? Math.round(deadCenter * 3.0)  : Math.round(deadCenter * 2.0);
