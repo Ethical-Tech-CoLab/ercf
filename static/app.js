@@ -584,10 +584,6 @@ function calcRemaining(pop, vulPct, riskLevel, days, distKm, dims, terrain, clim
 
   // D1 Kinetic: higher D1 = more dangerous = extraction difficulty multiplier
   const d1ExtMult  = d.d1 <= 3 ? 1.0 + (d.d1 - 1) * 0.15 : 1.3 + (d.d1 - 3) * 0.35;
-  // D3 Authorization: lower D3 = harder corridor = extraction probability add
-  const d3ExtAdd   = d3LossAdd;  // same breakpoints as loss rate
-  // D6 Urgency: higher D6 = window closing = extraction probability floor
-  const d6Floor    = d.d6 >= 5 ? 0.85 : d.d6 >= 4 ? 0.60 : 0.0;
 
   // D5 Destination: lower D5 = fewer medical resources = higher cost per injury
   // (D2/D1 injury-count multipliers removed — WHO rates already represent typical populations)
@@ -1126,14 +1122,6 @@ function evacuationWindow(level, d1, d3, d6) {
   return `<div class="evac-window ${cls}"><i class="fas fa-clock me-1"></i><span>${text}${disclaimer}</span></div>`;
 }
 
-function _subBar(score, lowColor, highColor) {
-  const pct = Math.round(((score - 1) / 4) * 100);
-  const col = score >= 3.5 ? highColor : score >= 2.5 ? '#f59e0b' : lowColor;
-  return `<div style="height:4px;background:rgba(255,255,255,.2);border-radius:2px;overflow:hidden;margin-top:2px">
-    <div style="width:${pct}%;height:100%;background:${col};border-radius:2px"></div>
-  </div>`;
-}
-
 function updateRiskCard(r) {
   const card = document.getElementById('riskCard');
   card.style.background = r.color;
@@ -1571,7 +1559,6 @@ async function suggestVulnerablePct(countryName) {
 let _cityDebounceTimer = null;
 
 function onCityInput(val) {
-  console.log('[ERCF] City input triggered:', val);
   clearTimeout(_cityDebounceTimer);
   const el = document.getElementById('cityPopSuggestions');
   if (!val || val.trim().length < 2) {
@@ -1584,7 +1571,6 @@ function onCityInput(val) {
 // Event delegation — works regardless of when the tab/element is first rendered
 document.addEventListener('input', function(e) {
   if (e.target && e.target.id === 'inCity') {
-    console.log('[ERCF] City input triggered (delegated):', e.target.value);
     onCityInput(e.target.value);
   }
 });
@@ -5208,12 +5194,6 @@ async function fetchWithSnapshotFallback(apiUrl, snapshotUrl) {
     showSnapshotBanner();
     return fetch(snapshotUrl).then(r => r.json());
   }
-}
-
-// Historical case detail: /api/historical-cases/{cid} live, or
-// snapshot/cases/{id}.json (16 in-scope cases only) when running statically.
-async function loadHistoricalCaseDetail(id) {
-  return fetchWithSnapshotFallback(`/api/historical-cases/${id}`, `snapshot/cases/${id}.json`);
 }
 
 // ═══════════════════════════════════════════════════════════

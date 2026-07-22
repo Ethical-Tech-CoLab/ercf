@@ -1,5 +1,5 @@
 import math
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 SOURCE_CONFIDENCE = {
     "water_per_person_day_l":          {"value": 20,        "source": "UNHCR full standard: 20 L/person/day. Updated 15→20 (Tavily validation June 2026). Sphere 2018 emergency minimum: 7.5-15 L/person/day. UNHCR full planning standard used for evacuation (not emergency minimum). Source: UNHCR WASH Manual; Sphere Association Handbook 4th ed. 2018.", "confidence": "validated"},
@@ -116,170 +116,12 @@ SOURCE_CONFIDENCE = {
     },
 }
 
-# ─── Personnel Daily Rates ────────────────────────────────────────────────────
-#
-# Six-search validation conducted June 2026 using Tavily web search.
-# Rates represent TOTAL OPERATIONAL COST per person per day to the operation,
-# not take-home pay. Overhead multiplier of ~2–3× applies from salary to
-# total operational cost (benefits, insurance, logistics support, admin).
-#
-# DEPLOYMENT ASSUMPTION (not previously stated):
-#   All rates implicitly assume NATIONAL STAFF or lower-cost NGO international
-#   deployment in an LMIC conflict-affected context (e.g. MSF-level NGO rate).
-#   Full UN international professional staff are 3–6× more expensive when
-#   DSA, danger pay, and benefits are included.
-#   This assumption MUST be flagged in the UI and documentation.
-#
-# ──────────────────────────────────────────────────────────────────────────────
-
-PERSONNEL_RATES = {
-    # ── Security personnel: $300/day ─────────────────────────────────────────
-    # VERDICT: PARTIALLY SUPPORTED for professional PSC; local militia cheaper.
-    #
-    # Local armed group/militia:            $40–$110/person/day
-    # Professional private security (PSC):  $200–$500/person/day
-    # Model mid-market estimate:            $300/day
-    #
-    # Convoy-unit evidence (not directly convertible to per-person-per-day):
-    #   Sudan 2022: 60,000–100,000 SDG/vehicle/movement
-    #     → at Sept 2022 parallel market (~650 SDG/USD): $92–$154/vehicle/trip
-    #     Source: Achilli & Osman, "Humanitarianism's Thin Red Line",
-    #             Journal of Humanitarian Affairs Vol.5(3) 2024.
-    #             URL: manchesterhive.com/view/journals/jha/5/3/article-p23.xml
-    #   Yemen: $3,000/convoy Aden–Mukalla (one way)
-    #     Source: Sana'a Center for Strategic Studies (~2020)
-    #   Somalia 2017: $400M/year total security cooperation across all agencies
-    #     Source: NRC/Protect Humanitarian Space, Cost of Operations in H2R Areas,
-    #             Feb 2024. URL: protecthumanitarianspace.com/sites/default/files/
-    #             2024-02/Cost%20of%20Operations%20in%20H2R%20Areas.pdf
-    #
-    # UN peacekeeping TCC reimbursement: $1,428/soldier/month = $47.60/day
-    #   Source: UN Peacekeeping (peacekeeping.un.org), effective 1 July 2019,
-    #           confirmed current as of 2023. NOTE: this is the rate the sending
-    #           COUNTRY receives from the UN — not individual soldier pay or
-    #           operational cost to a humanitarian actor.
-    #
-    # UNRESOLVED: UNDSS security staff rate cards are not publicly accessible.
-    # IDEAL SOURCE: UNDSS field security cost data by conflict intensity level.
-    "security_person_day_usd": {
-        "value": 300,
-        "range_supported": "40–500",
-        "confidence": "estimated",
-        "scope": "mid-market estimate for mixed team (local + professional security)",
-        "source": "Estimated — humanitarian PSC mid-market range $200–$1,100+/day depending on "
-                  "context, nationality, and risk level. No single published UNDSS figure available. "
-                  "(ref: ODI HPG Policy Brief 33; Gaza 2025 reporting)",
-    },
-
-    # ── Medical staff: $200/day ───────────────────────────────────────────────
-    # VERDICT: PARTIALLY SUPPORTED as lower bound for international deployment;
-    #          overstates typical national staff cost in LMIC.
-    #
-    # MSF international starting salary (all roles, USA contract) 2022:
-    #   $2,626–$2,914/month = $87–$97/day take-home
-    #   Source: doctorswithoutborders.org/careers/work-internationally/pay-benefits
-    #   With 2–3× operational overhead: $174–$291/day total cost to operation
-    #
-    # UN Professional P3 net base salary:
-    #   ~$92,380/year = $253/day (salary component only)
-    #   Source: ICSC UN Common System Salaries (icsc.un.org/Resources/SAD/Booklets/sabeng.pdf)
-    #   Fully-loaded in Sudan (salary + DSA $270/day + danger pay $57/day): ~$580/day
-    #   Source: ICSC DSA Circular ICSC/CIRC/DSA/574 (1 March 2023)
-    #
-    # National medical staff in LMIC conflict zone:
-    #   Estimated operational cost: $30–$80/day (from wage data + overhead inference)
-    #   No direct published figure found for national health worker in field deployment.
-    #
-    # $200/day is consistent with MSF mid-range international rate including overhead,
-    # but NOT consistent with UN international professional total cost.
-    "medical_staff_day_usd": {
-        "value": 200,
-        "range_supported": "79–285 (MSF USA 2024: $2,365–$2,838/month take-home = $79–$95/day; "
-                           "with 2–3× operational overhead: $158–$285/day total org cost)",
-        "confidence": "estimated",
-        "scope": "international NGO staff (MSF-level) or senior national staff + overhead; "
-                 "not representative of full UN international professional rate (~$580/day in Sudan)",
-        "source": "MSF USA (doctorswithoutborders.org, 2024): starting salary $2,365–$2,838/month = ~$79–$95/day "
-                  "take-home. With 2–3× operational overhead (per diem, insurance, housing, admin): "
-                  "$158–$285/day total organizational cost. $200/day is within range for mid-level "
-                  "international NGO deployment. (ref: doctorswithoutborders.org/careers/work-internationally/pay-benefits, "
-                  "accessed June 2026; MSF Pay & Benefits Guide IRP2, October 2023)",
-    },
-
-    # ── Paramedics: $150/day ─────────────────────────────────────────────────
-    # VERDICT: PARTIALLY SUPPORTED (indirect) — five-search re-validation June 2026.
-    # Confidence upgraded from UNVALIDATED → ESTIMATED based on MSF salary data.
-    #
-    # KEY FINDING: MSF applies IDENTICAL starting rate to ALL international field roles
-    # regardless of specialty: $87–$97/day take-home (2022).
-    # Sources confirmed by three MSF national offices:
-    #   USA:      $2,626–$2,914/month = $87–97/day (doctorswithoutborders.org)
-    #   Canada:   $2,900/month = ~$97/day (doctorswithoutborders.ca)
-    #   Australia: ~A$3,826/month ≈ $85/day (msf.org.au)
-    # No paramedic-specific rate is published separately. MSF, ICRC, WHO, and UN
-    # publish no per-specialty breakdown — paramedic = nurse = logistician at entry level.
-    #
-    # US BLS (2024): Paramedic median $58,410/yr ≈ $160/day (calendar) or $224/day
-    # (working days) — HIGH-INCOME domestic context, NOT applicable to LMIC deployment.
-    #
-    # National EMT in LMIC conflict zone:
-    #   Estimated operational cost: $15–$40/day (wage data + overhead inference)
-    #
-    # $150/day interpretation:
-    #   - If national staff: $150 is HIGH (likely overstates actual cost by 3–5×)
-    #   - If international NGO (MSF-level): $150 is below the estimated full operational
-    #     cost of $174–$291/day. Could represent partial cost recovery or underbilling.
-    #   - $150/day is a plausible mid-range estimate for a mixed national/international team.
-    #
-    # REMAINING GAP: No ICRC, WHO, or MSF document publishes a per-day paramedic-specific
-    # operational cost. The uniform MSF rate provides an indirect lower bound only.
-    # IDEAL SOURCES for full validation:
-    #   1. MSF operational budget breakdown by staff category (internal, not public)
-    #   2. ICRC Health Division annual cost-per-beneficiary data (restricted)
-    #   3. WHO Health Cluster field staff cost surveys (not publicly indexed)
-    "paramedic_day_usd": {
-        "value": 150,
-        "range_indirect": "87–291 (inferred from MSF all-roles rate + overhead)",
-        "confidence": "estimated",
-        "scope": "plausible mid-range; no paramedic-specific rate in any public document. "
-                 "MSF uniform international rate ($87–97/day) is the closest available anchor. "
-                 "Source: doctorswithoutborders.org/careers, msf.org.au, "
-                 "doctorswithoutborders.ca (2022); US BLS OES May 2024 (domestic context only).",
-        "search_date": "June 2026",
-        "note": "Upgraded from unvalidated after MSF salary data confirmed indirect range. "
-                "No paramedic-specific humanitarian deployment rate found — gap remains.",
-    },
-
-    # ── Drivers: $50/day ─────────────────────────────────────────────────────
-    # VERDICT: PARTIALLY SUPPORTED by wage-data inference; not directly confirmed.
-    #
-    # UN General Service staff (includes drivers): paid by local salary survey.
-    # ICSC methodology: surveys best prevailing conditions in locality.
-    # Per-country rates not publicly disclosed in global documents.
-    #
-    # LMIC informal minimum wage proxy:
-    #   South Sudan 2024: $30–$60/month informal wage = $1–$3/day
-    #   Source: TimeCamp Average Salary South Sudan (statistics.timecamp.com, 2024)
-    #   NOTE: UN/NGO national GS staff earn well above informal minimum wage.
-    #
-    # Estimated nationally-hired conflict-zone driver:
-    #   Salary estimate: $300–$600/month (UN GS range for LMIC, inferred)
-    #   With ~2.5× operational overhead: $25–$50/day total cost
-    #
-    # $50/day is at the upper end of the estimated national-staff range and is
-    # consistent with the inference above. However, NO DIRECT PUBLISHED RATE
-    # was found for humanitarian field drivers in the searched documents.
-    #
-    # IDEAL SOURCE: IOM or WFP field operations budget breakdown by staff
-    #               category (internal documents, not publicly available).
-    "driver_day_usd": {
-        "value": 50,
-        "range_inferred": "10–70",
-        "confidence": "estimated",
-        "scope": "nationally-hired driver in conflict-affected LMIC at total operational cost; "
-                 "no direct IOM/WFP field rate found",
-    },
-}
+# NOTE: PERSONNEL_RATES (147-line personnel daily-rate sourcing dict) was removed —
+# dead code, never referenced anywhere in calculators.py or main.py. The actual rates
+# used by calculate_resources() are inline literals (security x$300, med_staff x$200,
+# paramedics x$150, drivers x$50 — see PERSONNEL section below). The NGO-vs-UN rate
+# deployment assumption this dict documented is now surfaced in the live UI instead
+# (see the deploy-notice / "Personnel Cost Assumption" panel in static/index.html).
 
 # ─── ERCF Risk Score Formula ──────────────────────────────────────────────────
 #
@@ -1382,11 +1224,14 @@ BASE_DAILY_COST  = [1.0,  2.0,  3.5,  6.0, 12.0]
 #    (1995–2024), 10 conflict cases, v2 calibration June 2026."
 # ─────────────────────────────────────────────────────────────────────────────
 
-# v1 rates retained for reference and use by calculate_remaining_costs().
-# calculate_staying_costs() now uses DEATH_RATE_10K_EMPIRICAL (v2).
-# Prior MORTALITY_RATE_1K [0.0, 0.1, 0.5, 3.0, 15.0] per 1K was 7–69× above observed
-# values (Mariupol L4 actual: 0.216/1K/day; Gaza L4 actual: 0.047/1K/day).
-DEATH_RATE_10K          = [0.3,  0.5,  1.5,  4.0, 10.0]   # v1 — kept for reference
+# NOTE: DEATH_RATE_10K (v1 mortality rates [0.3, 0.5, 1.5, 4.0, 10.0]) was removed —
+# dead code, zero references despite the prior comment claiming it was used by
+# calculate_remaining_costs() (that function doesn't compute mortality at all; it uses
+# calculate_injuries()/INJURY_RATE_10K for the injury-cost component). Superseded by
+# DEATH_RATE_10K_EMPIRICAL (v2+, below) since v2 — the comment describing this constant
+# as still in use was itself stale. Prior MORTALITY_RATE_1K [0.0, 0.1, 0.5, 3.0, 15.0]
+# per 1K was 7–69× above observed values (Mariupol L4 actual: 0.216/1K/day; Gaza L4
+# actual: 0.047/1K/day) — kept here only as a historical note.
 
 # Empirical base rates (v2→v5): derived from 10 historical cases, excluding outliers.
 # Lower than WHO theoretical rates because real populations partially evacuate,
