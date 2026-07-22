@@ -172,3 +172,19 @@ Developed by Yago Rocha in collaboration with the Microsoft Ethical Tech CoLab. 
 ## License
 
 MIT
+
+---
+
+## Peer Review
+
+An independent academic peer review of this report is available in [`peer-review/`](peer-review/) ([Word](peer-review/ercf-Peer-Review.docx) &middot; [Markdown](peer-review/ercf-Peer-Review.md)).
+
+**Recommendation:** Major revisions
+
+**What the review found:**
+
+- The D3 (Authorization) scale runs one direction in S4.3/S5.4 and the opposite in S7.2/S8.4/S9.3/S9.4, so a core input may be wired backwards.
+- The flagship break-even (S8.2) is driven by the least-evidenced parameters yet delivered as a single point with no uncertainty band (S16.3).
+- The worked example (S6.6) uses pre-revision ratios and omits ~$15,500 of driver cost, so it does not reconcile with S6.1/S6.2.
+
+**Noted strength:** Confidence-tagging of every parameter plus the self-audit in S15 make this an unusually honest, checkable research instrument.
