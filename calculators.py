@@ -127,6 +127,18 @@ SOURCE_CONFIDENCE = {
 #
 # risk_score = D1×0.25 + D2×0.15 + D3×0.15 + D4×0.15 + D5×0.15 + D6×0.10 + D7×0.05
 #
+# !! KNOWN INCONSISTENCY -- D3 and D7 polarity. NOT YET FIXED; no numbers changed.
+# This sum assumes every dimension runs high = worse. The historical dataset and
+# the mortality model below use the OPPOSITE convention for D3 and D7:
+#   - historical_data.py stores low d3 for blocked-consent cases (Aleppo 2.0,
+#     Mariupol/Srebrenica/Gaza 1.0-1.5).
+#   - confinement is (5 - D3) x D4 / 5; siege triggers on D3 <= 2.0; the loss-rate
+#     term is commented "lower D3 = more blockade" (see ~line 1982).
+#   - the loss-rate term for D7 is commented "lower D7 = harder coordination".
+# Consequence: this composite adds a LOW D3 for the worst authorization failures,
+# understating risk where consent has failed. Treat risk_score as unreliable until
+# the convention is settled. See ERCF-Paper.md 4.3 (erratum).
+#
 # All values are on a 1–5 scale; score range is [1.0, 5.0].
 #
 # HARD TRIGGER: if D1 ≥ 4.5 AND D6 ≥ 4.5 → score floored to max(score, 4.21) → Level 4.
@@ -310,6 +322,11 @@ def calculate_risk(scores: Dict) -> Dict:
     ) / 0.50
 
     # ── Feasibility sub-index (D3, D4, D5) — all inverted ────────────────────
+    # !! KNOWN INCONSISTENCY -- the (6 - d3) term below assumes high D3 = bad, but
+    # the dataset and mortality model treat LOW D3 as the blocked case. A blocked
+    # corridor (d3=1.0) therefore scores near-maximum feasibility here. NOT YET
+    # FIXED; no numbers changed. See the note on the composite formula above and
+    # ERCF-Paper.md 4.3 (erratum).
     feasibility_sub = (
         (6 - d.get("d3_political",   1)) * 0.15 +
         (6 - d.get("d4_logistics",   1)) * 0.15 +

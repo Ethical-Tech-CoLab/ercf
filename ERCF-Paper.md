@@ -171,10 +171,41 @@ dimension is what forces the operation to allocate medical buses and ambulances
 rather than ordinary buses.
 
 4.3 D3, Authorization. Whether the armed parties have consented to civilian
-movement. Note carefully that the scale runs the same direction as the others: a
-high D3 score means authorization is a serious problem, that is, that consent is
-absent or unreliable. Without consent, an evacuation is both unlawful and
-practically blocked.
+movement. Without consent, an evacuation is both unlawful and practically
+blocked.
+
+> **ERRATUM -- D3 scale direction is contradictory in the implementation.**
+> This section previously stated that D3 "runs the same direction as the
+> others: a high D3 score means authorization is a serious problem." That is
+> not what the tool actually does, and the contradiction is unresolved as of
+> this revision. No numbers have been changed pending a decision on which
+> convention is authoritative.
+>
+> The historical case dataset (`historical_data.py`) encodes the **opposite**
+> convention: **low D3 means authorization is absent or blocked**. Every
+> catastrophic case carries a low value -- Aleppo 2.0, and Mariupol,
+> Srebrenica and Gaza at 1.0 to 1.5 -- precisely the cases where consent was
+> the binding constraint. The mortality model is built consistently with the
+> data: the confinement modifier is `(5 - D3) x D4 / 5`, siege detection
+> triggers on `D3 <= 2.0`, and the loss-rate term is commented "lower D3 =
+> more blockade = higher loss rate."
+>
+> Two outputs read D3 the other way and are therefore **known to be
+> unreliable**:
+> - The **composite risk score** adds `D3 x 0.15`, so a case with consent
+>   fully denied contributes 0.15 rather than 0.75. This understates risk
+>   exactly where authorization has failed.
+> - The **Feasibility sub-index** computes `6 - D3` (see 5.4), so Aleppo
+>   scores near the top of the feasibility range despite a blocked corridor.
+>
+> **D7, Information, has the same inversion.** The loss-rate code is
+> commented "lower D7 = harder coordination," and Information Quality is
+> reported as `6 - D7` (see 5.4), both treating low D7 as bad; but the
+> composite adds `D7 x 0.05` as though high D7 were bad.
+>
+> Until this is resolved, the composite risk score and the Feasibility
+> sub-index should not be relied on. The mortality model and the
+> confinement/siege logic are consistent with the dataset and are unaffected.
 
 4.4 D4, Logistics. The state of roads, bridges, vehicles, fuel supply and the
 supporting infrastructure. The project's documentation observes that logistics
@@ -273,7 +304,10 @@ D2 and D6 only, rescaled back onto a 1 to 5 range.
 Feasibility asks whether people can realistically move. It is built from D3, D4 and
 D5, but inverted: because a high D3, D4 or D5 score means bad conditions, each is
 subtracted from 6 before being used, so that a high feasibility number means a
-genuinely open corridor. The resulting labels run from "impossible, corridor blocked
+genuinely open corridor. (For D3 this inversion is contradicted by the dataset and
+by the mortality model, which both treat *low* D3 as the blocked case -- see the
+erratum at 4.3. The Feasibility figure is affected and should not be relied on
+pending resolution. The same caution applies to Information Quality below.) The resulting labels run from "impossible, corridor blocked
 or does not exist" through "severely constrained" and "viable with significant risk"
 to "good, organised corridor with manageable risk".
 
@@ -411,6 +445,32 @@ justifies as the lower bound of the 15 to 20 per cent standard used for high-ris
 projects.
 
 ### 6.6 A worked example, taken from the code
+
+> **ERRATUM -- this worked example does not reconcile with the parameters in
+> 6.1 and 6.2, and has not been regenerated.** No figures below have been
+> changed; the discrepancies are recorded here so the example is not read as
+> authoritative. For 10,000 people with 20 per cent vulnerable (2,000
+> vulnerable) at Level 2:
+>
+> - **Ambulances.** 6.1 gives the current ratio as one per 150 vulnerable,
+>   revised down from an earlier one per 40. The current ratio yields about
+>   13. The example reports 50, which is 2,000 / 40 -- the pre-revision ratio
+>   the paper states was abandoned.
+> - **Medical staff.** 6.2 gives one per 250, corrected upward from one per
+>   500, which yields 40. The example reports 20, which is 10,000 / 500 --
+>   the pre-correction ratio.
+> - **Drivers.** The example computes 310 drivers at 50 US dollars, or
+>   15,500. The personnel subtotal of 34,000 is exactly security (15,000)
+>   plus medical staff (4,000) plus paramedics (15,000), and the transport
+>   line of 92,500 is buses only. The 15,500 of driver cost therefore appears
+>   to be omitted from the 558,775 subtotal.
+>
+> The example appears to have been generated from an earlier released version
+> than the ratios documented in 6.1 and 6.2. Until it is regenerated from the
+> current code with a per-line breakdown (count x unit x multiplier = line
+> total), the 643,000 headline and the 64 US dollars per person figure should
+> be treated as illustrative rather than checkable.
+
 
 For 10,000 people, 20 per cent of them vulnerable, at Level 2, moving 50 kilometres:
 160 standard buses, 100 medical buses and 50 ambulances, 310 vehicles in total; 50
