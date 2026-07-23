@@ -744,6 +744,18 @@ function fmt(v) {
 
 function fmtFull(v) { return Number(v).toLocaleString(); }
 
+function formatCaseDateRange(c) {
+  if (!c.start_date) return '';
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const fmtMonYear = (iso) => {
+    const [y, m] = iso.split('-');
+    return `${MONTHS[parseInt(m, 10) - 1]} ${y}`;
+  };
+  const startLabel = fmtMonYear(c.start_date);
+  if (!c.end_date) return `${startLabel} – ongoing`;
+  return `${startLabel} – ${fmtMonYear(c.end_date)} · ${c.duration_days} days`;
+}
+
 function showToast(msg, type='success') {
   const t = document.getElementById('toast');
   document.getElementById('toastMsg').textContent = msg;
@@ -2746,7 +2758,8 @@ function selectHistCase(id) {
     `<div class="d-flex align-items-center justify-content-between w-100">
        <span><span class="badge ${levelBadgeClass(c.risk_level)} me-1">L${c.risk_level}</span> ${c.name} (${c.year})</span>
        <button onclick="useHistCaseAsScenario(${c.id})" class="btn btn-sm btn-outline-secondary" style="font-size:.7rem;padding:2px 8px;white-space:nowrap;flex-shrink:0;margin-left:.5rem">↗ Use as Scenario</button>
-     </div>`;
+     </div>
+     <div style="font-size:.68rem;color:#94a3b8;margin-top:.15rem">${formatCaseDateRange(c)}</div>`;
 
   renderThreeIndexPanel(c.three_index, document.getElementById('histThreeIndexPanel'));
 
