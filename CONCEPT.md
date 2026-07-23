@@ -79,6 +79,10 @@ Pure analytical models for conflict mortality are structurally unreliable withou
 
 Fund mobilisation decisions frequently involve a comparison between evacuation costs and the cost of maintaining in-zone operations indefinitely. Making this comparison explicit — with real cost components — reduces reliance on intuition and supports evidence-based funding requests.
 
+The evacuation side of this comparison ("Evacuate now") is priced as the **full mobilization cost** — the resources (vehicles, personnel, fuel) an operation stands up regardless of how many people ultimately board, not a marginal cost recomputed for only those who evacuate. This mirrors how evacuation convoys are actually staffed and provisioned in practice, and keeps it consistent with the headline "Evacuation Cost Estimate" figure shown elsewhere in the tool.
+
+The break-even chart also carries a cost-of-delay note: each day of inaction adds the daily in-zone assistance cost to Option B and pushes the break-even point later. This is deliberately framed as an urgency argument, not an alarmist one — the analysis assumes evacuation begins today, and every day it doesn't makes the "stay" option a day more expensive to justify.
+
 ### Why separate evacuation cost from mortality?
 
 Cost and mortality are independent estimates. Cost estimates are substantially more reliable (validated against real operations: Kosovo 1999, Libya 2011, Lebanon 2006). Mortality estimates are calibrated but uncertain. Separating them avoids conflating financial planning with casualty prediction.

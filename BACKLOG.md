@@ -25,6 +25,11 @@
 
 - **Supply price volatility** (was Priority 1) — implemented as the Market Price Adjustment feature: live EIA (Brent crude) + FRED (food basket) commodity prices, `/api/commodity-prices/{iso3}`, applied as a fuel/food cost-adjustment factor.
 - **Walking evacuation integration** (was Priority 2) — walking mode's cost now feeds directly into the headline cost and `updateDecisionAnalysis()` break-even (`static/app.js`), not just its own separate panel.
+- **Transport mode integration** — Ground/Air (fixed-wing)/Air (helicopter)/Walking all now drive the headline cost and Decision Analysis consistently (`static/app.js` `_isAltMode` branching), with a token-guarded fetch to avoid stale-response races between modes.
+- **Vulnerable population retention model** — vulnerable individuals modeled as ~2× less likely to evacuate (ref: AARP/FEMA Post-Katrina 2006; WHO Disability & Disasters 2005), adding a "vulnerable population support" ($2.50/person/day) cost line to the Assistance Cost breakdown.
+- **Emergency extraction rate recalibration** — reduced from a 10–95% range to 1–8% of the remaining population (L1–L4), aligned with documented UNHAS medevac/security-evac share (~0.25% of passengers) instead of conflating "mass extraction operation probability" with "individual medevac need".
+- **Cumulative chart fix** — the "Cumulative Assistance Cost" chart (formerly "Cumulative Financial Cost") now recomputes `calcRemaining()` day-by-day instead of showing only the flat $3.50/day survival baseline, so its final point always matches the Total Assistance Cost figure.
+- **Decision Analysis methodology fix** — "Evacuate now" uses the full mobilization cost (`resources.totalCost`) instead of a marginal per-evacuatedPop recompute, consistent with the headline card; added a cost-of-delay note under the break-even chart.
 
 ## Known Technical Debt
 
