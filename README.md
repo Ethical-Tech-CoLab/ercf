@@ -173,3 +173,19 @@ Developed by Yago Rocha in collaboration with the Microsoft Ethical Tech CoLab. 
 ## License
 
 MIT
+
+---
+
+## Peer Review
+
+The full independent academic peer review of this report is in [PEER-REVIEW.md](PEER-REVIEW.md) (also available as [Word](peer-review/ercf-Peer-Review.docx) under [`peer-review/`](peer-review/)).
+
+**Recommendation:** Major revisions
+
+**What the review found:**
+
+- The D3 (Authorization) scale runs one direction in S4.3/S5.4 and the opposite in S7.2/S8.4/S9.3/S9.4, so a core input may be wired backwards. — **Fixed on `main`.** Commits `465a676` and `7556244` standardised D3, D5 and D7 to run the same direction as the other dimensions (higher is worse) and rescaled `historical_data.py` to match, so the composite risk score and the Feasibility sub-index are now consistent with the dataset and the mortality model.
+- The flagship break-even (S8.2) is driven by the least-evidenced parameters yet delivered as a single point with no uncertainty band (S16.3).
+- The worked example (S6.6) uses pre-revision ratios and omits ~$15,500 of driver cost, so it does not reconcile with S6.1/S6.2. — **Documented, not regenerated.** All three discrepancies (ambulances at the pre-revision 1-per-40, medical staff at the pre-correction 1-per-500, and the omitted driver cost) are itemised in an erratum at S6.6. The $643,000 headline and $64-per-person figure are flagged as illustrative rather than checkable until the example is regenerated from current code.
+
+**Noted strength:** Confidence-tagging of every parameter plus the self-audit in S15 make this an unusually honest, checkable research instrument.

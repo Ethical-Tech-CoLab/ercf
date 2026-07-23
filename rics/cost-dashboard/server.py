@@ -63,7 +63,7 @@ class TrajectoryAReq(BaseModel):
     cohort_count:                 int   = Field(..., gt=0)
     conf_mult:                    float = Field(..., ge=0, le=1)
     tent_lifetime_years_override: float = Field(..., gt=0)
-    funding_shortfall_pct:        float = Field(0.0, ge=0)
+    funding_shortfall_pct:        float = Field(0.0, ge=0, le=1)  # a fraction, not a percentage; the dashboard's 0-100 input is divided by 100 before it gets here
 
 
 class TrajectoryBReq(BaseModel):
