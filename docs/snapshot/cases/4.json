@@ -994,7 +994,7 @@
       "terrain_mult": 1.7,
       "climate_fuel_mult": 1.0,
       "loss_rate": 0.5,
-      "effective_loss_rate": 0.7125,
+      "effective_loss_rate": 0.75,
       "base_extraction_prob": 0.8775,
       "extraction_probability": 0.95,
       "per_person_ground_usd": 40.56,
@@ -1005,7 +1005,7 @@
     "dim_modifiers": {
       "d4_logistics_penalty": 0.4,
       "d3_loss_add": 0.175,
-      "d7_coord_overhead": 0.0375,
+      "d7_coord_overhead": 0.075,
       "d1_extraction_mult": 2.0,
       "d3_extraction_prob_add": 0.1,
       "d6_urgency_floor": 0.85,
@@ -1014,10 +1014,10 @@
       "d5_treatment_cost_mult": 1.225
     },
     "costs_usd": {
-      "supply_delivery": 1711815000.0,
+      "supply_delivery": 1749300000.0,
       "emergency_extraction": 307485360.0,
       "field_medical": 117600000.0,
-      "total": 2136900360.0
+      "total": 2174385360.0
     },
     "intermediates": {
       "raw_supply_before_loss": 999600000.0,
@@ -1025,7 +1025,7 @@
       "vulnerable": 144000,
       "non_vulnerable": 156000,
       "base_survival_cost": 105000000.0,
-      "access_premium": 1606815000.0
+      "access_premium": 1644300000.0
     },
     "source_notes": {
       "base_supply_usd_per_person_day": {

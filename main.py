@@ -1,13 +1,14 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 import asyncio
 import os
+import re
 import uvicorn
 
 from database import init_db, create_scenario, get_scenario, list_scenarios, delete_scenario
@@ -19,8 +20,13 @@ from context_ai import analyze_country
 from weather_data import get_climate_context
 from air_evac import calculate_air_evacuation
 from walking_evac import calculate_walking_evacuation
+import security
 
 app = FastAPI(title="ERCF — Evacuation Risk Classification Framework", version="1.0.0")
+
+# Per-IP rate limiting, paid-API budgets, CORS allowlist and (opt-in) API_KEY
+# auth. Safe defaults — no configuration required. See security.py.
+security.install(app)
 
 
 # ─── Pydantic models ────────────────────────────────────────────────────────
@@ -171,13 +177,17 @@ async def historical_one(cid: int):
 
 # ─── GeoNames city population lookup ─────────────────────────────────────────
 
-GEONAMES_USERNAME = os.getenv("GEONAMES_USERNAME", "demo")
+# No "demo" fallback: the shared demo account is globally rate-limited, so lookups
+# fail silently and callers cannot tell a bad city name from an exhausted quota.
+GEONAMES_USERNAME = os.getenv("GEONAMES_USERNAME", "")
 
 @app.get("/api/city-population/{city_name}")
 async def city_population(city_name: str):
     import urllib.request, urllib.parse, json as _json
+    if not GEONAMES_USERNAME:
+        raise HTTPException(503, "GeoNames lookup unavailable: GEONAMES_USERNAME is not configured")
     url = (
-        f"http://api.geonames.org/searchJSON"
+        f"https://secure.geonames.org/searchJSON"
         f"?q={urllib.parse.quote(city_name)}"
         f"&maxRows=20&featureClass=P&orderby=population"
         f"&username={GEONAMES_USERNAME}"
@@ -468,13 +478,28 @@ async def iso_lookup():
     return NUM_TO_ISO3
 
 
+_COUNTRY_NAME_RE = re.compile(r"[^\w \-'().,]", re.UNICODE)
+
 class CountryContextReq(BaseModel):
-    iso3: str
+    iso3: str = Field(..., pattern=r"^[A-Za-z]{3}$")
     country_name: Optional[str] = ""
 
+    @field_validator("country_name")
+    @classmethod
+    def _clean_name(cls, v: Optional[str]) -> str:
+        """Strip anything that isn't plausible in a country name before it is
+        embedded in an LLM prompt (prompt-injection / markup defence)."""
+        if not v:
+            return ""
+        return _COUNTRY_NAME_RE.sub(" ", v).strip()[:60]
+
 @app.post("/api/country-context")
-async def country_context(body: CountryContextReq):
-    return analyze_country(body.iso3.upper(), body.country_name or "")
+async def country_context(body: CountryContextReq, request: Request):
+    # Anonymous callers get a capped number of paid Anthropic calls; beyond
+    # that the free static analysis is served instead of erroring.
+    allow_ai = security.llm_budget_ok(request)
+    return analyze_country(body.iso3.upper(), body.country_name or "",
+                           allow_ai=allow_ai)
 
 
 # ─── ACAPS live crisis data ──────────────────────────────────────────────────

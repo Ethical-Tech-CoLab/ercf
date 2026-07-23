@@ -87,6 +87,24 @@ from typing import Optional
 from parameter_registry import PARAMETER_REGISTRY, uncertainty_pct
 
 
+# Hard ceiling on the uncertainty half-width. The band is base_pct × (2 − confMult),
+# so an 'unvalidated' parameter (base 0.60) exceeds 1.0 once confMult < 0.333 — and
+# confMult legitimately reaches 0 from the dashboard's uncertainty slider (confMult =
+# 1 − uncertainty). Without this clamp the low bound goes negative, which (a) breaks
+# _mul()'s interval arithmetic, valid only for strictly positive quantities because it
+# divides by the lo/hi terms, and (b) silently drives breakeven_year_high to None.
+# Capped strictly below 1.0 so every low bound stays positive. Not a calibrated figure —
+# a guard rail: at maximum ignorance the band is [5% × point, 195% × point].
+MAX_UNCERTAINTY_PCT = 0.95
+
+# Ceiling on the funding-shortfall multiplier (1 + shortfall) ** alpha. funding_shortfall_pct
+# is bounded to [0,1] below, but rics_funding_shortfall_alpha is uncalibrated (value None
+# today), so once it is fitted an unexpectedly large alpha — or its widened high bound —
+# could still inflate Trajectory A without limit. Also a guard rail, not a calibrated
+# figure: funding shortfall alone may at most double per-person cost.
+MAX_FUNDING_SHORTFALL_MULT = 2.0
+
+
 def _bounds(key: str, conf_mult: float):
     """(point, low, high) for a registry parameter under confMult. Raises if the
     registry value is None — callers must supply an explicit override rather than
@@ -98,7 +116,7 @@ def _bounds(key: str, conf_mult: float):
             f"parameter_registry['{key}'] has no value yet (tag={entry['tag']}, "
             f"source={entry['source']!r}) — supply an explicit override, do not assume a figure."
         )
-    pct = uncertainty_pct(key) * (2 - conf_mult)
+    pct = min(uncertainty_pct(key) * (2 - conf_mult), MAX_UNCERTAINTY_PCT)
     return point, point * (1 - pct), point * (1 + pct)
 
 
@@ -106,7 +124,7 @@ def _override_bounds(value: float, conf_mult: float, base_uncertainty_pct: float
     """Same shape as _bounds() for a caller-supplied override not yet in the registry.
     Defaults to the 'unvalidated' band width (60%) since anything not in the registry
     is by definition not yet validated."""
-    pct = base_uncertainty_pct * (2 - conf_mult)
+    pct = min(base_uncertainty_pct * (2 - conf_mult), MAX_UNCERTAINTY_PCT)
     return value, value * (1 - pct), value * (1 + pct)
 
 
@@ -160,6 +178,8 @@ def compute_trajectory_a(
 ) -> TrajectoryAResult:
     if not (0.0 <= conf_mult <= 1.0):
         raise ValueError("conf_mult must be in [0,1] (1 - uncertaintyLevel, shared with Layer 2/3)")
+    if not (0.0 <= funding_shortfall_pct <= 1.0):
+        raise ValueError("funding_shortfall_pct must be in [0,1] (a fraction, not a percentage)")
 
     water_qty   = _bounds("water_l_per_person_day", conf_mult)
     water_price = _bounds("water_usd_per_l", conf_mult)
@@ -192,9 +212,9 @@ def compute_trajectory_a(
     calibrated = alpha_entry["value"] is not None
     if calibrated:
         alpha = _bounds("rics_funding_shortfall_alpha", conf_mult)
-        mult_point = (1 + funding_shortfall_pct) ** alpha[0]
-        mult_low = (1 + funding_shortfall_pct) ** alpha[1]
-        mult_high = (1 + funding_shortfall_pct) ** alpha[2]
+        mult_point = min((1 + funding_shortfall_pct) ** alpha[0], MAX_FUNDING_SHORTFALL_MULT)
+        mult_low = min((1 + funding_shortfall_pct) ** alpha[1], MAX_FUNDING_SHORTFALL_MULT)
+        mult_high = min((1 + funding_shortfall_pct) ** alpha[2], MAX_FUNDING_SHORTFALL_MULT)
         per_person = _mul((*pre_mult_total, 1), (mult_point, mult_low, mult_high, 1))
     else:
         per_person = pre_mult_total  # multiplier=1.0, flagged via calibrated=False

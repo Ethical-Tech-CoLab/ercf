@@ -458,8 +458,8 @@ has any published anchor: OCHA monitoring of Gaza during the ceasefire period in
 2025 recorded under two per cent of cargo looted or intercepted under active
 monitoring, and the model uses 5 per cent as a planning buffer including spoilage.
 The three higher figures are internal planning estimates with no published equivalent
-that the author could find. A low D3, meaning consent is absent, adds further to the
-loss rate, and a low D7, meaning poor information, adds a coordination overhead.
+that the author could find. A high D3, meaning consent is absent, adds further to the
+loss rate, and a high D7, meaning poor information, adds a coordination overhead.
 
 7.3 Emergency extraction. The model assumes that some proportion of the population
 will have to be pulled out in an emergency at some point, and prices that in advance.
@@ -471,7 +471,7 @@ Aleppo in 2016; the Level 3 figure from Mosul, Goma and the Central African Repu
 The Level 2 and Level 1 figures have no historical anchor at all and are described as
 structurally plausible interpolations that require validation. The curve is capped at
 95 per cent for Level 4, 80 for Level 3, 60 for Level 2 and 30 for Level 1. Two
-modifiers then apply: a blocked corridor, meaning a low D3, raises the probability,
+modifiers then apply: a blocked corridor, meaning a high D3, raises the probability,
 and high urgency imposes a floor, 85 per cent when D6 is 5 and 60 per cent when D6 is
 4. The floor exists because of Srebrenica, where the crisis unfolded over three days
 and no duration-based curve would have registered it.
@@ -528,7 +528,7 @@ warning: ground transport with a D4 of 4.0 or above, which indicates logistics
 breakdown; ground transport with a D1 of 4.5 or above, which indicates unacceptable
 kinetic exposure; walking with a population above 5,000, which is infeasible at
 scale; walking with a D2 of 3.5 or above, which means the population cannot walk; and
-air transport with a D3 of 2.0 or below, which means airspace authorization is
+air transport with a D3 of 4.0 or above, which means airspace authorization is
 missing. These are useful precisely because a cost model will happily produce a
 plausible-looking figure for an operation that could never be attempted.
 
@@ -555,7 +555,7 @@ lower. The ordering was produced by the fitting procedure rather than assumed, a
 the author flags it explicitly as empirically validated but counterintuitive.
 
 9.3 The confinement multiplier. This captures whether people are trapped. It is
-calculated as (5 minus D3) times D4, divided by 5. In plain words: when consent for
+calculated as (D3 minus 1) times D4, divided by 5. In plain words: when consent for
 movement is absent and logistics have collapsed at the same time, people cannot get
 out, and mortality rises sharply. The resulting score is converted into a multiplier
 in steps: half at the lowest, then 1, then 2, then 4, then 8 at the highest. An
@@ -568,7 +568,7 @@ evacuation, which had an open corridor, at 0.5.
 the remaining exposure is lower. The tool reduces the death rate by 60 per cent of the
 share that has departed. The 60 per cent coefficient, rather than 100, reflects that
 displaced people still face risk on the road, at checkpoints and from exposure. There
-is then an important refinement: in a siege, defined as a D3 of 2 or below combined
+is then an important refinement: in a siege, defined as a D3 of 4 or above combined
 with a D1 of 4 or above and a population of 500,000 or fewer, the coefficient is
 halved to 30 per cent. The reasoning is that in an encircled city, movement itself is
 lethal, because civilians pass checkpoints under fire and buses have been attacked.

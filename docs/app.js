@@ -407,7 +407,8 @@ function calcResources(pop, vulPct, riskLevel, distKm, d2Mobility, terrain, clim
   // WATER_L_PER_PERSON updated 15 → 20 (Tavily validation June 2026)
   // UNHCR full standard: 20 L/person/day; Sphere 2018 emergency minimum: 7.5-15 L
   const waterL  = pop * 3 * 20;
-  const D5_TENT_MULT = {5: 0.5, 4: 0.75, 3: 1.0, 2: 1.5, 1: 2.0};
+  // D5 runs 1 = destination fully equipped -> 5 = destination unsafe/non-existent
+  const D5_TENT_MULT = {1: 0.5, 2: 0.75, 3: 1.0, 4: 1.5, 5: 2.0};
   const d5TentMult = D5_TENT_MULT[Math.round(d5)] ?? 1.0;
   const tents   = Math.ceil((pop / 5) * d5TentMult);
   const radios  = Math.ceil(totVeh / 5) + 5;
@@ -448,7 +449,7 @@ function calcResources(pop, vulPct, riskLevel, distKm, d2Mobility, terrain, clim
     supplies:  { fuelL: Math.round(fuelL), foodKg: Math.round(foodKg), waterL: Math.round(waterL), tents, radios },
     costs: c,
     totalCost: total,
-    cpp: Math.round(total / pop),
+    cpp: pop > 0 ? Math.round(total / pop) : 0,
   };
 }
 
@@ -501,7 +502,7 @@ function calcInjuries(pop, riskLevel, days) {
 // Mirrors calculate_staying_costs() v4 in calculators.py — must stay in sync.
 // v2: empirical base rates, D3×D4 confinement modifier, displacement protection.
 // v3: geographic exposure factor (conflict pattern × population dispersion).
-// v4: siege protection cap (D3≤2 AND D1≥4 → max 0.30); steeper log falloff (^1.4).
+// v4: siege protection cap (D3≥4 AND D1≥4 → max 0.30); steeper log falloff (^1.4).
 // ─────────────────────────────────────────────────────────────────────────────
 function calcStay(pop, riskLevel, maxDays, dims, remainingPct = 1.0, exposureFactor = 1.0, siegeCapEnabled = true) {
   const base     = [1.0, 2.0, 3.5, 6.0, 12.0][riskLevel];
@@ -520,7 +521,9 @@ function calcStay(pop, riskLevel, maxDays, dims, remainingPct = 1.0, exposureFac
     d4Val = dims.d4_logistics ?? dims.d4 ?? 3.0;
     d6Val = dims.d6_urgency   ?? dims.d6 ?? 3.0;
     const d4 = d4Val;
-    const cs = (5.0 - d3Val) * d4Val / 5.0;
+    // D3 runs 1 = full consent → 5 = active refusal (see the D3 scale criteria in
+    // index.html and calculators.py's WEIGHTS block): confinement rises with D3.
+    const cs = (d3Val - 1.0) * d4Val / 5.0;
     if      (cs <= 1) confMult = 0.5;
     else if (cs <= 2) confMult = 1.0;
     else if (cs <= 3) confMult = 2.0;
@@ -529,13 +532,13 @@ function calcStay(pop, riskLevel, maxDays, dims, remainingPct = 1.0, exposureFac
   }
 
   // v4: siege protection cap — displacement under fire is only half as safe.
-  // Requires pop ≤ 500k: large populations with D3=1 reflect regional access denial,
+  // Requires pop ≤ 500k: large populations with D3=5 reflect regional access denial,
   // not urban encirclement. exposureFactor proxy for conflict type: named regional
   // (0.12) and city_conflict (0.40) thresholds disable the cap via caller.
   // In auto mode, the state.conflictType guard is applied in computeExposureFactor;
   // here we use population size as the sole runtime discriminator.
   const rp             = Math.max(0, Math.min(1, remainingPct ?? 1.0));
-  const isSiege        = siegeCapEnabled && (d3Val <= 2.0 && d1Val >= 4.0 && pop <= 500000);
+  const isSiege        = siegeCapEnabled && (d3Val >= 4.0 && d1Val >= 4.0 && pop <= 500000);
   const maxProtection  = isSiege ? 0.30 : 0.60;
   const protectionFactor = (1 - rp) * maxProtection;
   // Geographic exposure factor (v3/v4)
@@ -577,17 +580,19 @@ function calcRemaining(pop, vulPct, riskLevel, days, distKm, dims, terrain, clim
   // ── Dimension modifiers ──────────────────────────────────────────────────
   // D4 Logistics: higher D4 = harder delivery = supply cost multiplier
   const d4Penalty  = d.d4 <= 3 ? (d.d4 - 1) * 0.10 : 0.20 + (d.d4 - 3) * 0.20;
-  // D3 Authorization: lower D3 = more blockade/seizure = higher loss rate
-  const d3LossAdd  = d.d3 >= 3 ? (5 - d.d3) * 0.05 : 0.10 + (3 - d.d3) * 0.075;
-  // D7 Information: lower D7 = harder coordination = supply overhead
-  const d7Overhead = d.d7 >= 3 ? (5 - d.d7) * 0.025 : 0.05 + (3 - d.d7) * 0.05;
+  // D3 Authorization: higher D3 = consent absent/refused = more blockade/seizure = higher loss rate
+  const d3LossAdd  = d.d3 <= 3 ? (d.d3 - 1) * 0.05 : 0.10 + (d.d3 - 3) * 0.075;
+  // D7 Information: higher D7 = worse information environment = harder coordination
+  // (D7 runs 1 = reliable comms -> 5 = complete blackout, same direction as the others)
+  const d7Overhead = d.d7 <= 3 ? (d.d7 - 1) * 0.025 : 0.05 + (d.d7 - 3) * 0.05;
 
   // D1 Kinetic: higher D1 = more dangerous = extraction difficulty multiplier
   const d1ExtMult  = d.d1 <= 3 ? 1.0 + (d.d1 - 1) * 0.15 : 1.3 + (d.d1 - 3) * 0.35;
 
-  // D5 Destination: lower D5 = fewer medical resources = higher cost per injury
+  // D5 Destination: higher D5 = destination overwhelmed/unsafe = fewer medical resources
+  // on arrival = higher cost per injury (1 = fully equipped -> 5 = unsafe/non-existent)
   // (D2/D1 injury-count multipliers removed — WHO rates already represent typical populations)
-  const d5CostMult = d.d5 >= 3 ? 1.0 + (5 - d.d5) * 0.15 : 1.3 + (3 - d.d5) * 0.35;
+  const d5CostMult = d.d5 <= 3 ? 1.0 + (d.d5 - 1) * 0.15 : 1.3 + (d.d5 - 3) * 0.35;
 
   // ── Component 1: in-situ supply ─────────────────────────────────────────
   const effectiveAccessMult = accessMult * (1 + d4Penalty);
@@ -629,8 +634,8 @@ function calcRemaining(pop, vulPct, riskLevel, days, distKm, dims, terrain, clim
   // Scaled ÷10 versus the pre-recalibration increments (Mariupol/Aleppo/Kosovo anchors below
   // are the original 10-95%-scale figures) to stay proportionate within the new 1-8% range —
   // the underlying D3 relationship is unchanged.
-  // Gentler slope than supply correction; anchored by Mariupol (D3=1.5→+12.5%), Kosovo (D3=2→+10%)
-  const d3ProbAdd  = d.d3 >= 3 ? (5 - d.d3) * 0.0025 : 0.005 + (3 - d.d3) * 0.005;
+  // Gentler slope than supply correction; anchored by Mariupol (D3=4.5→+12.5%), Kosovo (D3=4→+10%)
+  const d3ProbAdd  = d.d3 <= 3 ? (d.d3 - 1) * 0.0025 : 0.005 + (d.d3 - 3) * 0.005;
   // D6 Urgency floor: scaled ÷10 for the same reason as d3ProbAdd above.
   // Srebrenica (D6=5, 3 days) → 85% floor; Kherson/Mosul/CAR (D6=4) → 60%
   const d6FloorVal = d.d6 >= 5 ? 0.085 : d.d6 >= 4 ? 0.06 : 0.0;
@@ -699,6 +704,35 @@ function reinitTooltips(root = document) {
   root.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el =>
     bootstrap.Tooltip.getOrCreateInstance(el)
   );
+}
+
+// ── Escaping ────────────────────────────────────────────────
+// Anything that reaches the DOM from an API, a dataset or the LLM is
+// untrusted and MUST go through esc() before being interpolated into an
+// innerHTML template. Model output is untrusted by definition: the prompt
+// embeds caller-supplied text, so it can be coerced into emitting markup.
+function esc(v) {
+  if (v === null || v === undefined) return '';
+  return String(v)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Escape an untrusted URL for use in href/src — anything that isn't plain
+// http(s) (javascript:, data:, vbscript:, …) is dropped.
+function safeUrl(v) {
+  if (!v) return '';
+  const s = String(v).trim();
+  try {
+    const u = new URL(s, window.location.origin);
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return '';
+    return esc(u.href);
+  } catch (e) {
+    return '';
+  }
 }
 
 function fmt(v) {
@@ -1499,7 +1533,7 @@ function getTransportWarnings(mode, dims, population) {
       text: 'Mobility constraints (D2≥3.5) indicate significant proportion of wounded/bedridden — walking evacuation not suitable for this vulnerability profile.',
     });
   }
-  if ((mode === 'air_fixed' || mode === 'air_heli') && d3 <= 2.0) warnings.push({
+  if ((mode === 'air_fixed' || mode === 'air_heli') && d3 >= 4.0) warnings.push({
     priority: 1,
     text: 'Air evacuation requires airspace authorization — D3 indicates limited or absent party consent. Verify airspace clearance before planning air operations.',
   });
@@ -2284,7 +2318,7 @@ function updateRemainingCostCard(rc, fullEvacCost) {
       icon: 'fa-kit-medical',
       label: `Field medical treatment <span style="font-weight:400;color:#64748b">(${fmtFull(Math.round(rc.cumInjuries))} injuries × $${Math.round(rc.treatCostPer).toLocaleString()}${dimTag(medDimParts)})</span>`,
       value: '$' + fmt(rc.medCost),
-      tip:   `Base $800/injury. Peer-reviewed range: $211–$1,013 (MSF Nigeria 2009, inflation-adjusted to 2024 USD). $800 adopted as conservative upper-mid estimate. ICRC per-patient surgical cost data not publicly available. (ref: Chu et al. 2010, Conflict & Health; MSF Nigeria field reports). D5 destination multiplies cost/injury ×1.0–2.0 (no medical infrastructure at D5=1).`,
+      tip:   `Base $800/injury. Peer-reviewed range: $211–$1,013 (MSF Nigeria 2009, inflation-adjusted to 2024 USD). $800 adopted as conservative upper-mid estimate. ICRC per-patient surgical cost data not publicly available. (ref: Chu et al. 2010, Conflict & Health; MSF Nigeria field reports). D5 destination multiplies cost/injury ×1.0–2.0 (no medical infrastructure at D5=5).`,
     },
     {
       cls:  'rc-vulnerable',
@@ -4765,10 +4799,10 @@ async function loadCountryContext(iso3, name) {
   const ctxHeader = document.getElementById('ctxHeader');
   ctxHeader.innerHTML = `
     <div>
-      <span class="badge me-1" style="background:${color};font-size:.7rem">LEVEL ${lvl}</span>
-      <strong style="font-size:.88rem">${name}</strong>
+      <span class="badge me-1" style="background:${color};font-size:.7rem">LEVEL ${esc(lvl)}</span>
+      <strong style="font-size:.88rem">${esc(name)}</strong>
     </div>
-    <span class="badge bg-light text-dark acaps-badge">INFORM ${d.inform_score ?? '—'}/5</span>
+    <span class="badge bg-light text-dark acaps-badge">INFORM ${esc(d.inform_score ?? '—')}/5</span>
   `;
 
   const WORLD_MAP_DECISIONS = {
@@ -4829,8 +4863,8 @@ function renderAcapsSection(acaps) {
     return '<span class="text-muted" style="font-size:.72rem">ACAPS API not available.</span>';
   }
   if (acaps.error) {
-    const note = acaps._note ? `<br><span style="font-size:.65rem">${acaps._note}</span>` : '';
-    return `<span class="text-muted" style="font-size:.72rem">${acaps.error}${note}</span>`;
+    const note = acaps._note ? `<br><span style="font-size:.65rem">${esc(acaps._note)}</span>` : '';
+    return `<span class="text-muted" style="font-size:.72rem">${esc(acaps.error)}${note}</span>`;
   }
   const results = Array.isArray(acaps.results) ? acaps.results : [];
   if (!results.length) {
@@ -4845,13 +4879,13 @@ function renderAcapsSection(acaps) {
     const type     = c.crisis_type   ?? '';
     return `
       <div style="font-size:.74rem;padding:.35rem .5rem;background:#f0f9ff;border:1px solid #bae6fd;border-left:3px solid #0ea5e9;border-radius:0 6px 6px 0;margin-bottom:.3rem;">
-        <div class="fw-semibold">${crisis}</div>
+        <div class="fw-semibold">${esc(crisis)}</div>
         <div class="d-flex gap-3 flex-wrap mt-1">
-          ${score    != null ? `<span>INFORM: <strong>${score}/5</strong></span>` : ''}
-          ${affected != null ? `<span>Affected: <strong>${fmt(affected)}</strong></span>` : ''}
-          ${type              ? `<span class="text-muted">${type}</span>` : ''}
+          ${score    != null ? `<span>INFORM: <strong>${esc(score)}/5</strong></span>` : ''}
+          ${affected != null ? `<span>Affected: <strong>${esc(fmt(affected))}</strong></span>` : ''}
+          ${type              ? `<span class="text-muted">${esc(type)}</span>` : ''}
         </div>
-        ${updated ? `<div class="text-muted mt-1" style="font-size:.65rem">Updated: ${updated}</div>` : ''}
+        ${updated ? `<div class="text-muted mt-1" style="font-size:.65rem">Updated: ${esc(updated)}</div>` : ''}
       </div>`;
   }).join('');
 }
@@ -4879,8 +4913,8 @@ function renderAcapsLiveData(live) {
         <div class="fw-semibold mb-1" style="color:#374151">INFORM Severity</div>
         ${live.inform.map(r => `
           <div class="d-flex align-items-center gap-2 mb-1">
-            <span class="badge" style="background:${scoreColor};font-size:.65rem;min-width:2.4rem">${r.inform_severity_score ?? '—'}/5</span>
-            <span>${r.crisis_name || '—'}</span>
+            <span class="badge" style="background:${scoreColor};font-size:.65rem;min-width:2.4rem">${esc(r.inform_severity_score ?? '—')}/5</span>
+            <span>${esc(r.crisis_name || '—')}</span>
           </div>`).join('')}
       </div>`);
   }
@@ -4894,8 +4928,8 @@ function renderAcapsLiveData(live) {
       <div class="mb-2" style="font-size:.73rem">
         <div class="fw-semibold mb-1" style="color:#374151">Humanitarian Access</div>
         <div class="d-flex align-items-center gap-2">
-          <span class="badge" style="background:${ac};font-size:.65rem;min-width:2.4rem">${sc ?? '—'}/5</span>
-          ${a.weighted_score != null ? `<span class="text-muted">weighted: ${a.weighted_score}</span>` : ''}
+          <span class="badge" style="background:${ac};font-size:.65rem;min-width:2.4rem">${esc(sc ?? '—')}/5</span>
+          ${a.weighted_score != null ? `<span class="text-muted">weighted: ${esc(a.weighted_score)}</span>` : ''}
         </div>
       </div>`);
   }
@@ -4908,13 +4942,13 @@ function renderAcapsLiveData(live) {
       return `
         <div style="font-size:.72rem;padding:.3rem .45rem;background:#fff7ed;border-left:3px solid #f97316;border-radius:0 4px 4px 0;margin-bottom:.25rem;">
           <div class="d-flex justify-content-between align-items-start gap-1">
-            <span class="fw-semibold" style="flex:1">${r.risk_title || '—'}</span>
-            <span class="badge ms-1" style="background:${lvlColor};font-size:.6rem;white-space:nowrap">${r.risk_level || '?'}</span>
+            <span class="fw-semibold" style="flex:1">${esc(r.risk_title || '—')}</span>
+            <span class="badge ms-1" style="background:${lvlColor};font-size:.6rem;white-space:nowrap">${esc(r.risk_level || '?')}</span>
           </div>
           <div class="d-flex gap-2 mt-1 text-muted" style="font-size:.65rem">
-            ${trendIcon ? `<span>Trend: <strong>${trendIcon} ${r.risk_trend}</strong></span>` : ''}
-            ${r.probability  != null ? `<span>Prob: ${r.probability}</span>`  : ''}
-            ${r.impact       != null ? `<span>Impact: ${r.impact}</span>`     : ''}
+            ${trendIcon ? `<span>Trend: <strong>${trendIcon} ${esc(r.risk_trend)}</strong></span>` : ''}
+            ${r.probability  != null ? `<span>Prob: ${esc(r.probability)}</span>`  : ''}
+            ${r.impact       != null ? `<span>Impact: ${esc(r.impact)}</span>`     : ''}
           </div>
         </div>`;
     }).join('');
@@ -4932,8 +4966,8 @@ function renderAcapsLiveData(live) {
     parts.push(`
       <div class="mb-1" style="font-size:.72rem">
         <span class="fw-semibold" style="color:#374151">Active Crises:</span>
-        <span class="badge bg-danger ms-1" style="font-size:.65rem">${count}</span>
-        <div class="text-muted mt-1">${names}</div>
+        <span class="badge bg-danger ms-1" style="font-size:.65rem">${esc(count)}</span>
+        <div class="text-muted mt-1">${esc(names)}</div>
       </div>`);
   }
 
@@ -4948,48 +4982,50 @@ function renderContextPanel(iso3, name, lvl, color, sd, ctx, acaps, live, ucdp) 
   const dimLabels = ['D1 Kinetic','D2 Vulnerability','D3 Authorization','D4 Logistics','D5 Destination','D6 Urgency','D7 Information'];
   const ds = ctx.dimension_scores || {};
 
+  // ctx is model output and sd/acaps/live/ucdp are third-party API payloads —
+  // all untrusted. Every interpolation below goes through esc().
   const dimBars = dimKeys.map((k, i) => {
-    const v   = ds[k] || 1;
+    const v   = Number(ds[k]) || 1;
     const pct = (v - 1) / 4 * 100;
     const c   = v >= 4.5 ? '#ef4444' : v >= 3.5 ? '#f97316' : v >= 2.5 ? '#f59e0b' : v >= 1.5 ? '#0ea5e9' : '#6c757d';
     return `<div class="mb-1">
       <div class="d-flex justify-content-between" style="font-size:.68rem">
-        <span>${dimLabels[i]}</span><span class="fw-bold">${v}</span>
+        <span>${dimLabels[i]}</span><span class="fw-bold">${esc(v)}</span>
       </div>
       <div class="ctx-dim-bar"><div class="ctx-dim-fill" style="width:${pct}%;background:${c}"></div></div>
     </div>`;
   }).join('');
 
-  const routes    = (ctx.exit_routes || sd.exit_routes || []).map(r => `<span class="route-pill">🛣️ ${r}</span>`).join('');
-  const actors    = (ctx.humanitarian_actors || sd.actors || []).map(a => `<span class="actor-pill">${a}</span>`).join('');
-  const obstacles = (ctx.main_obstacles || []).map(o => `<div class="obstacle-item">⚠️ ${o}</div>`).join('');
+  const routes    = (ctx.exit_routes || sd.exit_routes || []).map(r => `<span class="route-pill">🛣️ ${esc(r)}</span>`).join('');
+  const actors    = (ctx.humanitarian_actors || sd.actors || []).map(a => `<span class="actor-pill">${esc(a)}</span>`).join('');
+  const obstacles = (ctx.main_obstacles || []).map(o => `<div class="obstacle-item">⚠️ ${esc(o)}</div>`).join('');
 
   const aiNote = ctx._ai_note
-    ? `<div class="alert alert-info py-1 mb-2" style="font-size:.7rem"><i class="fas fa-info-circle me-1"></i>${ctx._ai_note}</div>`
+    ? `<div class="alert alert-info py-1 mb-2" style="font-size:.7rem"><i class="fas fa-info-circle me-1"></i>${esc(ctx._ai_note)}</div>`
     : ctx._source === 'claude-haiku-4-5'
       ? `<div class="alert alert-success py-1 mb-2" style="font-size:.7rem"><i class="fas fa-robot me-1"></i>AI analysis (Claude Haiku)</div>`
       : '';
 
   document.getElementById('ctxBody').innerHTML = `
     ${aiNote}
-    <p style="font-size:.78rem">${ctx.summary || sd.crisis || '—'}</p>
+    <p style="font-size:.78rem">${esc(ctx.summary || sd.crisis || '—')}</p>
 
     <div class="row g-2 mb-2">
       <div class="col-6"><div class="stat-mini text-center">
-        <div class="val" style="font-size:1rem">${fmt(ctx.population_at_risk || sd.pop_at_risk || 0)}</div>
+        <div class="val" style="font-size:1rem">${esc(fmt(Number(ctx.population_at_risk) || sd.pop_at_risk || 0))}</div>
         <div class="lbl">Pop. at Risk</div>
       </div></div>
       <div class="col-6"><div class="stat-mini text-center">
-        <div class="val" style="font-size:1rem">${fmt(sd.displaced || 0)}</div>
+        <div class="val" style="font-size:1rem">${esc(fmt(sd.displaced || 0))}</div>
         <div class="lbl">Displaced</div>
       </div></div>
     </div>
 
     <div class="mb-2" style="font-size:.75rem">
-      <strong>Conflict type:</strong> ${ctx.conflict_type || sd.conflict_type || '—'}<br>
-      <strong>Access:</strong> ${ctx.humanitarian_access || sd.access_label || '—'}
+      <strong>Conflict type:</strong> ${esc(ctx.conflict_type || sd.conflict_type || '—')}<br>
+      <strong>Access:</strong> ${esc(ctx.humanitarian_access || sd.access_label || '—')}
       <span class="badge ms-1" style="background:${CHORO_COLORS[ctx.access_score ?? lvl]||'#ccc'};font-size:.62rem">
-        Score ${ctx.access_score ?? sd.access ?? '?'}/5
+        Score ${esc(ctx.access_score ?? sd.access ?? '?')}/5
       </span>
     </div>
 
@@ -5046,7 +5082,7 @@ function renderContextPanel(iso3, name, lvl, color, sd, ctx, acaps, live, ucdp) 
     </div>` : ''}
 
     <div class="mb-2" style="font-size:.73rem">
-      <strong>IHL Framework:</strong> ${ctx.ihl_framework || '—'}
+      <strong>IHL Framework:</strong> ${esc(ctx.ihl_framework || '—')}
     </div>
 
     <div class="mb-2">
@@ -5063,13 +5099,13 @@ function renderContextPanel(iso3, name, lvl, color, sd, ctx, acaps, live, ucdp) 
         </div>
         <div style="background:#f0f8ff;border:1px solid #a8d4f0;border-left:3px solid #009EDB;border-radius:4px;padding:.4rem .6rem;font-size:.72rem">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:.2rem .8rem;margin-bottom:.3rem">
-            <span><strong>Events:</strong> ${ucdp.total_events.toLocaleString()}</span>
-            <span><strong>One-sided:</strong> ${ucdp.one_sided_events.toLocaleString()}</span>
-            <span><strong>Civilian deaths (floor):</strong> ${(ucdp.deaths_civilians_explicit||0).toLocaleString()}</span>
-            <span><strong>Total best:</strong> ${(ucdp.total_best||0).toLocaleString()}</span>
+            <span><strong>Events:</strong> ${esc(ucdp.total_events.toLocaleString())}</span>
+            <span><strong>One-sided:</strong> ${esc(ucdp.one_sided_events.toLocaleString())}</span>
+            <span><strong>Civilian deaths (floor):</strong> ${esc((ucdp.deaths_civilians_explicit||0).toLocaleString())}</span>
+            <span><strong>Total best:</strong> ${esc((ucdp.total_best||0).toLocaleString())}</span>
           </div>
           <div style="font-size:.68rem;color:#4a5568">
-            <strong>Range:</strong> ${ucdp.uncertainty_range||'—'}
+            <strong>Range:</strong> ${esc(ucdp.uncertainty_range||'—')}
           </div>
           ${ucdp.total_best === 0 ? '<div style="color:#6b7280;font-size:.68rem;margin-top:.2rem">No conflict events recorded in UCDP for this period.</div>' : ''}
         </div>
@@ -5082,11 +5118,11 @@ function renderContextPanel(iso3, name, lvl, color, sd, ctx, acaps, live, ucdp) 
     <div class="mb-2">
       <button class="btn btn-sm w-100 d-flex justify-content-between align-items-center py-1 px-2"
         style="background:#f0f9ff;border:1px solid #bae6fd;font-size:.73rem;font-weight:700;color:#0369a1"
-        type="button" data-bs-toggle="collapse" data-bs-target="#acapsLiveCollapse-${iso3}" aria-expanded="false">
+        type="button" data-bs-toggle="collapse" data-bs-target="#acapsLiveCollapse-${esc(iso3)}" aria-expanded="false">
         <span><i class="fas fa-satellite-dish me-1"></i>ACAPS LIVE DATA</span>
         <i class="fas fa-chevron-down" style="font-size:.6rem"></i>
       </button>
-      <div class="collapse" id="acapsLiveCollapse-${iso3}">
+      <div class="collapse" id="acapsLiveCollapse-${esc(iso3)}">
         <div style="border:1px solid #bae6fd;border-top:none;border-radius:0 0 6px 6px;padding:.5rem .5rem .25rem">
           ${renderAcapsLiveData(live)}
         </div>
@@ -5094,12 +5130,12 @@ function renderContextPanel(iso3, name, lvl, color, sd, ctx, acaps, live, ucdp) 
     </div>
 
     <div class="d-grid gap-1 mt-3">
-      <button class="btn btn-primary btn-sm" onclick="buildScenarioFromCountry('${iso3}')">
+      <button class="btn btn-primary btn-sm" onclick="buildScenarioFromCountry('${esc(String(iso3).replace(/[^A-Za-z0-9]/g, ''))}')">
         <i class="fas fa-sliders me-1"></i>Build Scenario from this Country
       </button>
     </div>
     <div class="text-muted mt-2" style="font-size:.65rem">
-      Source: ${sd.source || 'ACAPS/INFORM'} · ${ctx.last_updated || 'June 2025'}
+      Source: ${esc(sd.source || 'ACAPS/INFORM')} · ${esc(ctx.last_updated || 'June 2025')}
     </div>
   `;
 
@@ -5125,7 +5161,7 @@ async function buildScenarioFromCountry(iso3) {
   let ds = {
     d1_kinetic:       lvl===4?5 : lvl===3?4 : lvl===2?3 : lvl===1?2 : 1,
     d2_vulnerability: 3,
-    d3_political:     5 - lvl,
+    d3_political:     1 + lvl,
     d4_logistics:     lvl===4?4 : lvl===3?3.5 : 2.5,
     d5_destination:   3,
     d6_urgency:       lvl===4?4.5 : lvl===3?3.5 : 2,
