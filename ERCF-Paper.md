@@ -412,6 +412,31 @@ projects.
 
 ### 6.6 A worked example, taken from the code
 
+> **ERRATUM -- this worked example does not reconcile with the parameters in
+> 6.1 and 6.2, and has not been regenerated.** No figures below have been
+> changed; the discrepancies are recorded here so the example is not read as
+> authoritative. For 10,000 people with 20 per cent vulnerable (2,000
+> vulnerable) at Level 2:
+>
+> - **Ambulances.** 6.1 gives the current ratio as one per 150 vulnerable,
+>   revised down from an earlier one per 40. The current ratio yields about
+>   13. The example reports 50, which is 2,000 / 40 -- the pre-revision ratio
+>   the paper states was abandoned.
+> - **Medical staff.** 6.2 gives one per 250, corrected upward from one per
+>   500, which yields 40. The example reports 20, which is 10,000 / 500 --
+>   the pre-correction ratio.
+> - **Drivers.** The example computes 310 drivers at 50 US dollars, or
+>   15,500. The personnel subtotal of 34,000 is exactly security (15,000)
+>   plus medical staff (4,000) plus paramedics (15,000), and the transport
+>   line of 92,500 is buses only. The 15,500 of driver cost therefore appears
+>   to be omitted from the 558,775 subtotal.
+>
+> The example appears to have been generated from an earlier released version
+> than the ratios documented in 6.1 and 6.2. Until it is regenerated from the
+> current code with a per-line breakdown (count x unit x multiplier = line
+> total), the 643,000 headline and the 64 US dollars per person figure should
+> be treated as illustrative rather than checkable.
+
 For 10,000 people, 20 per cent of them vulnerable, at Level 2, moving 50 kilometres:
 160 standard buses, 100 medical buses and 50 ambulances, 310 vehicles in total; 50
 security staff, 20 medical staff, 100 paramedics and 310 drivers; 10,850 litres of
