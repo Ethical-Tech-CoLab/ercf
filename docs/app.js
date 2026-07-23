@@ -1023,16 +1023,11 @@ function updateAll() {
   const _tMode = document.getElementById('transportMode')?.value ?? 'ground';
   const _isAltMode = _tMode === 'air_fixed' || _tMode === 'air_heli' || _tMode === 'walking';
   const evacuatedPop  = Math.max(0, state.population - state.remainingPop);
-  // Air/walking API prices the full population, not just evacuatedPop — scale proportionally
-  // (cost is ~linear in pax for fixed_wing/helicopter/walking) to stay comparable with the
-  // ground-mode evacuatedCost below.
-  const evacuatedCost = _isAltMode
-    ? (state._lastAltResult && state.population > 0
-        ? Math.round(state._lastAltResult.total_cost_usd * (evacuatedPop / state.population))
-        : 0)
-    : (evacuatedPop > 0
-        ? calcResources(evacuatedPop, state.vulnerablePct, risk.level, state.distanceKm, state.dims.d2, state.terrain, state.climateMult, effectiveTerrainMult, state.dims.d4, state.dims.d5).totalCost
-        : 0);
+  // Evacuate-now cost = full mobilization cost (resources are mobilized for the whole
+  // population regardless of how many actually board), not a marginal per-evacuatedPop
+  // recompute. Ground uses resources.totalCost (already computed for state.population);
+  // air/walking use the alt-mode API's full-population quote directly.
+  const evacuatedCost = state._lastAltResult?.total_cost_usd ?? resources.totalCost;
   // "Total crisis cost" should reflect whatever transport mode is currently selected, not
   // always the ground total — fall back to ground while an alt-mode fetch is still pending
   // (state._lastAltResult null) so the card never shows a stale/undefined value.
@@ -1194,13 +1189,16 @@ function updateResourceDisplay(r) {
   // ── Headline cost card (above risk level panel) ─────────────────────────────
   const headlineTotal = document.getElementById('costHeadlineTotal');
   const headlineSub   = document.getElementById('costHeadlineSub');
+  const headlineNote  = document.getElementById('costHeadlineNote');
   if (headlineTotal && headlineSub) {
     if (state.population === 0) {
       headlineTotal.textContent = '—';
       headlineSub.textContent   = 'define scenario above';
+      if (headlineNote) headlineNote.textContent = '';
     } else if (_isAltMode && !state._lastAltResult) {
       headlineTotal.textContent = 'Calculating…';
       headlineSub.textContent   = fmtFull(state.population) + ' persons · ' + modeLabel + ' · ' + state.distanceKm + ' km';
+      if (headlineNote) headlineNote.textContent = '';
     } else if (_isAltMode) {
       const alt = state._lastAltResult;
       // Alt-mode cost is uniform per-capita, so cost/evacuee == cost/population regardless of evacuatedPop.
@@ -1208,10 +1206,14 @@ function updateResourceDisplay(r) {
       const cppStr = cppAlt !== null ? '$' + fmt(cppAlt) + '/evacuee · ' : '';
       headlineTotal.textContent = '$' + fmt(alt.total_cost_usd);
       headlineSub.textContent = cppStr + fmtFull(state.population) + ' persons · ' + modeLabel + ' · ' + state.distanceKm + ' km';
+      if (headlineNote) headlineNote.textContent = '';
     } else {
       headlineTotal.textContent = '$' + fmt(r.totalCost);
       const cppStr = cppPerEvacuee !== null ? '$' + fmt(cppPerEvacuee) + '/evacuee · ' : '';
       headlineSub.textContent = cppStr + fmtFull(state.population) + ' persons · ' + modeLabel + ' · ' + state.distanceKm + ' km';
+      // Ground cost is sized for the full population — clarify this differs from the
+      // evacuee-only figure used in Decision Analysis's "Evacuate now" (calcResources(evacuatedPop,...)).
+      if (headlineNote) headlineNote.textContent = `Full convoy mobilized for ${fmtFull(state.population)} persons. See Decision Analysis for evacuee-only cost.`;
     }
   }
 
@@ -2035,6 +2037,7 @@ function updateDecisionAnalysis(evacCost, dailyCostA, dailyCostB) {
   const elBreakEven     = document.getElementById('decisionBreakEven');
   const elBESub         = document.getElementById('decisionBreakEvenSub');
   const elNote          = document.getElementById('decisionNote');
+  const elDelayNote     = document.getElementById('decisionDelayNote');
   if (!elEvacCost) return;
 
   const fullEvac = state.remainingPop === 0 && evacCost > 0;
@@ -2051,6 +2054,7 @@ function updateDecisionAnalysis(evacCost, dailyCostA, dailyCostB) {
     elNoEvac.textContent    = '—';
     elBreakEven.textContent = '—';
     elBESub.textContent     = 'define scenario above';
+    if (elDelayNote) elDelayNote.textContent = '';
     _renderDecisionChart(null, null, null, null);
     return;
   }
@@ -2058,6 +2062,9 @@ function updateDecisionAnalysis(evacCost, dailyCostA, dailyCostB) {
   elEvacCost.textContent = '$' + fmt(Math.round(evacCost));
   if (elEvacDaily) elEvacDaily.textContent = '+ $' + fmt(Math.round(dailyCostA)) + '/day';
   elNoEvac.textContent   = '$' + fmt(Math.round(dailyCostB)) + '/day';
+  if (elDelayNote) {
+    elDelayNote.textContent = `This analysis assumes evacuation begins today. Each day of delay costs an additional $${fmt(Math.round(dailyCostB))} and shifts the break-even forward by approximately 1 day.`;
+  }
 
   const diff = dailyCostB - dailyCostA;
   if (diff <= 0) {
