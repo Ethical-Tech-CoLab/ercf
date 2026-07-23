@@ -12,6 +12,7 @@
 - **Multi-corridor scenario** — compare two evacuation routes side-by-side (different distance, terrain, D4).
 - **Export to PDF/Word** — generate funding appeal template with scenario summary, cost breakdown, and historical comparisons.
 - **Mobile responsive improvements** — current layout optimised for desktop; radar and charts need responsive sizing for tablets.
+- **Conflict duration distribution chart** — histogram showing duration distribution across the 31 historical cases corpus. Would give users context on typical conflict timelines to inform the planning window selection. Distinct from the mortality calibration model — purely a contextual visualization. Data available: all 31 cases have duration_days in historical_data.py.
 
 ## Priority 3 — Research / Academic
 
