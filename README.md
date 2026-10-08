@@ -1,6 +1,6 @@
 # ERCF — Evacuation Risk and Cost Framework
 
-**[Live site](https://ercf-production.up.railway.app/)** ·
+**[Live site](https://ethical-tech-colab.github.io/ercf/)** (static snapshot) ·
 **[Research report](ERCF-Paper.md)** (plain-language, non-technical)
 
 **Version:** v7.2
@@ -13,7 +13,9 @@ A decision-support tool for estimating the human and financial cost of civilian 
 
 ## Live Demo
 
-**[https://ercf-production.up.railway.app](https://ercf-production.up.railway.app)**
+**[https://ethical-tech-colab.github.io/ercf/](https://ethical-tech-colab.github.io/ercf/)**
+
+The GitHub Pages build runs without a backend: historical cases and in-browser calculations work, while live data (ACAPS, UCDP, GeoNames, commodity prices, AI context) requires running the FastAPI server locally (see [Installation](#installation)).
 
 ## Key Features
 
