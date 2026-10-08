@@ -15,6 +15,14 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Regenerate docs/snapshot/ from historical_data.py and calculators.py
+        run: |
+          python snapshot.py
+          rm -rf docs/snapshot
+          cp -r snapshot docs/snapshot
       - name: Build docs/index.html and docs/app.js from static/
         run: |
           cp static/index.html docs/index.html

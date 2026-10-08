@@ -212,8 +212,8 @@
       "climate_fuel_mult": 1.0,
       "loss_rate": 0.3,
       "effective_loss_rate": 0.55,
-      "base_extraction_prob": 0.1219,
-      "extraction_probability": 0.2219,
+      "base_extraction_prob": 0.04,
+      "extraction_probability": 0.05,
       "per_person_ground_usd": 28.08,
       "per_person_air_usd": 280.8,
       "treat_cost_per_injury": 1040.0,
@@ -224,7 +224,7 @@
       "d3_loss_add": 0.175,
       "d7_coord_overhead": 0.075,
       "d1_extraction_mult": 1.475,
-      "d3_extraction_prob_add": 0.1,
+      "d3_extraction_prob_add": 0.01,
       "d6_urgency_floor": 0.0,
       "d2_injury_mult": 1.675,
       "d1_injury_mult": 1.0,
@@ -232,9 +232,10 @@
     },
     "costs_usd": {
       "supply_delivery": 7251098.4,
-      "emergency_extraction": 476085.69,
+      "emergency_extraction": 107272.62,
       "field_medical": 302848.0,
-      "total": 8030032.09
+      "vulnerable_support": 136500.0,
+      "total": 7797719.02
     },
     "intermediates": {
       "raw_supply_before_loss": 4678128.0,
@@ -380,12 +381,14 @@
       },
       "extraction_ground_usd_per_person": {
         "value": 800,
-        "source": "Internal heuristic \u2014 no published source. Reflects reduced fuel, logistics, and personnel costs vs air extraction (computed as 30% of UNHAS air rate \u00d7 distance). Requires validation against UNHCR/IOM field data.",
+        "superseded": true,
+        "source": "SUPERSEDED \u2014 not consumed by the current calculation. calculate_remaining_costs() computes per_person_ground = UNHAS_RATE_USD_PER_KM \u00d7 0.30 \u00d7 distance_km (a distance-scaled figure), not this flat $800 value. Kept for reference only: internal heuristic, no published source, reflects reduced fuel/logistics/personnel costs vs air extraction. Requires validation against UNHCR/IOM field data.",
         "confidence": "estimated"
       },
       "extraction_medical_evac_usd_per_person": {
         "value": 2500,
-        "source": "ICRC field operation cost estimates, scaled from published per-capita figures",
+        "superseded": true,
+        "source": "SUPERSEDED \u2014 not consumed by the current calculation. calculate_remaining_costs() computes per_person_air = UNHAS_RATE_USD_PER_KM \u00d7 3.00 \u00d7 distance_km (a distance-scaled figure), not this flat $2,500 value. Kept for reference only: ICRC field operation cost estimates, scaled from published per-capita figures.",
         "confidence": "estimated"
       },
       "extraction_helicopter_premium_multiplier": {
@@ -401,7 +404,8 @@
           "L3": 2.0,
           "L4": 8.0
         },
-        "source": "WHO/ICRC conflict epidemiology literature",
+        "superseded": true,
+        "source": "SUPERSEDED \u2014 not consumed by the current calculation. The RC_INFIELD_INJ constant these figures came from was removed from executable code; calculate_remaining_costs() now calls the shared calculate_injuries() helper, which uses INJURY_RATE_10K [1.2, 2.0, 6.0, 16.0, 40.0 per 10K/day] instead. Kept for reference only. Original source: WHO/ICRC conflict epidemiology literature.",
         "confidence": "estimated"
       },
       "field_treatment_cost_usd_per_injury": {
