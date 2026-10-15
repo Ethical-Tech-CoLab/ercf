@@ -3781,9 +3781,9 @@ document.getElementById('pinModal').addEventListener('shown.bs.modal', () => {
   ensureWorldRiskLoaded(); // pre-fetch so suggestions are ready when conflict pin is placed
   if (!pinMapState.lmap) {
     pinMapState.lmap = L.map('pinMap').setView([20, 15], 2);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
-      attribution: '© OpenStreetMap contributors © CARTO',
-      subdomains: 'abcd', maxZoom: 10, noWrap: true,
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles © Esri — Esri, HERE, Garmin, © OpenStreetMap contributors',
+      maxZoom: 10, noWrap: true,
     }).addTo(pinMapState.lmap);
     pinMapState.lmap.on('click', onPinMapClick);
   } else {
@@ -4665,9 +4665,9 @@ async function initWorldMap() {
     worldCopyJump:       false,
   }).setView([20, 15], 2);
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
-    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a> · ACAPS/INFORM Severity Index (updated monthly, last pull: Jun 2026) · UCDP GED v26.1 (annual, data through 2025)',
-    subdomains: 'abcd', maxZoom: 10, noWrap: true,
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles © <a href="https://www.esri.com">Esri</a> — Esri, HERE, Garmin, © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors · ACAPS/INFORM Severity Index (updated monthly, last pull: Jun 2026) · UCDP GED v26.1 (annual, data through 2025)',
+    maxZoom: 10, noWrap: true,
   }).addTo(worldMapState.lmap);
 
   let riskData, isoData, topoData;
