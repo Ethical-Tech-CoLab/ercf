@@ -434,7 +434,7 @@ async def commodity_prices(country_iso3: str):
 # ─── UCDP GED data ───────────────────────────────────────────────────────────
 
 @app.get("/api/ucdp")
-async def get_ucdp_data(
+def get_ucdp_data(  # sync: blocking I/O runs in the threadpool
     country: str,
     year_start: int,
     year_end: int,

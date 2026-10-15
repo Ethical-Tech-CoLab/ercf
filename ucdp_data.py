@@ -20,6 +20,7 @@ Query priority:
 
 import os
 import csv
+import shutil
 import json
 import zipfile
 import urllib.request
@@ -186,8 +187,9 @@ def ensure_ucdp_data() -> bool:
         urllib.request.urlretrieve(UCDP_CSV_URL, UCDP_ZIP_PATH)
         with zipfile.ZipFile(UCDP_ZIP_PATH, "r") as z:
             csv_name = [f for f in z.namelist() if f.endswith(".csv")][0]
+            # Stream: the CSV is ~260MB, too big to hold in a 512MB container
             with z.open(csv_name) as src, open(UCDP_LOCAL_PATH, "wb") as dst:
-                dst.write(src.read())
+                shutil.copyfileobj(src, dst, 1024 * 1024)
         os.remove(UCDP_ZIP_PATH)
         print(f"UCDP GED saved to {UCDP_LOCAL_PATH}")
         return True
@@ -240,6 +242,10 @@ def summarise_ucdp(country: str, year_start: int, year_end: int,
     Args:
         use_api: If True, query live API instead of CSV (uses 1+ requests from daily quota)
     """
+    # Without a local CSV (e.g. a fresh cloud deploy) prefer the API over
+    # downloading and scanning the full ~260MB GED file inside a request.
+    if UCDP_API_TOKEN and not os.path.exists(UCDP_LOCAL_PATH):
+        use_api = True
     if use_api and UCDP_API_TOKEN:
         events = query_ucdp_api(country, year_start, year_end, adm1)
     else:
@@ -259,7 +265,7 @@ def summarise_ucdp(country: str, year_start: int, year_end: int,
         "country":                    country,
         "adm1_filter":                adm1,
         "period":                     f"{year_start}-{year_end}",
-        "data_source":                "API" if use_api else "CSV",
+        "data_source":                "API" if use_api and UCDP_API_TOKEN else "CSV",
         "total_events":               len(events),
         "one_sided_events":           len(one_sided),
         "deaths_civilians_explicit":  total_civ,
