@@ -52,6 +52,7 @@ API_KEY = os.environ.get("API_KEY", "").strip()
 
 DEFAULT_ORIGINS = (
     "https://ercf-production.up.railway.app,"
+    "https://ethical-tech-colab.github.io,https://yagorocha-web.github.io,"
     "http://localhost:8000,http://127.0.0.1:8000"
 )
 ALLOWED_ORIGINS = [
