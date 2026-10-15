@@ -260,6 +260,7 @@ const state = {
   climateMult:          null,      // {fuel_transport: float, shelter: float} from ERA5 or null
   fuelAdjFactor:        1.0,       // FRED/EIA fuel market adjustment (1.0 = ERCF baseline)
   foodAdjFactor:        1.0,       // FRED food-basket market adjustment — also applied to water (1.0 = ERCF baseline)
+  priceBasis:           'historical', // 'historical' (ERCF baseline) or 'market' (EIA/FRED international prices)
   hasRunway:            null,      // true/false/null — runway availability for air_fixed feasibility; no UI control yet, always unanswered
   personnelRateMode:    'ngo',     // 'ngo' | 'un' — toggles personnel cost multiplier
   unitSystem:           'km',      // 'km' | 'mi' — display only; all internal calcs remain in km
@@ -1688,16 +1689,19 @@ function applyCityPop(r) {
   if (pinModal) new bootstrap.Modal(pinModal).show();
   // Optionally trigger demographic suggestion for the country
   if (r.country) suggestVulnerablePct(r.country);
-  if (r.countryCode) fetchCommodityPrices(r.countryCode);
+  if (r.countryCode) state.priceCountry = r.countryCode;
   updateAll();
 }
+
+// Market prices are global benchmarks; iso3 is only echoed back by the API.
+let _commodityFetchToken = 0;
 
 async function fetchCommodityPrices(iso3) {
   const card = document.getElementById('commodityCard');
   if (!card) return;
-  card.dataset.fuelAdj = '1';
-  card.dataset.foodAdj = '1';
-  card.style.display = 'block';
+  const token = ++_commodityFetchToken;
+  card.dataset.status = 'loading';
+  updatePriceBasisStatus();
   document.getElementById('commodityDate').textContent   = '…';
   document.getElementById('commodityBrent').textContent  = '…';
   document.getElementById('commodityWheat').textContent  = '…';
@@ -1718,7 +1722,11 @@ async function fetchCommodityPrices(iso3) {
   };
 
   try {
-    const data = await fetch(`/api/commodity-prices/${encodeURIComponent(iso3)}`).then(r => r.json());
+    const resp = await fetch(`/api/commodity-prices/${encodeURIComponent(iso3)}`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    if (token !== _commodityFetchToken) return;
+    if (data.fuel_adjustment == null && data.food_adjustment == null) throw new Error('no market data');
     const baseline = data.ercf_baseline || {};
 
     const fuelAdj = data.fuel_adjustment ?? 1;
@@ -1765,51 +1773,60 @@ async function fetchCommodityPrices(iso3) {
 
     card.dataset.fuelAdj = fuelAdj;
     card.dataset.foodAdj = foodAdj;
+    card.dataset.date    = data.fuel_date || data.food_date || '';
+    card.dataset.status  = 'loaded';
   } catch(e) {
+    if (token !== _commodityFetchToken) return;
+    card.dataset.status = 'failed';
     document.getElementById('commodityBrent').textContent = 'unavailable';
     document.getElementById('commodityFoodAdj').textContent = 'unavailable';
     document.getElementById('commodityNetImpact').textContent = 'unavailable';
   }
-  syncCommodityButtons();
+  applyPriceBasis();
 }
 
-function applyMarketPrices() {
+// User's explicit choice between the ERCF historical baseline and live international prices
+function setPriceBasis(basis) {
+  state.priceBasis = basis;
   const card = document.getElementById('commodityCard');
-  const fuelAdj = parseFloat(card?.dataset.fuelAdj ?? '1');
-  const foodAdj = parseFloat(card?.dataset.foodAdj ?? '1');
+  card.style.display = basis === 'market' ? 'block' : 'none';
+  if (basis === 'market' && card.dataset.status !== 'loaded') {
+    fetchCommodityPrices(state.priceCountry || 'WLD');
+  } else {
+    applyPriceBasis();
+  }
+}
+
+function applyPriceBasis() {
+  const card = document.getElementById('commodityCard');
+  const useMarket = state.priceBasis === 'market' && card?.dataset.status === 'loaded';
+  const fuelAdj = useMarket ? parseFloat(card.dataset.fuelAdj) : 1.0;
+  const foodAdj = useMarket ? parseFloat(card.dataset.foodAdj) : 1.0;
   state.fuelAdjFactor = isFinite(fuelAdj) ? Math.round(fuelAdj * 1000) / 1000 : 1.0;
   state.foodAdjFactor = isFinite(foodAdj) ? Math.round(foodAdj * 1000) / 1000 : 1.0;
-  syncCommodityButtons();
+  updatePriceBasisStatus();
   updateAll();
 }
 
-function dismissCommodityCard() {
-  document.getElementById('commodityCard').style.display = 'none';
-}
-
-function revertMarketPrices() {
-  state.fuelAdjFactor = 1.0;
-  state.foodAdjFactor = 1.0;
-  updateAll();
-  syncCommodityButtons();
-}
-
-function syncCommodityButtons() {
-  const applyBtn  = document.getElementById('commodityApplyBtn');
-  const revertBtn = document.getElementById('commodityRevertBtn');
-  if (!applyBtn || !revertBtn) return;
-  const isApplied = (state.fuelAdjFactor ?? 1.0) !== 1.0 || (state.foodAdjFactor ?? 1.0) !== 1.0;
-
-  applyBtn.disabled        = isApplied;
-  applyBtn.textContent     = isApplied ? '✓ Applied' : 'Apply price adjustment';
-  applyBtn.style.background = isApplied ? '#e5e7eb' : '#78350f';
-  applyBtn.style.color      = isApplied ? '#9ca3af' : '#fff';
-  applyBtn.style.cursor     = isApplied ? 'default'  : 'pointer';
-
-  revertBtn.disabled        = !isApplied;
-  revertBtn.style.background = isApplied ? '#475569' : '#e5e7eb';
-  revertBtn.style.color      = isApplied ? '#fff'     : '#9ca3af';
-  revertBtn.style.cursor     = isApplied ? 'pointer'  : 'default';
+// Loading and failed are shown as their own states — never silently presented as market prices
+function updatePriceBasisStatus() {
+  const el = document.getElementById('priceBasisStatus');
+  if (!el) return;
+  const status = document.getElementById('commodityCard')?.dataset.status;
+  if (state.priceBasis !== 'market') {
+    el.style.color = '#64748b';
+    el.textContent = 'Using ERCF historical estimate: fuel $1.20/L, food $3/kg, water $0.05/L.';
+  } else if (status === 'loading') {
+    el.style.color = '#64748b';
+    el.textContent = 'Loading international prices… costs still use the ERCF historical estimate until they arrive (the backend may take up to a minute to wake up).';
+  } else if (status === 'failed') {
+    el.style.color = '#b45309';
+    el.innerHTML = '⚠ International prices unavailable — costs are still using the ERCF historical estimate. <a href="#" onclick="fetchCommodityPrices(state.priceCountry || \'WLD\');return false">Retry</a>';
+  } else {
+    el.style.color = '#78350f';
+    const date = document.getElementById('commodityCard').dataset.date;
+    el.textContent = `Using international market prices${date ? ` (${date})` : ''}: fuel ×${state.fuelAdjFactor}, food & water ×${state.foodAdjFactor} vs ERCF baseline.`;
+  }
 }
 
 // Set by fetchAltModeResult while it re-runs updateAll() to refresh dependents (headline,
