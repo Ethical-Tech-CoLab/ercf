@@ -7,6 +7,10 @@ permissions:
   contents: read
   pages: write
   id-token: write
+# Queue deploys: back-to-back pushes otherwise fail with "in progress deployment"
+concurrency:
+  group: pages
+  cancel-in-progress: false
 jobs:
   deploy:
     runs-on: ubuntu-latest
