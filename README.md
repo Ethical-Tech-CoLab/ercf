@@ -1,6 +1,6 @@
 # ERCF — Evacuation Risk and Cost Framework
 
-**[Live site](https://ethical-tech-colab.github.io/ercf/)** (static snapshot) ·
+**[Live site](https://ethical-tech-colab.github.io/ercf/)** (fully functional, live data) ·
 **[Research report](ERCF-Paper.md)** (plain-language, non-technical)
 
 **Version:** v7.2
@@ -13,9 +13,11 @@ A decision-support tool for estimating the human and financial cost of civilian 
 
 ## Live Demo
 
-**[https://ethical-tech-colab.github.io/ercf/](https://ethical-tech-colab.github.io/ercf/)**
+**[https://ethical-tech-colab.github.io/ercf/](https://ethical-tech-colab.github.io/ercf/)** · mirror: [yagorocha-web.github.io/ercf](https://yagorocha-web.github.io/ercf/)
 
-The GitHub Pages build runs without a backend: historical cases and in-browser calculations work, while live data (ACAPS, UCDP, GeoNames, commodity prices, AI context) requires running the FastAPI server locally (see [Installation](#installation)).
+The site is fully functional: the GitHub Pages frontend calls the FastAPI backend hosted on Render ([ercf.onrender.com](https://ercf.onrender.com), see `render.yaml`) for live data — world risk map, ACAPS, UCDP, GeoNames city lookup, ERA5 climate, international commodity prices, air/walking evacuation, saved scenarios and AI country context.
+
+> ⏳ The backend runs on Render's free tier: after 15 minutes without traffic it sleeps, so the first request can take up to a minute. Saved scenarios are reset whenever the backend restarts or redeploys.
 
 ## Key Features
 
