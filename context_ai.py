@@ -122,7 +122,8 @@ def analyze_country(iso3: str, country_name: str, allow_ai: bool = True) -> dict
             messages=[{"role": "user", "content": prompt}],
         )
         text = resp.content[0].text.strip()
-        result = json.loads(text)
+        # The model sometimes wraps the JSON in ```json fences or a lead-in line
+        result = json.loads(text[text.find("{"):text.rfind("}") + 1])
         result["_source"] = "claude-haiku-4-5"
         return result
     except Exception as e:
